@@ -668,7 +668,7 @@ def yahoo_screen(query, sort_field: str, asc: bool, total: int) -> list[dict]:
     return out
 
 
-def universe_candidates(n_candidates: int = 1400) -> list[dict]:
+def universe_candidates(n_candidates: int = 1600) -> list[dict]:
     """미국 거래소 상장 보통주 시가총액 상위 후보. 실패 시 지난 성공본 캐시."""
     from yfinance import EquityQuery as EQ
 
