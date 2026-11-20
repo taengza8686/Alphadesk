@@ -8,7 +8,7 @@ jobs:
       - run: pip install -r requirements.txt -q
       - shell: python
         run: |
-          import build_data as b
+          import sys; sys.path.insert(0, "."); import build_data as b
           c=b.universe_candidates(1400); print("CANDS",len(c),c[:2],c[-1])
           m=b.small_cap_movers(); print("MOVERS",None if not m else (m['gainers'][:2], m['losers'][:2]))
           print("WARN",b.WARNINGS)
