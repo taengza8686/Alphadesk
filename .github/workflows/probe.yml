@@ -1,0 +1,15 @@
+name: probe
+on: { workflow_dispatch: {}, push: { paths: ['.github/workflows/probe.yml'] } }
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for ua in "AlphaDesk taengza8686@users.noreply.github.com" "Taeheon Research taengza8686.research@gmail.com" "Mozilla/5.0 (compatible; AlphaDesk/1.0; +https://github.com/taengza8686/Alphadesk) admin@alphadesk.dev"; do
+            for u in https://www.sec.gov/files/company_tickers.json https://data.sec.gov/submissions/CIK0000320193.json https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/NetIncomeLoss.json; do
+              c=$(curl -s -o /tmp/b -w "%{http_code}" -A "$ua" -H "Accept-Encoding: gzip, deflate" "$u"); echo "$c | $ua | $u"; [ "$c" != 200 ] && head -c 300 /tmp/b | tr -d '\n' && echo
+            done
+          done
+          for u in "https://query1.finance.yahoo.com/v8/finance/chart/AAPL?range=5d&interval=1d" "https://www.ishares.com/us/products/239707/ishares-russell-1000-etf/1467271812596.ajax?fileType=csv&fileName=IWB_holdings&dataType=fund"; do
+            echo "$(curl -s -o /tmp/b -w '%{http_code}' -A 'Mozilla/5.0' "$u") $u"; head -c 200 /tmp/b; echo
+          done
