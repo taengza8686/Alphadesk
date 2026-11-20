@@ -4,12 +4,24 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          for ua in "AlphaDesk taengza8686@users.noreply.github.com" "Taeheon Research taengza8686.research@gmail.com" "Mozilla/5.0 (compatible; AlphaDesk/1.0; +https://github.com/taengza8686/Alphadesk) admin@alphadesk.dev"; do
-            for u in https://www.sec.gov/files/company_tickers.json https://data.sec.gov/submissions/CIK0000320193.json https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/NetIncomeLoss.json; do
-              c=$(curl -s -o /tmp/b -w "%{http_code}" -A "$ua" -H "Accept-Encoding: gzip, deflate" "$u"); echo "$c | $ua | $u"; [ "$c" != 200 ] && head -c 300 /tmp/b | tr -d '\n' && echo
-            done
-          done
-          for u in "https://query1.finance.yahoo.com/v8/finance/chart/AAPL?range=5d&interval=1d" "https://www.ishares.com/us/products/239707/ishares-russell-1000-etf/1467271812596.ajax?fileType=csv&fileName=IWB_holdings&dataType=fund"; do
-            echo "$(curl -s -o /tmp/b -w '%{http_code}' -A 'Mozilla/5.0' "$u") $u"; head -c 200 /tmp/b; echo
-          done
+      - run: pip install pandas lxml requests -q
+      - shell: python
+        run: |
+          import requests, io, pandas as pd
+          H={"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36","Accept":"text/csv,*/*","Referer":"https://www.ishares.com/us/products/239707/ishares-russell-1000-etf"}
+          s=requests.Session(); s.headers.update(H)
+          try:
+            s.get("https://www.ishares.com/us/products/239707/ishares-russell-1000-etf", timeout=30)
+            r=s.get("https://www.ishares.com/us/products/239707/ishares-russell-1000-etf/1467271812596.ajax?fileType=csv&fileName=IWB_holdings&dataType=fund", timeout=30)
+            print("ISHARES-session", r.status_code, r.headers.get("content-type"), r.text[:150].replace("\n"," | "))
+          except Exception as e: print("ISHARES err", e)
+          for u in ["https://investor.vanguard.com/investment-products/etfs/profile/api/VONE/portfolio-holding/stock",
+                    "https://eds.ecs.gisp.c1.vanguard.com/eds-eip-distributions-service/holdings?fundId=4415"]:
+            try:
+              r=requests.get(u,headers={"User-Agent":H["User-Agent"],"Accept":"application/json"},timeout=30); print("VANGUARD",r.status_code,r.text[:200])
+            except Exception as e: print("VANGUARD err",e)
+          try:
+            r=requests.get("https://en.wikipedia.org/wiki/Russell_1000_Index",headers={"User-Agent":"AlphaDesk/1.0 (taengza8686 GitHub)"},timeout=30)
+            ts=pd.read_html(io.StringIO(r.text)); big=[t for t in ts if len(t)>500]
+            print("WIKI", r.status_code, [len(t) for t in ts][:10], big[0].columns.tolist() if big else None, big[0].head(3).to_dict('records') if big else None)
+          except Exception as e: print("WIKI err",e)
