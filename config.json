@@ -1,6 +1,6 @@
 {
   "sec_user_agent": "AlphaDesk Research your-email@example.com",
-  "universe_source": "IWB",
+  "universe_source": "YAHOO_TOP",
   "history_years": 5,
   "quarters_to_keep": 12,
   "r2000_movers": true,
@@ -142,5 +142,6 @@
       "ticker": "ISRG",
       "sector": "Health Care"
     }
-  ]
+  ],
+  "universe_size": 1000
 }

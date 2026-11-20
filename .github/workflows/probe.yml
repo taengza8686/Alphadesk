@@ -4,25 +4,11 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: pip install yfinance requests -q
+      - uses: actions/checkout@v4
+      - run: pip install -r requirements.txt -q
       - shell: python
         run: |
-          import requests, json
-          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
-          base="https://www.ishares.com/us/products/239707/ishares-russell-1000-etf/1467271812596.ajax"
-          for q,ck in [("?tab=all&fileType=json",{}),("?fileType=csv&fileName=IWB_holdings&dataType=fund",{"blkUserType-us-ishares":"individual","us-ishares-recent-location":"US"}),("?tab=all&fileType=json",{"blkUserType-us-ishares":"individual"})]:
-            try:
-              r=requests.get(base+q,headers={"User-Agent":UA,"Accept":"*/*","X-Requested-With":"XMLHttpRequest"},cookies=ck,timeout=30)
-              t=r.content.decode('utf-8-sig','replace'); print("ISH",q[:25],ck!={},r.status_code,t[:160].replace("\n"," | "))
-            except Exception as e: print("ISH err",e)
-          import yfinance as yf
-          try:
-            from yfinance import EquityQuery as EQ
-            q=EQ('and',[EQ('eq',['region','us']),EQ('gte',['intradaymarketcap',2e9])])
-            tot=[]; 
-            for off in range(0,1200,250):
-              r=yf.screen(q,offset=off,size=250,sortField='intradaymarketcap',sortAsc=False)
-              qs=r.get('quotes',[]); tot+=qs
-              if len(qs)<250: break
-            print("YFSCREEN total",r.get('total'),"got",len(tot),[ (x['symbol'],x.get('exchange'),x.get('quoteType'),round(x.get('marketCap',0)/1e9)) for x in tot[:3]], [(x['symbol'],round(x.get('marketCap',0)/1e9,1)) for x in tot[995:1000]])
-          except Exception as e: print("YFSCREEN err",repr(e)[:300])
+          import build_data as b
+          c=b.universe_candidates(1400); print("CANDS",len(c),c[:2],c[-1])
+          m=b.small_cap_movers(); print("MOVERS",None if not m else (m['gainers'][:2], m['losers'][:2]))
+          print("WARN",b.WARNINGS)

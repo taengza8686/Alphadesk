@@ -640,6 +640,112 @@ def r2000_movers(n: int = 10) -> dict | None:
 
 
 # ---------------------------------------------------------------------------
+# Yahoo 스크리너 기반 유니버스 (iShares CSV가 막힐 때의 기본 경로)
+# ---------------------------------------------------------------------------
+US_EXCH = ["NMS", "NGM", "NCM", "NYQ", "ASE"]
+US_STATES = set("AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY PR".split())
+
+
+def yahoo_screen(query, sort_field: str, asc: bool, total: int) -> list[dict]:
+    import yfinance as yf
+
+    out = []
+    for off in range(0, total, 250):
+        for attempt in range(3):
+            try:
+                r = yf.screen(query, offset=off, size=min(250, total - off), sortField=sort_field, sortAsc=asc)
+                break
+            except Exception as ex:  # noqa: BLE001
+                if attempt == 2:
+                    warn(f"Yahoo 스크리너 실패: {ex}")
+                    return out
+                time.sleep(5)
+        qs = r.get("quotes", [])
+        out += qs
+        if len(qs) < 250:
+            break
+        time.sleep(1)
+    return out
+
+
+def universe_candidates(n_candidates: int = 1400) -> list[dict]:
+    """미국 거래소 상장 보통주 시가총액 상위 후보. 실패 시 지난 성공본 캐시."""
+    from yfinance import EquityQuery as EQ
+
+    cache = CACHE / "universe_candidates.json"
+    q = EQ("and", [EQ("eq", ["region", "us"]), EQ("is-in", ["exchange", *US_EXCH]), EQ("gte", ["intradaymarketcap", 5e8])])
+    qs = yahoo_screen(q, "intradaymarketcap", False, n_candidates)
+    rows = [{"ticker": x["symbol"].upper(), "name": x.get("longName") or x.get("shortName") or x["symbol"],
+             "marketCap": x.get("marketCap"), "sector": YAHOO_TO_GICS.get(x.get("sector") or "", "")}
+            for x in qs if x.get("quoteType", "EQUITY") == "EQUITY" and x.get("symbol")]
+    if len(rows) >= 500:
+        CACHE.mkdir(exist_ok=True)
+        cache.write_text(json.dumps(rows))
+        return rows
+    if cache.exists():
+        warn("Yahoo 스크리너 결과 부족 → 지난 성공본 유니버스 사용")
+        return json.loads(cache.read_text())
+    return rows
+
+
+def is_us_company(sub: dict) -> bool:
+    biz = ((sub.get("addresses") or {}).get("business") or {}).get("stateOrCountry") or ""
+    forms = set((sub.get("filings") or {}).get("recent", {}).get("form", [])[:300])
+    if forms & {"20-F", "40-F", "6-K"} and not forms & {"10-K", "10-Q"}:
+        return False
+    return biz in US_STATES
+
+
+def sic_sector(sic: str | None, desc: str | None) -> str:
+    try:
+        c = int(sic or 0)
+    except ValueError:
+        c = 0
+    d = (desc or "").lower()
+    if c in (2833, 2834, 2835, 2836) or 3841 <= c <= 3851 or 8000 <= c <= 8099 or c == 6324:
+        return "Health Care"
+    if c in (3570, 3571, 3572, 3575, 3576, 3577, 3578, 3579, 3661, 3663, 3669, 3670, 3672, 3674, 3677, 3678, 3679, 3825, 3826, 7370, 7371, 7372, 7373, 7374, 7379):
+        return "Information Technology"
+    if c in (4812, 4813, 4822, 4841, 4899, 7812, 7819, 2711, 2721, 7370) or "broadcast" in d:
+        return "Communication Services"
+    if 1300 <= c <= 1399 or c in (2911, 4610, 4922, 4923, 5171, 5172, 2990):
+        return "Energy"
+    if 4900 <= c <= 4991:
+        return "Utilities"
+    if c == 6798 or 6500 <= c <= 6553:
+        return "Real Estate"
+    if 6000 <= c <= 6799:
+        return "Financials"
+    if c in (2000, 2011, 2013, 2015, 2020, 2024, 2030, 2033, 2040, 2050, 2060, 2070, 2080, 2082, 2086, 2090, 2092, 2100, 2111, 2840, 2842, 2844, 5140, 5141, 5411, 5412, 5331, 5399, 5912):
+        return "Consumer Staples"
+    if 1000 <= c <= 1499 or 2600 <= c <= 2699 or 2800 <= c <= 2829 or 2851 <= c <= 2899 or 3200 <= c <= 3399:
+        return "Materials"
+    if 5000 <= c <= 5999 or 7000 <= c <= 7299 or c in (3711, 3713, 3714, 3716, 3751, 2300, 2320, 2330, 3021, 3942, 3944, 3949, 2510, 2520, 3630, 3651, 7900, 7990, 8200):
+        return "Consumer Discretionary"
+    if 3400 <= c <= 3999 or 1500 <= c <= 1799 or 4000 <= c <= 4799 or 7300 <= c <= 7389 or 8700 <= c <= 8748:
+        return "Industrials"
+    return "기타"
+
+
+def small_cap_movers(n: int = 10) -> dict | None:
+    """미국 소형주(시총 3억~100억 달러) 전일 등락 상·하위 — Russell 2000 근사."""
+    from yfinance import EquityQuery as EQ
+
+    q = EQ("and", [EQ("eq", ["region", "us"]), EQ("is-in", ["exchange", *US_EXCH]),
+                   EQ("btwn", ["intradaymarketcap", 3e8, 1e10]), EQ("gte", ["intradayprice", 2]),
+                   EQ("gte", ["avgdailyvol3m", 200000])])
+    conv = lambda x: {"ticker": x["symbol"], "name": x.get("shortName") or x.get("longName") or x["symbol"],  # noqa: E731
+                      "price": x.get("regularMarketPrice"), "r1D": round(x.get("regularMarketChangePercent") or 0, 2),
+                      "volume": x.get("regularMarketVolume"), "sector": x.get("sector") or ""}
+    up = [conv(x) for x in yahoo_screen(q, "percentchange", False, n)]
+    dn = [conv(x) for x in yahoo_screen(q, "percentchange", True, n)]
+    if not up and not dn:
+        return None
+    return {"asOf": dt.date.today().isoformat(), "universeCount": None, "gainers": up, "losers": dn,
+            "source": "Yahoo 스크리너: 미국 상장 시총 3억~100억 달러·주가 2달러↑·일평균 거래량 20만주↑ (Russell 2000 근사)"}
+
+
+# ---------------------------------------------------------------------------
 # SEC 대량 데이터: companyfacts.zip (하루 1회 일괄) → 실패 시 종목별 API
 # ---------------------------------------------------------------------------
 BULK_FACTS = "https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip"
@@ -848,13 +954,19 @@ def main() -> None:
         uni = [{"ticker": t.strip().upper(), "name": t.strip().upper(), "sector": (overrides.get(t.strip().upper()) or {}).get("sector", "")}
                for t in args.tickers.split(",") if t.strip()]
         source = "지정 종목"
-    elif cfg.get("universe_source") == "IWB":
-        hold = ishares_holdings("IWB")
-        uni = [{**h, "ticker": map_ticker(h["ticker"], sec_map)} for h in hold]
-        source = "Russell 1000 (iShares IWB 보유종목)"
-        if not uni:
-            uni = [{"ticker": u["ticker"], "sector": u.get("sector", "")} for u in cfg.get("universe", [])]
-            source = "config 유니버스 (IWB 실패)"
+    elif cfg.get("universe_source") in ("IWB", "YAHOO_TOP"):
+        hold = ishares_holdings("IWB") if cfg.get("universe_source") == "IWB" else []
+        if hold:
+            uni = [{**h, "ticker": map_ticker(h["ticker"], sec_map)} for h in hold]
+            source = "Russell 1000 (iShares IWB 보유종목)"
+        else:
+            cands = universe_candidates()
+            uni = [{**c, "ticker": map_ticker(c["ticker"], sec_map), "weight": c.get("marketCap")} for c in cands]
+            uni = [u for u in uni if u["ticker"] in sec_map]
+            source = "Russell 1000 근사 (미국 상장·미국 기업 시가총액 상위 1,000)"
+            if not uni:
+                uni = [{"ticker": u["ticker"], "sector": u.get("sector", "")} for u in cfg.get("universe", [])]
+                source = "config 유니버스 (스크리너 실패)"
     else:
         uni = [{"ticker": u["ticker"], "sector": u.get("sector", "")} for u in cfg.get("universe", [])]
         source = "config 유니버스"
@@ -863,7 +975,29 @@ def main() -> None:
         if u["ticker"] not in seen:
             seen.add(u["ticker"])
             uni2.append(u)
-    uni = uni2[: args.max] if args.max else uni2
+    target = args.max or int(cfg.get("universe_size", 1000))
+    for u in uni2:
+        if u["ticker"] in overrides and overrides[u["ticker"]].get("sector"):
+            u["sector"] = overrides[u["ticker"]]["sector"]
+    screen_mode = source.startswith("Russell 1000 근사")
+    if screen_mode:
+        print("   SEC 등록 정보로 외국 기업 제외 중")
+        kept = []
+        for u in uni2:
+            if len(kept) >= target:
+                break
+            cik = sec_map.get(u["ticker"])
+            try:
+                sub = sec.get_json(f"https://data.sec.gov/submissions/CIK{cik}.json", f"sub/{cik}.json", 20)
+            except Exception:  # noqa: BLE001
+                continue
+            if is_us_company(sub):
+                if not u.get("sector"):
+                    u["sector"] = sic_sector(sub.get("sic"), sub.get("sicDescription"))
+                kept.append(u)
+        uni = kept
+    else:
+        uni = uni2[:target] if (args.max or source.startswith("Russell 1000 (")) else uni2
     print(f"   {source}: {len(uni)}종목")
 
     print("③ 가격 (Yahoo 일괄)")
@@ -930,7 +1064,7 @@ def main() -> None:
     movers = None
     if cfg.get("r2000_movers", True) and not args.no_movers:
         print("⑤ Russell 2000 등락 상·하위")
-        movers = r2000_movers()
+        movers = small_cap_movers() if screen_mode else r2000_movers()
         if movers and fh_key:
             for row in movers["gainers"] + movers["losers"]:
                 nn = company_news(row["ticker"], fh_key, days=3, n=1)
