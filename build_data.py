@@ -934,7 +934,7 @@ def main() -> None:
     args = ap.parse_args()
 
     cfg = json.loads(Path(args.config).read_text())
-    ua = os.environ.get("SEC_USER_AGENT") or cfg.get("sec_user_agent", "")
+    ua = " ".join((os.environ.get("SEC_USER_AGENT") or cfg.get("sec_user_agent", "")).split())
     if not ua or "your-email" in ua:
         sys.exit("SEC_USER_AGENT(이름 이메일)를 설정해 주세요 (SEC 접속 규정).")
     fh_key = os.environ.get("FINNHUB_API_KEY")
