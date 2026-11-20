@@ -937,7 +937,8 @@ def main() -> None:
     ua = " ".join((os.environ.get("SEC_USER_AGENT") or cfg.get("sec_user_agent", "")).split())
     if not ua or "your-email" in ua:
         sys.exit("SEC_USER_AGENT(이름 이메일)를 설정해 주세요 (SEC 접속 규정).")
-    fh_key = os.environ.get("FINNHUB_API_KEY")
+    fh_key = "".join((os.environ.get("FINNHUB_API_KEY") or "").split()) or None
+    print(f"   Finnhub 뉴스 키: {'설정됨' if fh_key else '없음'}")
     fmp_key = os.environ.get("FMP_API_KEY")
     years = int(cfg.get("history_years", 5))
     nq = int(cfg.get("quarters_to_keep", 12))
@@ -1092,6 +1093,8 @@ def main() -> None:
     market_news = []
     if fh_key:
         rows = finnhub_get("news", fh_key, category="general") or []
+        if not rows:
+            warn("Finnhub 시장 뉴스가 비어 있습니다(키 오류·호출 한도 가능성)")
         market_news = [news_item(x) for x in rows[:12]] if isinstance(rows, list) else []
 
     now = dt.datetime.now(dt.timezone.utc)

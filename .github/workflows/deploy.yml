@@ -42,7 +42,7 @@ jobs:
       - name: Build data (Russell 1000)
         env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('AlphaDesk {0}@users.noreply.github.com', github.repository_owner) }}
-          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY || secrets.FINHUB_API_KEY || secrets.FINNHUB_KEY || secrets.FINNHUB || vars.FINNHUB_API_KEY || vars.FINHUB_API_KEY || vars.FINNHUB_KEY }}
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
         run: python build_data.py --out-dir site/data --info-budget 300
       - uses: actions/configure-pages@v5
