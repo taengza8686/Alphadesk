@@ -357,6 +357,11 @@
           <p class="text-xs sm:text-sm text-slate-400 mt-1">SEC 10-Q/10-K XBRL 원본 기반 회계연도 분기 재무제표 (GAAP) · 분기 라벨은 각 사 결산월 기준</p>
         </div>
         <div class="flex flex-wrap items-center gap-2.5">
+          <div class="flex items-center bg-terminal-card border border-terminal-border rounded-xl overflow-hidden">
+            <input id="dd-search" list="dd-ticker-list" type="text" placeholder="티커·기업명 검색 (예: NVDA)" autocomplete="off" onkeydown="if(event.key==='Enter') searchDeepDiveTicker()" onchange="searchDeepDiveTicker(true)" class="w-48 bg-transparent px-3 py-2 text-xs font-mono text-white placeholder-slate-500 focus:outline-none" />
+            <button onclick="searchDeepDiveTicker()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs text-blue-400 font-semibold border-l border-terminal-border">검색</button>
+          </div>
+          <datalist id="dd-ticker-list"></datalist>
           <select id="deepdive-ticker-select" onchange="renderDeepDiveSection()" class="bg-terminal-card border border-terminal-border rounded-xl px-3.5 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500"></select>
           <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-terminal-border">
             <button id="btn-stmt-IS" onclick="setStatementType('IS')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white">손익계산서 (I/S)</button>
@@ -714,6 +719,7 @@
       if (bmKeys.includes(cur)) el.value = cur;
     });
     const opts = [...stocksData].sort((a, b) => (b.mktCap || 0) - (a.mktCap || 0)).map(s => `<option value="${esc(s.ticker)}">${esc(s.ticker)} — ${esc(s.name)}</option>`).join('');
+    $('dd-ticker-list').innerHTML = [...stocksData].sort((a, b) => (b.mktCap || 0) - (a.mktCap || 0)).map(s => `<option value="${esc(s.ticker)}">${esc(s.name)}</option>`).join('');
     ['deepdive-ticker-select', 'tech-ticker-select'].forEach(id => {
       const el = $(id), cur = el.value;
       el.innerHTML = opts;
@@ -1105,6 +1111,23 @@
     renderDeepDiveSection();
   }
   const daysBetween = (a, b) => (new Date(b) - new Date(a)) / 86400000;
+  function searchDeepDiveTicker(silent) {
+    const inp = $('dd-search');
+    const q = (inp.value || '').trim();
+    if (!q) return;
+    const up = q.toUpperCase().replace('.', '-');
+    const ql = q.toLowerCase();
+    let hit = findStock(up) || stocksData.find(s => s.ticker.replace('-', '.') === q.toUpperCase());
+    if (!hit) {
+      const cands = stocksData.filter(s => s.ticker.startsWith(up) || (s.name || '').toLowerCase().includes(ql)).sort((a, b) => (b.mktCap || 0) - (a.mktCap || 0));
+      hit = cands[0];
+      if (hit && cands.length > 1 && !silent) showToast(`'${q}' 검색 결과 ${cands.length}건 중 시가총액 1위 ${hit.ticker}를 표시합니다. 다른 종목은 목록에서 고르세요.`);
+    }
+    if (!hit) { if (!silent) showToast(`'${q}'는 유니버스(시총 상위 1,000)에 없습니다. 05 탭 TradingView 차트에서는 조회할 수 있습니다.`, 'error'); return; }
+    $('deepdive-ticker-select').value = hit.ticker;
+    inp.value = '';
+    renderDeepDiveSection();
+  }
   function renderDeepDiveSection() {
     const ticker = $('deepdive-ticker-select').value;
     const s = findStock(ticker);
