@@ -104,7 +104,7 @@
       <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
           <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">미국 증시 시장 펄스 & 4대 주요 지수 흐름</h1>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1">지수 카드: Yahoo 일별 종가 기준 · 차트: TradingView 실시간 (S&P 500 · Nasdaq 100 · Dow Jones · Russell 2000)</p>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">지수 카드: 실제 지수 종가(Yahoo) · 차트: TradingView 실시간, 지수 추종 ETF(SPY·QQQ·DIA·IWM)</p>
         </div>
         <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-terminal-border">
           <button id="btn-idx-int-1D" onclick="setMarketIndexInterval('1D')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-600 text-white">일봉</button>
@@ -120,7 +120,7 @@
         <div class="px-5 py-3 border-b border-terminal-border flex flex-wrap items-center justify-between gap-2 bg-slate-900/50">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="active-index-title" class="text-xs font-bold text-white">S&P 500 Index (TVC:SPX)</span>
+            <span id="active-index-title" class="text-xs font-bold text-white">S&P 500</span>
           </div>
           <span class="text-[11px] text-slate-400 font-mono">TradingView Real-Time Chart · BB(20,2) · RSI(14) · MACD(12,26,9)</span>
         </div>
@@ -757,7 +757,7 @@
 
   // ---------------------------------------------------------------- TAB 0
   const INDEX_CARDS = [['SP500', 'S&P 500'], ['NDX', 'Nasdaq 100'], ['DJI', 'Dow Jones 30'], ['RUT', 'Russell 2000']];
-  const DEFAULT_TV = { SP500: 'TVC:SPX', NDX: 'NASDAQ:NDX', DJI: 'DJ:DJI', RUT: 'TVC:RUT', SOX: 'NASDAQ:SOX' };
+  const DEFAULT_TV = { SP500: 'AMEX:SPY', NDX: 'NASDAQ:QQQ', DJI: 'AMEX:DIA', RUT: 'AMEX:IWM', SOX: 'NASDAQ:SOXX' };
   function renderIndexCards() {
     $('index-cards').innerHTML = INDEX_CARDS.map(([k, label]) => {
       const b = benchmarkData[k] || {};
@@ -780,7 +780,7 @@
   function renderMarketIndexChart() {
     const b = benchmarkData[marketIndexKey] || {};
     const sym = b.tv || DEFAULT_TV[marketIndexKey];
-    $('active-index-title').textContent = `${b.name || marketIndexKey} Index (${sym})`;
+    $('active-index-title').textContent = `${b.name || marketIndexKey} — 차트는 지수 추종 ETF ${sym.split(':')[1]} (TradingView는 지수 원지수 차트의 외부 게시를 허용하지 않음)`;
     mountTvChart('market_index_tv_container', sym, { interval: TV_INT[marketIndexInterval] });
   }
   function newsCard(n, compact = false) {

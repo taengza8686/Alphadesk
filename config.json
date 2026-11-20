@@ -8,27 +8,27 @@
     "SP500": {
       "name": "S&P 500",
       "yahoo": "^GSPC",
-      "tv": "TVC:SPX"
+      "tv": "AMEX:SPY"
     },
     "NDX": {
       "name": "Nasdaq 100",
       "yahoo": "^NDX",
-      "tv": "NASDAQ:NDX"
+      "tv": "NASDAQ:QQQ"
     },
     "DJI": {
       "name": "Dow Jones 30",
       "yahoo": "^DJI",
-      "tv": "DJ:DJI"
+      "tv": "AMEX:DIA"
     },
     "RUT": {
       "name": "Russell 2000",
       "yahoo": "^RUT",
-      "tv": "TVC:RUT"
+      "tv": "AMEX:IWM"
     },
     "SOX": {
       "name": "PHLX Semiconductor",
       "yahoo": "^SOX",
-      "tv": "NASDAQ:SOX"
+      "tv": "NASDAQ:SOXX"
     }
   },
   "default_portfolio": [
