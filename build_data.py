@@ -942,10 +942,29 @@ def main() -> None:
     years = int(cfg.get("history_years", 5))
     nq = int(cfg.get("quarters_to_keep", 12))
     out = Path(args.out_dir)
-    sec = SecClient(ua)
-
+    import re as _re
+    emails = _re.findall(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+", ua)
+    print(f"   SEC_USER_AGENT 형식 점검: 단어 {len(ua.split())}개, 이메일 포함={'예' if emails else '아니오'}, "
+          f"도메인={emails[0].split('@')[1] if emails else '-'}, 비ASCII 문자={'있음' if any(ord(ch) > 127 for ch in ua) else '없음'}")
+    variants = [ua]
+    if emails:
+        variants += [f"AlphaDesk Research {emails[0]}", f"Research {emails[0]}"]
+    sec = None
     print("① SEC 티커→CIK 매핑")
-    tmap_raw = sec.get_json("https://www.sec.gov/files/company_tickers.json", "company_tickers.json", 24)
+    for vi, v in enumerate(variants):
+        if any(ord(ch) > 127 for ch in v):
+            continue
+        cand = SecClient(v)
+        try:
+            tmap_raw = cand.get_json("https://www.sec.gov/files/company_tickers.json", "company_tickers.json", 24)
+            sec = cand
+            print(f"   SEC 접속 성공 (형식 {vi + 1}번)")
+            break
+        except requests.HTTPError as ex:
+            body = ex.response.text[:160].replace("\n", " ") if ex.response is not None else ""
+            print(f"   SEC 접속 실패 (형식 {vi + 1}번): {ex.response.status_code if ex.response is not None else ''} {body}")
+    if sec is None:
+        sys.exit("SEC 접속이 모두 거부되었습니다. SEC_USER_AGENT를 '영문이름 이메일' 형식으로 확인해 주세요.")
     sec_map = {v["ticker"].upper(): str(v["cik_str"]).zfill(10) for v in tmap_raw.values()}
 
     print("② 유니버스 구성")
