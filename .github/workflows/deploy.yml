@@ -1,0 +1,61 @@
+name: Build & deploy AlphaDesk
+
+on:
+  schedule:
+    # 평일 22:17 UTC = 미국 장 마감 후 (한국시간 다음날 07:17)
+    - cron: "17 22 * * 1-5"
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Restore data cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache/yinfo
+            .cache/sub
+            .cache/holdings_IWB.json
+            .cache/holdings_IWM.json
+            .cache/company_tickers.json
+          key: alphadesk-${{ github.run_id }}
+          restore-keys: alphadesk-
+      - name: Build data (Russell 1000)
+        env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('AlphaDesk {0}@users.noreply.github.com', github.repository_owner) }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+        run: python build_data.py --out-dir site/data --info-budget 300
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

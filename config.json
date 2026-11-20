@@ -1,0 +1,146 @@
+{
+  "sec_user_agent": "AlphaDesk Research your-email@example.com",
+  "universe_source": "IWB",
+  "history_years": 5,
+  "quarters_to_keep": 12,
+  "r2000_movers": true,
+  "benchmarks": {
+    "SP500": {
+      "name": "S&P 500",
+      "yahoo": "^GSPC",
+      "tv": "TVC:SPX"
+    },
+    "NDX": {
+      "name": "Nasdaq 100",
+      "yahoo": "^NDX",
+      "tv": "NASDAQ:NDX"
+    },
+    "DJI": {
+      "name": "Dow Jones 30",
+      "yahoo": "^DJI",
+      "tv": "DJ:DJI"
+    },
+    "RUT": {
+      "name": "Russell 2000",
+      "yahoo": "^RUT",
+      "tv": "TVC:RUT"
+    },
+    "SOX": {
+      "name": "PHLX Semiconductor",
+      "yahoo": "^SOX",
+      "tv": "NASDAQ:SOX"
+    }
+  },
+  "default_portfolio": [
+    {
+      "ticker": "NVDA",
+      "weight": 25
+    },
+    {
+      "ticker": "AVGO",
+      "weight": 15
+    },
+    {
+      "ticker": "MSFT",
+      "weight": 15
+    },
+    {
+      "ticker": "META",
+      "weight": 15
+    },
+    {
+      "ticker": "COHR",
+      "weight": 10
+    },
+    {
+      "ticker": "CRDO",
+      "weight": 10
+    },
+    {
+      "ticker": "GEV",
+      "weight": 10
+    }
+  ],
+  "universe": [
+    {
+      "ticker": "NVDA",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "AAPL",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "MSFT",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "AMZN",
+      "sector": "Consumer Discretionary"
+    },
+    {
+      "ticker": "GOOGL",
+      "sector": "Communication Services"
+    },
+    {
+      "ticker": "META",
+      "sector": "Communication Services"
+    },
+    {
+      "ticker": "AVGO",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "TSLA",
+      "sector": "Consumer Discretionary"
+    },
+    {
+      "ticker": "LLY",
+      "sector": "Health Care"
+    },
+    {
+      "ticker": "JPM",
+      "sector": "Financials"
+    },
+    {
+      "ticker": "ORCL",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "CRM",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "PLTR",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "ANET",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "GEV",
+      "sector": "Industrials"
+    },
+    {
+      "ticker": "COHR",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "LITE",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "CRDO",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "QCOM",
+      "sector": "Information Technology"
+    },
+    {
+      "ticker": "ISRG",
+      "sector": "Health Care"
+    }
+  ]
+}
