@@ -58,12 +58,13 @@
       </div>
 
       <nav class="py-4 space-y-1">
-        <button onclick="switchTab('tab0')" id="nav-tab0" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-active transition-all"><span class="font-mono text-[11px] opacity-80">00</span><span>시장 펄스 & 주요 지수</span></button>
-        <button onclick="switchTab('tab1')" id="nav-tab1" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">01</span><span>Russell 1000 스크리너</span></button>
-        <button onclick="switchTab('tab2')" id="nav-tab2" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">02</span><span>수익률 vs 리스크·밸류</span></button>
-        <button onclick="switchTab('tab3')" id="nav-tab3" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">03</span><span>모델 포트폴리오</span></button>
-        <button onclick="switchTab('tab4')" id="nav-tab4" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">04</span><span>종목 딥다이브 & 실적</span></button>
-        <button onclick="switchTab('tab5')" id="nav-tab5" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">05</span><span>기술적 분석 & 캔들차트</span></button>
+        <button onclick="switchTab('tabH')" id="nav-tabH" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-active transition-all"><span class="font-mono text-[11px] opacity-80">00</span><span>S&P 500 히트맵</span></button>
+        <button onclick="switchTab('tab0')" id="nav-tab0" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">01</span><span>시장 펄스 & 주요 지수</span></button>
+        <button onclick="switchTab('tab1')" id="nav-tab1" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">02</span><span>Russell 1000 스크리너</span></button>
+        <button onclick="switchTab('tab2')" id="nav-tab2" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">03</span><span>수익률 vs 리스크·밸류</span></button>
+        <button onclick="switchTab('tab3')" id="nav-tab3" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">04</span><span>모델 포트폴리오</span></button>
+        <button onclick="switchTab('tab4')" id="nav-tab4" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">05</span><span>종목 딥다이브 & 실적</span></button>
+        <button onclick="switchTab('tab5')" id="nav-tab5" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">06</span><span>기술적 분석 & 캔들차트</span></button>
       </nav>
     </div>
 
@@ -99,8 +100,42 @@
       <div>매일 자동 갱신 중이거나 일시적인 네트워크 문제일 수 있습니다. 잠시 후 새로고침해 주세요. TradingView 차트는 데이터와 무관하게 동작합니다.</div>
     </div>
 
+    <!-- TAB H: S&P 500 HEATMAP -->
+    <section id="tabH" class="space-y-5">
+      <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">S&P 500 구성종목 히트맵</h1>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1">박스 크기 = 시가총액 · 색 = 선택 기간 등락률 · 섹터별 묶음 · TradingView 실시간(장중 지연 가능) · 박스를 누르면 확대, 마우스를 올리면 상세</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="inline-flex flex-wrap rounded-xl bg-slate-900 p-1 border border-terminal-border" id="heat-period-group">
+            <button data-hp="change" class="px-3 py-1 rounded-lg text-xs font-semibold">1D</button>
+            <button data-hp="Perf.W" class="px-3 py-1 rounded-lg text-xs font-semibold">1W</button>
+            <button data-hp="Perf.1M" class="px-3 py-1 rounded-lg text-xs font-semibold">1M</button>
+            <button data-hp="Perf.3M" class="px-3 py-1 rounded-lg text-xs font-semibold">3M</button>
+            <button data-hp="Perf.6M" class="px-3 py-1 rounded-lg text-xs font-semibold">6M</button>
+            <button data-hp="Perf.YTD" class="px-3 py-1 rounded-lg text-xs font-semibold">YTD</button>
+            <button data-hp="Perf.Y" class="px-3 py-1 rounded-lg text-xs font-semibold">1Y</button>
+          </div>
+          <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-terminal-border" id="heat-group-group">
+            <button data-hg="sector" class="px-3 py-1 rounded-lg text-xs font-semibold">섹터별</button>
+            <button data-hg="no_group" class="px-3 py-1 rounded-lg text-xs font-semibold">전체</button>
+          </div>
+          <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-terminal-border" id="heat-src-group">
+            <button data-hs="SPX500" class="px-3 py-1 rounded-lg text-xs font-semibold">S&P 500</button>
+            <button data-hs="NASDAQ100" class="px-3 py-1 rounded-lg text-xs font-semibold">Nasdaq 100</button>
+            <button data-hs="DJDJI" class="px-3 py-1 rounded-lg text-xs font-semibold">Dow 30</button>
+          </div>
+        </div>
+      </div>
+      <div class="bg-terminal-panel border border-terminal-border rounded-2xl overflow-hidden shadow-2xl">
+        <div id="heatmap-container" class="w-full h-[78vh] min-h-[560px]"></div>
+      </div>
+      <p class="text-[11px] text-slate-500">데이터·화면: TradingView Stock Heatmap 위젯(공식 임베드). Finviz는 이용약관상 자동 수집이 금지되어 같은 형태의 공식 위젯을 사용합니다.</p>
+    </section>
+
     <!-- TAB 0 -->
-    <section id="tab0" class="space-y-5">
+    <section id="tab0" class="hidden space-y-5">
       <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
           <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">미국 증시 시장 펄스 & 4대 주요 지수 흐름</h1>
@@ -536,8 +571,8 @@
       <div id="drawer-tags" class="flex flex-wrap gap-2"></div>
     </div>
     <div class="p-5 border-t border-terminal-border bg-slate-900/60 grid grid-cols-2 gap-3">
-      <button onclick="jumpToDeepDive()" class="py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors">04 실적·공시 보기 →</button>
-      <button onclick="jumpToTechChart()" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition-colors">05 캔들차트 →</button>
+      <button onclick="jumpToDeepDive()" class="py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors">05 실적·공시 보기 →</button>
+      <button onclick="jumpToTechChart()" class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition-colors">06 캔들차트 →</button>
     </div>
   </aside>
 
@@ -574,7 +609,8 @@
   let benchmarkData = {};
   let modelPortfolio = [];
 
-  let currentTab = 'tab0';
+  let currentTab = 'tabH';
+  let heatPeriod = 'change', heatGroup = 'sector', heatSource = 'SPX500';
   let marketIndexKey = 'SP500';
   let marketIndexInterval = '1D';
   let tab1ViewMode = 'CUSTOM';
@@ -730,12 +766,13 @@
   // ---------------------------------------------------------------- navigation
   function switchTab(tabId) {
     currentTab = tabId;
-    ['tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5'].forEach(id => {
+    ['tabH', 'tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5'].forEach(id => {
       $(id).classList.toggle('hidden', id !== tabId);
       $('nav-' + id).className = `w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 transition-all ${id === tabId ? 'sidebar-item-active' : 'sidebar-item-inactive'}`;
     });
     const sb = $('left-sidebar');
     if (!sb.classList.contains('-translate-x-full') && window.innerWidth < 1024) toggleMobileSidebar();
+    if (tabId === 'tabH') renderHeatmap();
     if (tabId === 'tab0') renderMarketIndexChart();
     if (tabId === 'tab1') renderOverviewTable();
     if (tabId === 'tab2') updateScatterView();
@@ -1123,7 +1160,7 @@
       hit = cands[0];
       if (hit && cands.length > 1 && !silent) showToast(`'${q}' 검색 결과 ${cands.length}건 중 시가총액 1위 ${hit.ticker}를 표시합니다. 다른 종목은 목록에서 고르세요.`);
     }
-    if (!hit) { if (!silent) showToast(`'${q}'는 유니버스(시총 상위 1,000)에 없습니다. 05 탭 TradingView 차트에서는 조회할 수 있습니다.`, 'error'); return; }
+    if (!hit) { if (!silent) showToast(`'${q}'는 유니버스(시총 상위 1,000)에 없습니다. 06 탭 TradingView 차트에서는 조회할 수 있습니다.`, 'error'); return; }
     $('deepdive-ticker-select').value = hit.ticker;
     inp.value = '';
     renderDeepDiveSection();
@@ -1372,7 +1409,39 @@
 
   // ---------------------------------------------------------------- init
   window.addEventListener('resize', () => { if (currentTab === 'tab5' && techEngine === 'CUSTOM') drawCustomTechnicalChart(); });
-  function initAlphaDesk() { renderIndexCards(); renderMarketIndexChart(); loadDataJson(false); }
+  // ---------------------------------------------------------------- HEATMAP (TradingView 공식 위젯)
+  function renderHeatmap() {
+    const c = $('heatmap-container');
+    const key = [heatSource, heatPeriod, heatGroup].join('|');
+    [['heat-period-group', 'hp', heatPeriod], ['heat-group-group', 'hg', heatGroup], ['heat-src-group', 'hs', heatSource]].forEach(([gid, attr, cur]) => {
+      $(gid).querySelectorAll('button').forEach(b => { b.className = `px-3 py-1 rounded-lg text-xs font-semibold ${b.dataset[attr] === cur ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`; });
+    });
+    if (c.dataset.key === key) return;
+    c.dataset.key = key;
+    c.innerHTML = '';
+    const wrap = document.createElement('div'); wrap.className = 'tradingview-widget-container'; wrap.style.height = '100%'; wrap.style.width = '100%';
+    const inner = document.createElement('div'); inner.className = 'tradingview-widget-container__widget'; inner.style.height = '100%';
+    const sc = document.createElement('script');
+    sc.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js'; sc.async = true;
+    sc.text = JSON.stringify({ exchanges: [], dataSource: heatSource, grouping: heatGroup, blockSize: 'market_cap_basic', blockColor: heatPeriod,
+      locale: 'kr', symbolUrl: '', colorTheme: 'dark', hasTopBar: true, isDataSetEnabled: false, isZoomEnabled: true, hasSymbolTooltip: true,
+      isMonoSize: false, width: '100%', height: '100%' });
+    wrap.appendChild(inner); wrap.appendChild(sc); c.appendChild(wrap);
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-hp],[data-hg],[data-hs]');
+    if (!b) return;
+    if (b.dataset.hp) heatPeriod = b.dataset.hp;
+    if (b.dataset.hg) heatGroup = b.dataset.hg;
+    if (b.dataset.hs) heatSource = b.dataset.hs;
+    renderHeatmap();
+  });
+
+  function initAlphaDesk() {
+    const h = (location.hash || '').slice(1);
+    if (['tabH', 'tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5'].includes(h)) currentTab = h;
+    renderIndexCards(); switchTab(currentTab); loadDataJson(false);
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAlphaDesk); else initAlphaDesk();
   </script>
 </body>
