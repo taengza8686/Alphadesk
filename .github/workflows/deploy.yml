@@ -45,6 +45,21 @@ jobs:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY || secrets.FINHUB_API_KEY || secrets.FINNHUB_KEY || secrets.FINNHUB || vars.FINNHUB_API_KEY || vars.FINHUB_API_KEY || vars.FINNHUB_KEY }}
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
         run: python build_data.py --out-dir site/data --info-budget 300
+      - name: Mirror to Cloudflare Pages (github 없는 주소)
+        continue-on-error: true
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          export CLOUDFLARE_API_TOKEN="$(printf '%s' "$CF_TOKEN" | tr -d '[:space:]')"
+          export CLOUDFLARE_ACCOUNT_ID="$(printf '%s' "$CF_ACCOUNT" | tr -d '[:space:]')"
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "Cloudflare 비밀값 없음 → 미러 배포 건너뜀"; exit 0
+          fi
+          echo "Cloudflare 비밀값: 설정됨"
+          npx --yes wrangler@4 pages project create alphadesk --production-branch main \
+            || echo "프로젝트가 이미 있거나 생성 실패(아래 배포에서 확인)"
+          npx --yes wrangler@4 pages deploy site --project-name alphadesk --branch main --commit-dirty=true
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
