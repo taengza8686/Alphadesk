@@ -913,7 +913,8 @@
     $('fg-history').innerHTML = bandRects + grid + months.filter((_, i) => i % 2 === 0).join('')
       + `<path d="${path}" fill="none" stroke="#e2e8f0" stroke-width="1.6"/>`
       + (n ? `<circle cx="${X(n - 1)}" cy="${Y(h.v[n - 1])}" r="3.5" fill="${fgColor(h.v[n - 1])}"/>` : '');
-    $('fg-method').textContent = `산출 방식: ${f.method || ''} · 데이터: Yahoo Finance(S&P 500·VIX·HYG·IEF) + AlphaDesk 유니버스 종가. CNN 공식 수치와 다를 수 있습니다.`;
+    const cal = f.calibration ? ` · CNN 눈금 보정 적용(보정 전 원점수 ${Math.round(f.rawScore)}): 점수 = ${f.calibration.a} + ${f.calibration.b} × 원점수 — ${f.calibration.note || ''}` : '';
+    $('fg-method').textContent = `산출 방식: ${f.method || ''}${cal} · 구성 지표 점수는 보정 전 백분위 · 데이터: Yahoo Finance(S&P 500·VIX·HYG·IEF) + AlphaDesk 유니버스 종가. CNN 공식 수치와 다를 수 있습니다.`;
   }
   function newsCard(n, compact = false) {
     const t = n.time ? new Date(n.time).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';

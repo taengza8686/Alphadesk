@@ -995,7 +995,7 @@ def fg_label(v: float) -> str:
     return next(lbl for hi, lbl in FG_BANDS if v < hi)
 
 
-def fear_greed(prices: dict, uni_syms: list[str]) -> dict | None:
+def fear_greed(prices: dict, uni_syms: list[str], calib: dict | None = None) -> dict | None:
     try:
         ext = download_prices(["^VIX", "HYG", "IEF"], 3)
         spx = prices.get("^GSPC")
@@ -1029,7 +1029,9 @@ def fear_greed(prices: dict, uni_syms: list[str]) -> dict | None:
             pr = ser.rolling(252, min_periods=120).apply(lambda w: (w[:-1] < w[-1]).mean() * 100 if len(w) > 1 else np.nan, raw=True)
             scores[k] = pr if up else 100 - pr
         sc = pd.DataFrame(scores).dropna(how="all")
-        total = sc.mean(axis=1, skipna=True).dropna()
+        raw_total = sc.mean(axis=1, skipna=True).dropna()
+        ca, cb = (calib or {}).get("a", 0.0), (calib or {}).get("b", 1.0)
+        total = (ca + cb * raw_total).clip(0, 100)
         total = total[total.index >= total.index[-1] - pd.DateOffset(years=1)]
         if total.empty:
             return None
@@ -1039,6 +1041,7 @@ def fear_greed(prices: dict, uni_syms: list[str]) -> dict | None:
             t = total[total.index <= last - pd.Timedelta(days=days)]
             return round(float(t.iloc[-1]), 1) if len(t) else None
         now = round(float(total.iloc[-1]), 1)
+        raw_now = round(float(raw_total.loc[last]), 1)
         comps = []
         for k, (name, desc, ser, up) in comp.items():
             v = sc[k].dropna()
@@ -1046,7 +1049,8 @@ def fear_greed(prices: dict, uni_syms: list[str]) -> dict | None:
             comps.append({"key": k, "name": name, "desc": desc, "score": round(float(v.iloc[-1]), 1) if len(v) else None,
                           "label": fg_label(float(v.iloc[-1])) if len(v) else None,
                           "value": round(float(raw.iloc[-1]) * 100, 2) if len(raw) else None})
-        return {"asOf": last.strftime("%Y-%m-%d"), "score": now, "label": fg_label(now),
+        return {"asOf": last.strftime("%Y-%m-%d"), "score": now, "label": fg_label(now), "rawScore": raw_now,
+                "calibration": {"a": ca, "b": cb, "note": (calib or {}).get("note")} if calib else None,
                 "prev": {"1D": ago(1), "1W": ago(7), "1M": ago(30), "1Y": ago(365)},
                 "components": comps,
                 "history": {"d": [d.strftime("%Y-%m-%d") for d in total.index], "v": [round(float(x), 1) for x in total]},
@@ -1304,7 +1308,7 @@ def main() -> None:
         market_news = [news_item(x) for x in rows[:12]] if isinstance(rows, list) else []
 
     print("⑥ 공포·탐욕 지수")
-    fg = fear_greed(prices, [yahoo_symbol(s_["ticker"]) for s_ in stocks])
+    fg = fear_greed(prices, [yahoo_symbol(s_["ticker"]) for s_ in stocks], cfg.get("fear_greed_calibration"))
     if fg:
         print(f"   {fg['asOf']}: {fg['score']} ({fg['label']})")
 
