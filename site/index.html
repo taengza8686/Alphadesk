@@ -188,6 +188,33 @@
       </div>
 
       <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-bold text-white">섹터별 수익률</h2>
+              <span id="sector-asof" class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">-</span>
+            </div>
+            <p id="sector-sub" class="text-xs text-slate-400 mt-0.5">S&P 500 섹터 ETF(SPDR) 종가 기준 가격 수익률 · 점선 = S&P 500(SPY)</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-terminal-border" id="sector-basis-group">
+              <button data-sb="ETF" class="px-3 py-1 rounded-lg text-xs font-semibold">GICS 섹터(ETF)</button>
+              <button data-sb="THEME" class="px-3 py-1 rounded-lg text-xs font-semibold">투자 테마 대분류</button>
+            </div>
+            <div class="inline-flex flex-wrap rounded-xl bg-slate-900 p-1 border border-terminal-border" id="sector-period-group">
+              <button data-sp="r1D" class="px-3 py-1 rounded-lg text-xs font-semibold">1D</button>
+              <button data-sp="r1W" class="px-3 py-1 rounded-lg text-xs font-semibold">1W</button>
+              <button data-sp="r1M" class="px-3 py-1 rounded-lg text-xs font-semibold">1M</button>
+              <button data-sp="r1Y" class="px-3 py-1 rounded-lg text-xs font-semibold">1Y</button>
+              <button data-sp="rYTD" class="px-3 py-1 rounded-lg text-xs font-semibold">YTD</button>
+              <button data-sp="r3Y" class="px-3 py-1 rounded-lg text-xs font-semibold">3Y</button>
+            </div>
+          </div>
+        </div>
+        <div id="sector-chart" class="w-full"></div>
+      </div>
+
+      <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
             <h2 class="text-base font-bold text-white">시장 주요 뉴스 헤드라인</h2>
@@ -778,11 +805,12 @@
     attachThemes();
     populateSelectors();
     populateThemeSelectors();
-    if (!Object.keys(THEMES).length) loadThemes().then(() => { populateThemeSelectors(); if (currentTab === 'tab1') renderOverviewTable(); });
+    if (!Object.keys(THEMES).length) loadThemes().then(() => { populateThemeSelectors(); if (currentTab === 'tab1') renderOverviewTable(); if (sectorBasis === 'THEME') renderSectorChart(); });
     renderIndexCards();
     renderMarketNews();
     renderRussell2000Movers();
     renderFearGreed();
+    initSectorButtons(); renderSectorChart();
     switchTab(currentTab);
   }
   function renderAllEmpty() {
@@ -936,6 +964,51 @@
     if (changed) trSave(cache);
     const el = $(containerId);
     if (el && el._list === list && todo.some(n => n.headlineKo)) el.innerHTML = list.map(n => newsCard(n, true)).join('');
+  }
+  // ---------------------------------------------------------------- 섹터별 수익률 바 차트
+  let sectorPeriod = 'r1D', sectorBasis = 'ETF';
+  const SECTOR_PERIOD_LABEL = { r1D: '1일', r1W: '1주', r1M: '1개월', r1Y: '1년', rYTD: '연초 이후', r3Y: '3년' };
+  function sectorRows() {
+    if (sectorBasis === 'ETF') {
+      const all = DATA?.sectors || [];
+      return { rows: all.filter(x => x.key !== 'SPY').map(x => ({ name: x.name, sub: x.etf, v: x[sectorPeriod] })), bench: all.find(x => x.key === 'SPY')?.[sectorPeriod], benchName: 'S&P 500 (SPY)' };
+    }
+    const g = {};
+    stocksData.forEach(s => { const v = s[sectorPeriod]; if (!isNum(v) || !s.mktCap || !s.themeGroup || s.themeGroup === '미분류') return;
+      const b = g[s.themeGroup] = g[s.themeGroup] || { w: 0, sv: 0, n: 0 }; b.w += s.mktCap; b.sv += s.mktCap * v; b.n++; });
+    let W = 0, SV = 0; Object.values(g).forEach(b => { W += b.w; SV += b.sv; });
+    return { rows: Object.entries(g).map(([k, b]) => ({ name: k, sub: `${b.n}종목`, v: b.sv / b.w })), bench: W ? SV / W : null, benchName: '유니버스 전체(시총가중)' };
+  }
+  function renderSectorChart() {
+    const box = $('sector-chart'); if (!box) return;
+    document.querySelectorAll('#sector-period-group button').forEach(b => b.className = 'px-3 py-1 rounded-lg text-xs font-semibold ' + (b.dataset.sp === sectorPeriod ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'));
+    document.querySelectorAll('#sector-basis-group button').forEach(b => b.className = 'px-3 py-1 rounded-lg text-xs font-semibold ' + (b.dataset.sb === sectorBasis ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'));
+    const asof = sectorBasis === 'ETF' ? (DATA?.sectors || [])[0]?.asOf : DATA?.meta?.priceAsOf;
+    $('sector-asof').textContent = asof ? `${asof} 종가 · ${SECTOR_PERIOD_LABEL[sectorPeriod]}` : '데이터 없음';
+    $('sector-sub').textContent = sectorBasis === 'ETF'
+      ? 'S&P 500 섹터 ETF(SPDR) 종가 기준 가격 수익률(배당 제외) · 점선 = S&P 500(SPY)'
+      : 'AlphaDesk 유니버스(Russell 1000 근사) 투자 테마 대분류별 시가총액 가중 평균 수익률(배당 제외) · 점선 = 유니버스 전체';
+    const { rows: raw, bench, benchName } = sectorRows();
+    const rows = raw.filter(r => isNum(r.v)).sort((a, b) => b.v - a.v);
+    if (!rows.length) { box.innerHTML = '<div class="py-10 text-center text-slate-500 text-xs">다음 자동 갱신 후 표시됩니다</div>'; return; }
+    const W = 760, rowH = 26, top = 8, H = top + rows.length * rowH + 22, labelW = 150, valW = 62;
+    const vals = rows.map(r => r.v).concat(isNum(bench) ? [bench] : []);
+    let mn = Math.min(0, ...vals), mx = Math.max(0, ...vals); const pad = (mx - mn) * 0.06 || 1; mn -= mn < 0 ? pad : 0; mx += mx > 0 ? pad : 0;
+    const x0 = labelW, x1 = W - valW, X = v => x0 + (x1 - x0) * (v - mn) / (mx - mn);
+    const step = (() => { const r = (mx - mn) / 5, p = Math.pow(10, Math.floor(Math.log10(r))); return [1, 2, 2.5, 5, 10].map(m => m * p).find(s => s >= r) || r; })();
+    let grid = ''; for (let t = Math.ceil(mn / step) * step; t <= mx + 1e-9; t += step) grid += `<line x1="${X(t)}" x2="${X(t)}" y1="${top}" y2="${H - 20}" stroke="${Math.abs(t) < 1e-9 ? '#475569' : '#1e293b'}"/><text x="${X(t)}" y="${H - 6}" text-anchor="middle" fill="#64748b" font-size="10">${+t.toFixed(2)}%</text>`;
+    const bars = rows.map((r, i) => { const y = top + i * rowH, xa = X(Math.min(0, r.v)), xb = X(Math.max(0, r.v)), col = r.v >= 0 ? '#10b981' : '#f43f5e';
+      const vx = r.v >= 0 ? xb + 5 : xa - 5;
+      return `<g><text x="${labelW - 8}" y="${y + rowH / 2 + 1}" text-anchor="end" fill="#e2e8f0" font-size="11.5" dominant-baseline="middle">${esc(r.name)} <tspan fill="#64748b" font-size="9.5">${esc(r.sub || '')}</tspan></text>
+        <rect x="${xa}" y="${y + 4}" width="${Math.max(1, xb - xa)}" height="${rowH - 8}" rx="3" fill="${col}" opacity="0.85"><title>${esc(r.name)} ${fmtPct(r.v, 2)}</title></rect>
+        <text x="${vx}" y="${y + rowH / 2 + 1}" text-anchor="${r.v >= 0 ? 'start' : 'end'}" fill="${col}" font-size="11" font-weight="700" dominant-baseline="middle" font-family="ui-monospace,monospace">${fmtPct(r.v, 2)}</text></g>`; }).join('');
+    const bl = isNum(bench) ? `<line x1="${X(bench)}" x2="${X(bench)}" y1="${top - 4}" y2="${H - 20}" stroke="#fbbf24" stroke-dasharray="4 3" stroke-width="1.5"/>` : '';
+    box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="w-full" style="max-height:${H * 1.25}px">${grid}${bl}${bars}</svg>`
+      + (isNum(bench) ? `<div class="text-[11px] text-slate-400 mt-1"><span class="text-amber-400">┆</span> ${esc(benchName)}: <b class="font-mono ${bench >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fmtPct(bench, 2)}</b></div>` : '');
+  }
+  function initSectorButtons() {
+    document.querySelectorAll('#sector-period-group button').forEach(b => b.onclick = () => { sectorPeriod = b.dataset.sp; renderSectorChart(); });
+    document.querySelectorAll('#sector-basis-group button').forEach(b => b.onclick = () => { sectorBasis = b.dataset.sb; renderSectorChart(); });
   }
   function newsCard(n, compact = false) {
     const t = n.time ? new Date(n.time).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';

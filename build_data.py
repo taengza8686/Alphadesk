@@ -1307,6 +1307,20 @@ def main() -> None:
             warn("Finnhub 시장 뉴스가 비어 있습니다(키 오류·호출 한도 가능성)")
         market_news = [news_item(x) for x in rows[:12]] if isinstance(rows, list) else []
 
+    print("⑤-2 섹터 ETF 수익률")
+    sectors = []
+    sec_cfg = cfg.get("sector_etfs", [])
+    if sec_cfg:
+        sp = download_prices([x["etf"] for x in sec_cfg] + ["SPY"], years)
+        for x in sec_cfg + [{"key": "SPY", "name": "S&P 500 (SPY)", "etf": "SPY"}]:
+            df = sp.get(x["etf"])
+            if df is None or len(df) < 2:
+                warn(f"섹터 ETF 가격 없음: {x['etf']}")
+                continue
+            c_ = df["Close"]
+            sectors.append({**x, "asOf": c_.index[-1].strftime("%Y-%m-%d"), "price": round(float(c_.iloc[-1]), 2), **returns_block(c_)})
+        print(f"   {len(sectors)}개")
+
     print("⑥ 공포·탐욕 지수")
     fg = fear_greed(prices, [yahoo_symbol(s_["ticker"]) for s_ in stocks], cfg.get("fear_greed_calibration"))
     if fg:
@@ -1362,7 +1376,7 @@ def main() -> None:
         },
         "defaultPortfolio": cfg.get("default_portfolio", []),
         "benchmarks": benchmarks, "stocks": stocks, "movers": movers,
-        "news": {"market": market_news}, "fearGreed": fg,
+        "news": {"market": market_news}, "fearGreed": fg, "sectors": sectors,
     })
     print(f"완료 → {out} ({len(stocks)}종목, 경고 {len(WARNINGS)}건)")
 

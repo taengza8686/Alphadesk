@@ -148,5 +148,62 @@
     "a": 10.3,
     "b": 0.709,
     "note": "CNN 공개 보도 수치 6개(2026-10-06 47, 10-30 26, 11-05 20, 11-13 37, 11-16 31, 11-20 10)에 원점수를 선형 회귀로 맞춤 · 평균 오차 5.9→2.1점"
-  }
+  },
+  "sector_etfs": [
+    {
+      "key": "IT",
+      "name": "정보기술",
+      "etf": "XLK"
+    },
+    {
+      "key": "COMM",
+      "name": "커뮤니케이션",
+      "etf": "XLC"
+    },
+    {
+      "key": "DISC",
+      "name": "경기소비재",
+      "etf": "XLY"
+    },
+    {
+      "key": "STAP",
+      "name": "필수소비재",
+      "etf": "XLP"
+    },
+    {
+      "key": "HC",
+      "name": "헬스케어",
+      "etf": "XLV"
+    },
+    {
+      "key": "FIN",
+      "name": "금융",
+      "etf": "XLF"
+    },
+    {
+      "key": "IND",
+      "name": "산업재",
+      "etf": "XLI"
+    },
+    {
+      "key": "ENE",
+      "name": "에너지",
+      "etf": "XLE"
+    },
+    {
+      "key": "MAT",
+      "name": "소재",
+      "etf": "XLB"
+    },
+    {
+      "key": "UTIL",
+      "name": "유틸리티",
+      "etf": "XLU"
+    },
+    {
+      "key": "RE",
+      "name": "부동산",
+      "etf": "XLRE"
+    }
+  ]
 }
