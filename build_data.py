@@ -1081,7 +1081,7 @@ def fear_greed(prices: dict, uni_syms: list[str], calib: dict | None = None) -> 
 OPT_WINDOWS = [("1W", "최근 1주", 5), ("1M", "최근 1개월", 21), ("3M", "최근 3개월", 63), ("6M", "최근 6개월", 126)]
 
 
-def _select_portfolio(C: pd.DataFrame, V: pd.DataFrame, end: int, L: int, sectors: dict, nmin=15, nmax=40, wmin=0.02, wmax=0.10):
+def _select_portfolio(C: pd.DataFrame, V: pd.DataFrame, end: int, L: int, sectors: dict, nmin=15, nmax=40, wmin=0.02, wmax=0.10, firm: dict | None = None):
     """C, V: 종가·거래량(행=날짜) · end: 마지막 행 위치(포함) · L: 보유 거래일 수.
     선정: 유동성 필터 → 위험조정 수익률 + 거래량 확인 점수 → 섹터 40% 한도 → N=15..40 중 기간 Sharpe 최대."""
     win = C.iloc[end - L:end + 1]
@@ -1103,12 +1103,16 @@ def _select_portfolio(C: pd.DataFrame, V: pd.DataFrame, end: int, L: int, sector
     z = lambda x: (x - x.mean()) / (x.std() or 1)  # noqa: E731
     score = (z(rv) + 0.25 * z(np.log(vratio))).where(ret > 0)
     cand = score.dropna().sort_values(ascending=False)
-    picked, cnt = [], defaultdict(int)
+    picked, cnt, firms = [], defaultdict(int), set()
     for t in cand.index:
+        fk = (firm or {}).get(t, t)
+        if fk in firms:                                         # 같은 회사의 다른 주식 종류(예: BRK-A/BRK-B) 중복 방지
+            continue
         sec = sectors.get(t, "기타")
         if cnt[sec] + 1 > 0.4 * nmax and len(picked) < nmax:   # 섹터 집중 한도(최대 40%)
             continue
         picked.append(t)
+        firms.add(fk)
         cnt[sec] += 1
         if len(picked) >= nmax:
             break
@@ -1144,10 +1148,11 @@ def optimal_portfolios(prices: dict, stocks: list, bench: pd.Series) -> dict | N
         V = V.reindex(C.index).iloc[-400:]
         b = bench.reindex(C.index).ffill()
         sectors = {y: s_.get("gicsSector") or "기타" for y, s_ in syms.items()}
+        firm = {y: s_.get("cik") or s_.get("name") or y for y, s_ in syms.items()}
         E = len(C) - 1
         out = {}
         for key, label, L in OPT_WINDOWS:
-            r = _select_portfolio(C, V, E, L, sectors)
+            r = _select_portfolio(C, V, E, L, sectors, firm=firm)
             if not r:
                 continue
             bpath = (b.iloc[E - L:E + 1] / b.iloc[E - L]).tolist()
@@ -1160,7 +1165,7 @@ def optimal_portfolios(prices: dict, stocks: list, bench: pd.Series) -> dict | N
             hold.sort(key=lambda x: -x["weight"])
             # 사후 검증: 직전 동일 기간으로 같은 방법을 적용해 고른 뒤, 이후 L일 보유
             oos = None
-            r0 = _select_portfolio(C, V, E - L, L, sectors)
+            r0 = _select_portfolio(C, V, E - L, L, sectors, firm=firm)
             if r0:
                 fwd = C.iloc[E - L:E + 1][r0["names"]]
                 fwd = fwd.ffill()
