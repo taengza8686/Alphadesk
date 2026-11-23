@@ -994,7 +994,7 @@
     const W = 760, rowH = 26, top = 8, H = top + rows.length * rowH + 22, labelW = 150, valW = 62;
     const vals = rows.map(r => r.v).concat(isNum(bench) ? [bench] : []);
     let mn = Math.min(0, ...vals), mx = Math.max(0, ...vals); const pad = (mx - mn) * 0.06 || 1; mn -= mn < 0 ? pad : 0; mx += mx > 0 ? pad : 0;
-    const x0 = labelW, x1 = W - valW, X = v => x0 + (x1 - x0) * (v - mn) / (mx - mn);
+    const x0 = labelW + (mn < 0 ? valW : 6), x1 = W - (mx > 0 ? valW : 10), X = v => x0 + (x1 - x0) * (v - mn) / (mx - mn);
     const step = (() => { const r = (mx - mn) / 5, p = Math.pow(10, Math.floor(Math.log10(r))); return [1, 2, 2.5, 5, 10].map(m => m * p).find(s => s >= r) || r; })();
     let grid = ''; for (let t = Math.ceil(mn / step) * step; t <= mx + 1e-9; t += step) grid += `<line x1="${X(t)}" x2="${X(t)}" y1="${top}" y2="${H - 20}" stroke="${Math.abs(t) < 1e-9 ? '#475569' : '#1e293b'}"/><text x="${X(t)}" y="${H - 6}" text-anchor="middle" fill="#64748b" font-size="10">${+t.toFixed(2)}%</text>`;
     const bars = rows.map((r, i) => { const y = top + i * rowH, xa = X(Math.min(0, r.v)), xb = X(Math.max(0, r.v)), col = r.v >= 0 ? '#10b981' : '#f43f5e';
