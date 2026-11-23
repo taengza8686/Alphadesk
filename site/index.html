@@ -499,6 +499,15 @@
           <button onclick="openPortAddModal()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors shadow-lg shadow-blue-600/20">+ 종목 추가</button>
         </div>
       </div>
+      <div class="bg-terminal-panel border border-terminal-border rounded-2xl px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="flex items-center gap-2 text-xs"><span id="port-save-dot" class="w-2 h-2 rounded-full bg-slate-500"></span><span id="port-save-status" class="text-slate-300">-</span></div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="savePortfolio()" id="port-save-btn" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold text-white">💾 저장</button>
+          <button onclick="revertPortfolio()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200" title="마지막으로 저장한 구성으로 되돌리기">↺ 저장본으로 되돌리기</button>
+          <button onclick="copyPortfolioLink()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200" title="이 구성이 담긴 주소를 복사 → 다른 PC·휴대폰에서 열면 같은 포트폴리오가 뜹니다">🔗 다른 기기용 링크 복사</button>
+          <button onclick="resetPortfolioDefault()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-400" title="사이트 기본 포트폴리오로 되돌리기(저장은 별도)">기본 구성</button>
+        </div>
+      </div>
 
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-4"><div class="text-xs text-slate-400">포트폴리오 누적 수익률</div><div id="port-kpi-return" class="font-num text-2xl font-bold text-emerald-400 mt-1">-</div><div id="port-kpi-period-sub" class="text-[11px] text-slate-500 mt-1">-</div></div>
@@ -898,9 +907,7 @@
     DATA = d;
     stocksData = d.stocks;
     benchmarkData = d.benchmarks || {};
-    if (!modelPortfolio.length) {
-      modelPortfolio = (d.defaultPortfolio || []).filter(h => findStock(h.ticker)).map(h => ({ ticker: h.ticker, weight: +h.weight }));
-    }
+    if (!modelPortfolio.length) initPortfolioFromStore(d);
     $('no-data-banner').classList.add('hidden');
     const badge = $('data-source-badge');
     badge.textContent = d.meta?.priceAsOf || '-';
@@ -1642,6 +1649,58 @@
     }).join('');
   }
 
+  // ---------------------------------------------------------------- 포트폴리오 저장 (이 브라우저 localStorage + 공유 링크)
+  const PF_KEY = 'alphadesk_portfolio_v1';
+  const pfSig = list => JSON.stringify((list || []).map(h => [h.ticker, +(+h.weight).toFixed(2)]));
+  function pfLoadSaved() { try { const j = JSON.parse(localStorage.getItem(PF_KEY) || 'null'); return j && Array.isArray(j.holdings) ? j : null; } catch (e) { return null; } }
+  function pfFromParam() {
+    const m = (location.search.match(/[?&]pf=([^&]+)/) || [])[1]; if (!m) return null;
+    const list = decodeURIComponent(m).split(',').map(x => x.split(':')).filter(x => x[0]).map(([t, w]) => ({ ticker: t.toUpperCase(), weight: parseFloat(w) || 0 }));
+    return list.length ? list : null;
+  }
+  function initPortfolioFromStore(d) {
+    const valid = list => list.filter(h => findStock(h.ticker)).map(h => ({ ticker: h.ticker, weight: +h.weight }));
+    const link = pfFromParam(), saved = pfLoadSaved();
+    if (link) {
+      modelPortfolio = valid(link);
+      try { localStorage.setItem(PF_KEY, JSON.stringify({ holdings: modelPortfolio, savedAt: new Date().toISOString(), from: 'link' })); } catch (e) {}
+      try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+      setTimeout(() => showToast('링크의 포트폴리오를 불러와 이 브라우저에 저장했습니다'), 500);
+    } else if (saved) modelPortfolio = valid(saved.holdings);
+    else modelPortfolio = valid(d.defaultPortfolio || []);
+    const miss = (link || saved?.holdings || []).filter(h => !findStock(h.ticker)).map(h => h.ticker);
+    if (miss.length) setTimeout(() => showToast(`유니버스에 없어 제외된 종목: ${miss.join(', ')}`, 'error'), 900);
+  }
+  function updateSaveStatus() {
+    const el = $('port-save-status'); if (!el) return;
+    const saved = pfLoadSaved(), dirty = !saved || pfSig(saved.holdings) !== pfSig(modelPortfolio);
+    const when = saved ? new Date(saved.savedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
+    el.innerHTML = !saved ? '저장된 포트폴리오 없음 — 사이트 기본 구성 표시 중. <b class="text-amber-300">💾 저장</b>을 누르면 이 브라우저에서 계속 이 구성이 뜹니다.'
+      : dirty ? `<b class="text-amber-300">저장하지 않은 변경 있음</b> · 마지막 저장 ${when} KST`
+      : `<b class="text-emerald-300">저장됨</b> · ${when} KST · 이 브라우저에서 다음에 열어도 이 구성이 표시됩니다`;
+    $('port-save-dot').className = 'w-2 h-2 rounded-full ' + (!saved ? 'bg-slate-500' : dirty ? 'bg-amber-400' : 'bg-emerald-400');
+  }
+  function savePortfolio() {
+    try { localStorage.setItem(PF_KEY, JSON.stringify({ holdings: modelPortfolio.map(h => ({ ticker: h.ticker, weight: +h.weight })), savedAt: new Date().toISOString() })); showToast(`포트폴리오 ${modelPortfolio.length}종목을 저장했습니다`); }
+    catch (e) { showToast('이 브라우저에서는 저장할 수 없습니다(시크릿 모드·저장공간 차단). 링크 복사를 이용하세요.', 'error'); }
+    updateSaveStatus();
+  }
+  function revertPortfolio() {
+    const saved = pfLoadSaved(); if (!saved) { showToast('저장된 포트폴리오가 없습니다', 'error'); return; }
+    modelPortfolio = saved.holdings.filter(h => findStock(h.ticker)).map(h => ({ ticker: h.ticker, weight: +h.weight }));
+    renderPortfolioSection(); showToast('마지막 저장본으로 되돌렸습니다');
+  }
+  function resetPortfolioDefault() {
+    modelPortfolio = (DATA?.defaultPortfolio || []).filter(h => findStock(h.ticker)).map(h => ({ ticker: h.ticker, weight: +h.weight }));
+    renderPortfolioSection(); showToast('기본 구성으로 바꿨습니다 (저장하려면 💾 저장)');
+  }
+  async function copyPortfolioLink() {
+    const url = location.origin + location.pathname + '?pf=' + encodeURIComponent(modelPortfolio.map(h => `${h.ticker}:${(+h.weight).toFixed(1)}`).join(',')) + '#tab3/custom';
+    try { await navigator.clipboard.writeText(url); showToast('링크를 복사했습니다. 다른 기기에서 열면 이 포트폴리오가 저장됩니다'); }
+    catch (e) { prompt('아래 주소를 복사하세요', url); }
+  }
+  window.addEventListener('beforeunload', e => { const s = pfLoadSaved(); if (DATA && s && pfSig(s.holdings) !== pfSig(modelPortfolio)) { e.preventDefault(); e.returnValue = ''; } });
+
   // ---------------------------------------------------------------- TAB 3
   function updatePortfolioHoldingWeight(t, v) { const h = modelPortfolio.find(x => x.ticker === t); if (h) { h.weight = Math.max(0, Math.min(100, parseFloat(v) || 0)); renderPortfolioSection(); } }
   function removePortfolioHolding(t) { modelPortfolio = modelPortfolio.filter(x => x.ticker !== t); renderPortfolioSection(); }
@@ -1686,6 +1745,7 @@
     return { dates, bmPath, portPath, used, excluded, wSum };
   }
   function renderPortfolioSection() {
+    updateSaveStatus();
     const bmKey = $('port-benchmark').value || 'SP500', periodKey = $('port-period').value;
     const bm = benchmarkData[bmKey] || {};
     const totalWeight = modelPortfolio.reduce((a, b) => a + b.weight, 0);
