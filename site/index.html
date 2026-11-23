@@ -495,6 +495,12 @@
           <select id="port-period" onchange="renderPortfolioSection()" class="bg-terminal-card border border-terminal-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
             <option value="r1D">비교 기간: 1D</option><option value="r1W">비교 기간: 1W</option><option value="r1M">비교 기간: 1M</option><option value="r3M">비교 기간: 3M</option><option value="r6M">비교 기간: 6M</option><option value="r1Y" selected>비교 기간: 1Y</option><option value="rYTD">비교 기간: YTD</option><option value="r3Y">비교 기간: 3Y</option>
           </select>
+          <select id="pf-opt-cash" onchange="setPfOpt()" title="비중 합계가 100% 미만일 때 나머지 비중을 어떻게 볼지" class="bg-terminal-card border border-terminal-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
+            <option value="scale">미투자 비중: 투자 종목만으로 환산</option><option value="cash">미투자 비중: 현금(0%)으로 간주</option>
+          </select>
+          <select id="pf-opt-missing" onchange="setPfOpt()" title="기간 시작 후 상장 등으로 가격이 없는 종목 처리" class="bg-terminal-card border border-terminal-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
+            <option value="zero">데이터 없는 종목: 0%로 간주 (Bloomberg 시트 방식)</option><option value="drop">데이터 없는 종목: 제외 후 재배분</option>
+          </select>
           <button onclick="normalizePortfolioWeights()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition-colors">100% 자동 맞춤</button>
           <button onclick="openPortAddModal()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white transition-colors shadow-lg shadow-blue-600/20">+ 종목 추가</button>
         </div>
@@ -1816,6 +1822,14 @@
     $('port-modal-list').innerHTML = avail.map(s => `<button onclick="addPortfolioHolding('${esc(s.ticker)}')" class="w-full px-3.5 py-2.5 text-left hover:bg-slate-800 flex items-center justify-between text-xs"><div><span class="font-mono font-bold text-white mr-2">${esc(s.ticker)}</span><span class="text-slate-400">${esc(s.name)}</span></div><span class="text-blue-400 font-semibold">+ 편입</span></button>`).join('')
       || '<div class="p-4 text-center text-xs text-slate-500">추가 가능한 종목이 없습니다 (유니버스는 config.json에서 관리)</div>';
   }
+  const PF_OPT_KEY = 'alphadesk_pf_opts';
+  let pfOpt = (() => { try { return { cash: 'scale', missing: 'zero', ...JSON.parse(localStorage.getItem(PF_OPT_KEY) || '{}') }; } catch (e) { return { cash: 'scale', missing: 'zero' }; } })();
+  function syncPfOptUI() { if ($('pf-opt-cash')) { $('pf-opt-cash').value = pfOpt.cash; $('pf-opt-missing').value = pfOpt.missing; } }
+  function setPfOpt() {
+    pfOpt = { cash: $('pf-opt-cash').value, missing: $('pf-opt-missing').value };
+    try { localStorage.setItem(PF_OPT_KEY, JSON.stringify(pfOpt)); } catch (e) {}
+    renderPortfolioSection();
+  }
   function computePortfolioPath(bmKey, periodKey) {
     const b = benchmarkData[bmKey];
     if (!b?.history?.d?.length) return null;
@@ -1827,9 +1841,10 @@
     const used = [], excluded = [];
     modelPortfolio.forEach(h => {
       const hist = HIST[h.ticker];
-      if (!hist || h.weight <= 0) { if (h.weight > 0) excluded.push(`${h.ticker}(가격 없음)`); return; }
+      const flat = why => { if (pfOpt.missing === 'zero') { used.push({ h, series: dates.map(() => 1), p0: 1, flat: why }); excluded.push(`${h.ticker}(${why} → 0% 간주)`); } else excluded.push(`${h.ticker}(${why})`); };
+      if (!hist || h.weight <= 0) { if (h.weight > 0) flat('가격 없음'); return; }
       const j0 = idxOnOrBefore(hist.d, dates[0]);
-      if (j0 < 0 || hist.d[0] > startIso) { excluded.push(`${h.ticker}(기간 시작 후 상장)`); return; }
+      if (j0 < 0 || hist.d[0] > startIso) { flat('기간 시작 후 상장'); return; }
       // 지수 거래일에 맞춰 직전 종가로 정렬
       const series = []; let j = j0;
       for (const d of dates) { while (j + 1 < hist.d.length && hist.d[j + 1] <= d) j++; series.push(hist.c[j]); }
@@ -1837,9 +1852,13 @@
     });
     const wSum = used.reduce((a, u) => a + u.h.weight, 0);
     if (!used.length || wSum <= 0) return { dates, bmPath, portPath: null, used, excluded };
-    const portPath = dates.map((_, k) => used.reduce((a, u) => a + (u.h.weight / wSum) * (u.series[k] / u.p0), 0) * 100);
-    used.forEach(u => { u.ret = (u.series[u.series.length - 1] / u.p0 - 1) * 100; u.wN = u.h.weight / wSum; u.contrib = u.wN * u.ret; });
-    return { dates, bmPath, portPath, used, excluded, wSum };
+    // 분모: 기본은 계산에 쓰인 비중 합계(투자 종목만으로 환산) · '현금 간주'면 max(100, 전체 비중 합계)이고 차액은 0% 수익 현금
+    const wAll = modelPortfolio.reduce((a, h) => a + Math.max(0, +h.weight || 0), 0);
+    const den = pfOpt.cash === 'cash' ? Math.max(100, wAll) : wSum;
+    const cashW = den - wSum;
+    const portPath = dates.map((_, k) => (used.reduce((a, u) => a + u.h.weight * (u.series[k] / u.p0), 0) + cashW) / den * 100);
+    used.forEach(u => { u.ret = (u.series[u.series.length - 1] / u.p0 - 1) * 100; u.wN = u.h.weight / den; u.contrib = u.wN * u.ret; });
+    return { dates, bmPath, portPath, used, excluded, wSum, den, cashW };
   }
   const PT_KEYS = ['r1D', 'r1W', 'r1M', 'r3M', 'r6M', 'r1Y', 'rYTD'];
   function riskStats(path) {   // path: 시작=100 누적 지수
@@ -1881,10 +1900,10 @@
     }).join('');
     const hold = [...modelPortfolio].sort((a, b) => b.weight - a.weight);
     $('port-stable-head').innerHTML = `<tr class="text-[10px] text-slate-400 border-b border-slate-800"><th class="py-2 px-2">종목</th><th class="py-2 px-2 text-right">비중</th>${PT_KEYS.map(k => `<th class="py-2 px-2 text-right">${PERIOD_LABEL[k]}</th>`).join('')}</tr>`;
-    $('port-stable').innerHTML = hold.map(h => `<tr><td class="py-1.5 px-2"><span class="font-mono font-bold text-white">${esc(h.ticker)}</span></td><td class="py-1.5 px-2 text-right font-mono text-slate-300">${(+h.weight).toFixed(1)}%</td>${PT_KEYS.map(k => { const u = (res[k]?.used || []).find(x => x.h.ticker === h.ticker); return `<td class="py-1.5 px-2 text-right">${u ? fmtPctHtml(u.ret) : '<span class="text-slate-600">-</span>'}</td>`; }).join('')}</tr>`).join('') || '<tr><td class="py-3 text-slate-500" colspan="9">편입 종목이 없습니다</td></tr>';
+    $('port-stable').innerHTML = hold.map(h => `<tr><td class="py-1.5 px-2"><span class="font-mono font-bold text-white">${esc(h.ticker)}</span></td><td class="py-1.5 px-2 text-right font-mono text-slate-300">${(+h.weight).toFixed(1)}%</td>${PT_KEYS.map(k => { const u = (res[k]?.used || []).find(x => x.h.ticker === h.ticker); return `<td class="py-1.5 px-2 text-right">${u && !u.flat ? fmtPctHtml(u.ret) : '<span class="text-slate-600">-</span>'}</td>`; }).join('')}</tr>`).join('') || '<tr><td class="py-3 text-slate-500" colspan="9">편입 종목이 없습니다</td></tr>';
   }
   function renderPortfolioSection() {
-    updateSaveStatus();
+    updateSaveStatus(); syncPfOptUI();
     const bmKey = $('port-benchmark').value || 'SP500', periodKey = $('port-period').value;
     const bm = benchmarkData[bmKey] || {};
     const totalWeight = modelPortfolio.reduce((a, b) => a + b.weight, 0);
@@ -1895,7 +1914,7 @@
     const portRet = res?.portPath ? res.portPath[res.portPath.length - 1] - 100 : null;
     const bmRet = res ? res.bmPath[res.bmPath.length - 1] - 100 : null;
     const alpha = isNum(portRet) && isNum(bmRet) ? portRet - bmRet : null;
-    const betaParts = (res?.used || []).map(u => ({ w: u.wN, b: findStock(u.h.ticker)?.beta?.[bmKey] })).filter(x => isNum(x.b));
+    const betaParts = (res?.used || []).map(u => ({ w: u.wN, b: u.flat ? 0 : findStock(u.h.ticker)?.beta?.[bmKey] })).filter(x => isNum(x.b));
     const bw = betaParts.reduce((a, x) => a + x.w, 0);
     const wBeta = bw > 0 ? betaParts.reduce((a, x) => a + x.w * x.b, 0) / bw : null;
 
@@ -1911,7 +1930,8 @@
     if (Math.abs(totalWeight - 100) <= 0.5) { warn.textContent = '비중 합계 정상 (100%)'; warn.className = 'text-[11px] text-emerald-400 mt-1'; }
     else { warn.textContent = `합계 ${totalWeight.toFixed(1)}% → 계산 시 비율대로 재정규화`; warn.className = 'text-[11px] text-amber-400 mt-1'; }
     $('port-count-badge').textContent = `${modelPortfolio.length} 종목`;
-    $('port-excluded').textContent = res?.excluded?.length ? `계산 제외: ${res.excluded.join(', ')} → 남은 종목 비중으로 재정규화` : '';
+    $('port-excluded').textContent = [res?.excluded?.length ? (pfOpt.missing === 'zero' ? `데이터 없음: ${res.excluded.join(', ')}` : `계산 제외: ${res.excluded.join(', ')} → 남은 종목 비중으로 재정규화`) : '',
+      res?.cashW > 0.001 ? `현금(0%) ${res.cashW.toFixed(1)}% 포함 · 분모 ${res.den.toFixed(1)}%` : ''].filter(Boolean).join(' · ');
 
     const retMap = Object.fromEntries((res?.used || []).map(u => [u.h.ticker, u]));
     $('portfolio-holdings-list').innerHTML = modelPortfolio.map(h => {
