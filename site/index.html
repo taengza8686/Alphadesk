@@ -237,7 +237,7 @@
           <div class="flex items-center gap-2 text-xs text-slate-400">
             <div class="inline-flex rounded-lg bg-slate-900 p-0.5 border border-slate-700 mr-2">
               <button id="btn-view-stocks" onclick="setScreenerView('STOCKS')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-600 text-white">종목별</button>
-              <button id="btn-view-themes" onclick="setScreenerView('THEMES')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-400 hover:text-white">테마별 묶어보기</button>
+              <button id="btn-view-themes" onclick="$('theme-filter').value='ALL'; setScreenerView('THEMES')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-400 hover:text-white">테마별 묶어보기</button>
             </div>
             <span>페이지당 표시:</span>
             <select id="page-size-select" onchange="currentPage=1; renderOverviewTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-200"><option value="25">25개</option><option value="50" selected>50개</option><option value="100">100개</option></select>
