@@ -851,6 +851,212 @@ def company_news(sym: str, key: str, days: int = 4, n: int = 5) -> list:
 
 
 # ---------------------------------------------------------------------------
+# S&P 500 구성종목 전일 등락 상·하위
+# ---------------------------------------------------------------------------
+SP500_WIKI = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+
+
+def sp500_constituents() -> list[dict]:
+    """Wikipedia 'List of S&P 500 companies' 표 → [{ticker, name, sector}] (7일 캐시)."""
+    p = CACHE / "sp500.json"
+    if p.exists() and time.time() - p.stat().st_mtime < 7 * 86400:
+        return json.loads(p.read_text())
+    try:
+        r = requests.get(SP500_WIKI, timeout=30, headers={"User-Agent": "AlphaDesk/1.0 (personal dashboard)"})
+        r.raise_for_status()
+        tb = pd.read_html(io.StringIO(r.text), attrs={"id": "constituents"})[0]
+        rows = [{"ticker": str(x["Symbol"]).strip().upper(), "name": str(x["Security"]).strip(),
+                 "sector": str(x.get("GICS Sector") or "").strip()} for _, x in tb.iterrows()]
+        if len(rows) >= 480:
+            CACHE.mkdir(exist_ok=True)
+            p.write_text(json.dumps(rows))
+            return rows
+        warn(f"S&P 500 목록 행 수 이상({len(rows)})")
+    except Exception as ex:  # noqa: BLE001
+        warn(f"S&P 500 구성종목(Wikipedia) 조회 실패: {ex}")
+    return json.loads(p.read_text()) if p.exists() else []
+
+
+def sp500_movers(prices: dict, n: int = 10) -> dict | None:
+    cons = sp500_constituents()
+    if not cons:
+        return None
+    need = [yahoo_symbol(c["ticker"]) for c in cons if yahoo_symbol(c["ticker"]) not in prices]
+    extra = download_prices(need, 1) if need else {}
+    last_dates = [df.index[-1] for df in prices.values() if df is not None and len(df)]
+    ref = max(last_dates) if last_dates else None
+    rows = []
+    for c in cons:
+        ys = yahoo_symbol(c["ticker"])
+        df = prices.get(ys)
+        if df is None:
+            df = extra.get(ys)
+        if df is None or len(df) < 2:
+            continue
+        cl = df["Close"].dropna()
+        if ref is not None and cl.index[-1] != ref:
+            continue                       # 기준일 종가가 없는 종목(거래정지 등) 제외
+        r1 = (float(cl.iloc[-1]) / float(cl.iloc[-2]) - 1) * 100
+        rows.append({"ticker": c["ticker"], "name": c["name"], "sector": c["sector"], "price": round(float(cl.iloc[-1]), 2),
+                     "r1D": round(r1, 2), "volume": int(df["Volume"].iloc[-1]) if not pd.isna(df["Volume"].iloc[-1]) else None})
+    if not rows:
+        return None
+    rows.sort(key=lambda x: x["r1D"], reverse=True)
+    return {"asOf": ref.strftime("%Y-%m-%d") if ref is not None else None, "universeCount": len(rows),
+            "gainers": rows[:n], "losers": rows[::-1][:n],
+            "source": "S&P 500 구성종목(Wikipedia 목록) · Yahoo Finance 전 거래일 종가 등락률"}
+
+
+# ---------------------------------------------------------------------------
+# 뉴스 한국어 번역 (Gemini 키가 있으면 Gemini, 없으면 MyMemory 무료)
+# ---------------------------------------------------------------------------
+class KoTranslator:
+    def __init__(self, contact_email: str | None, gemini_key: str | None):
+        self.p = CACHE / "tr_ko.json"
+        self.cache = json.loads(self.p.read_text()) if self.p.exists() else {}
+        self.email, self.gkey = contact_email, gemini_key
+        self.provider = None
+        self.mm_fail = 0
+        self.chars = 0
+
+    def save(self):
+        if len(self.cache) > 6000:   # 오래된 항목 정리
+            self.cache = dict(list(self.cache.items())[-4000:])
+        CACHE.mkdir(exist_ok=True)
+        self.p.write_text(json.dumps(self.cache, ensure_ascii=False))
+
+    def _gemini(self, texts: list[str]) -> list[str] | None:
+        model = os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")
+        prompt = ("다음 영어 금융·경제 뉴스 문장들을 자연스러운 한국어로 번역하세요. 기업명·티커·고유명사는 원문 표기를 유지하고, "
+                  "숫자와 단위는 정확히 옮기세요. 입력과 같은 순서·같은 개수의 JSON 문자열 배열만 출력하세요.\n"
+                  + json.dumps(texts, ensure_ascii=False))
+        try:
+            r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+                              params={"key": self.gkey}, timeout=90,
+                              json={"contents": [{"parts": [{"text": prompt}]}],
+                                    "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1}})
+            r.raise_for_status()
+            txt = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+            out = json.loads(txt)
+            if isinstance(out, list) and len(out) == len(texts):
+                return [str(x) for x in out]
+            warn("Gemini 번역 응답 개수 불일치 → MyMemory로 대체")
+        except Exception as ex:  # noqa: BLE001
+            warn(f"Gemini 번역 실패 → MyMemory로 대체: {str(ex)[:120]}")
+        return None
+
+    def _mymemory(self, text: str) -> str | None:
+        if self.mm_fail >= 3:
+            return None
+        params = {"q": text[:480], "langpair": "en|ko"}
+        if self.email:
+            params["de"] = self.email
+        try:
+            r = requests.get("https://api.mymemory.translated.net/get", params=params, timeout=20)
+            j = r.json()
+            out = (j.get("responseData") or {}).get("translatedText")
+            if j.get("responseStatus") in (200, "200") and out and "MYMEMORY WARNING" not in out.upper():
+                self.chars += len(text)
+                return out
+            self.mm_fail += 1
+            if self.mm_fail == 3:
+                warn(f"MyMemory 번역 중단(한도·오류): {str(j.get('responseDetails') or '')[:120]}")
+        except Exception:  # noqa: BLE001
+            self.mm_fail += 1
+        time.sleep(0.25)
+        return None
+
+    def translate(self, texts: list[str]) -> dict:
+        todo = list(dict.fromkeys(t for t in texts if t and t not in self.cache))
+        if todo and self.gkey:
+            for i in range(0, len(todo), 60):
+                part = todo[i:i + 60]
+                got = self._gemini(part)
+                if got:
+                    self.cache.update(dict(zip(part, got)))
+                    self.provider = "Gemini"
+                time.sleep(4)
+            todo = [t for t in todo if t not in self.cache]
+        for t in todo:
+            ko = self._mymemory(t)
+            if ko:
+                self.cache[t] = ko
+                self.provider = self.provider or "MyMemory"
+        return {t: self.cache.get(t) for t in texts if t}
+
+
+# ---------------------------------------------------------------------------
+# 공포·탐욕 지수 (CNN Fear & Greed 방법론을 공개 데이터로 재현한 근사치)
+# ---------------------------------------------------------------------------
+FG_BANDS = [(25, "극단적 공포"), (45, "공포"), (56, "중립"), (76, "탐욕"), (101, "극단적 탐욕")]
+
+
+def fg_label(v: float) -> str:
+    return next(lbl for hi, lbl in FG_BANDS if v < hi)
+
+
+def fear_greed(prices: dict, uni_syms: list[str]) -> dict | None:
+    try:
+        ext = download_prices(["^VIX", "HYG", "IEF"], 3)
+        spx = prices.get("^GSPC")
+        if spx is None or any(k not in ext for k in ("^VIX", "HYG", "IEF")):
+            warn("공포·탐욕 지수: 필요한 시계열(^GSPC/^VIX/HYG/IEF) 부족")
+            return None
+        s = spx["Close"]
+        idx = s.index[s.index >= s.index[-1] - pd.DateOffset(years=3)]
+        s = s.loc[idx]
+        vix = ext["^VIX"]["Close"].reindex(idx).ffill()
+        hyg = ext["HYG"]["Close"].reindex(idx).ffill()
+        ief = ext["IEF"]["Close"].reindex(idx).ffill()
+        closes = pd.DataFrame({y: prices[y]["Close"] for y in uni_syms if y in prices}).reindex(idx)
+        hi52 = closes.rolling(252, min_periods=200).max()
+        lo52 = closes.rolling(252, min_periods=200).min()
+        valid = hi52.notna().sum(axis=1).replace(0, np.nan)
+        ma50 = closes.rolling(50, min_periods=45).mean()
+        comp = {
+            "momentum": ("주가 모멘텀", "S&P 500이 125일 이동평균을 얼마나 웃도는지", s / s.rolling(125).mean() - 1, True),
+            "strength": ("주가 강도", "52주 신고가 종목 비율 − 신저가 종목 비율 (Russell 1000 유니버스)",
+                         ((closes >= hi52 * 0.999).sum(axis=1) - (closes <= lo52 * 1.001).sum(axis=1)) / valid, True),
+            "breadth": ("시장 폭", "50일 이동평균 위에 있는 종목 비율 (Russell 1000 유니버스)",
+                        (closes > ma50).sum(axis=1) / ma50.notna().sum(axis=1).replace(0, np.nan), True),
+            "volatility": ("변동성 (VIX)", "VIX가 50일 평균보다 낮을수록 탐욕", vix / vix.rolling(50).mean() - 1, False),
+            "safehaven": ("안전자산 수요", "최근 20일 주식(S&P 500) 수익률 − 국채(IEF) 수익률", s.pct_change(20) - ief.pct_change(20), True),
+            "junk": ("정크본드 수요", "최근 20일 하이일드(HYG) 수익률 − 국채(IEF) 수익률", hyg.pct_change(20) - ief.pct_change(20), True),
+        }
+        scores = {}
+        for k, (_, _, ser, up) in comp.items():
+            ser = ser.astype(float)
+            pr = ser.rolling(252, min_periods=120).apply(lambda w: (w[:-1] < w[-1]).mean() * 100 if len(w) > 1 else np.nan, raw=True)
+            scores[k] = pr if up else 100 - pr
+        sc = pd.DataFrame(scores).dropna(how="all")
+        total = sc.mean(axis=1, skipna=True).dropna()
+        total = total[total.index >= total.index[-1] - pd.DateOffset(years=1)]
+        if total.empty:
+            return None
+        last = total.index[-1]
+
+        def ago(days):
+            t = total[total.index <= last - pd.Timedelta(days=days)]
+            return round(float(t.iloc[-1]), 1) if len(t) else None
+        now = round(float(total.iloc[-1]), 1)
+        comps = []
+        for k, (name, desc, ser, up) in comp.items():
+            v = sc[k].dropna()
+            raw = ser.dropna()
+            comps.append({"key": k, "name": name, "desc": desc, "score": round(float(v.iloc[-1]), 1) if len(v) else None,
+                          "label": fg_label(float(v.iloc[-1])) if len(v) else None,
+                          "value": round(float(raw.iloc[-1]) * 100, 2) if len(raw) else None})
+        return {"asOf": last.strftime("%Y-%m-%d"), "score": now, "label": fg_label(now),
+                "prev": {"1D": ago(1), "1W": ago(7), "1M": ago(30), "1Y": ago(365)},
+                "components": comps,
+                "history": {"d": [d.strftime("%Y-%m-%d") for d in total.index], "v": [round(float(x), 1) for x in total]},
+                "method": "CNN Fear & Greed의 7개 지표 중 6개를 공개 데이터(Yahoo·자체 유니버스)로 재현 · 각 지표의 최근 1년 백분위(0~100) 평균 · 풋/콜 비율은 무료 데이터가 없어 제외"}
+    except Exception as ex:  # noqa: BLE001
+        warn(f"공포·탐욕 지수 계산 실패: {ex}")
+        return None
+
+
+# ---------------------------------------------------------------------------
 # 메인
 # ---------------------------------------------------------------------------
 def clean(o):
@@ -1083,8 +1289,8 @@ def main() -> None:
 
     movers = None
     if cfg.get("r2000_movers", True) and not args.no_movers:
-        print("⑤ Russell 2000 등락 상·하위")
-        movers = small_cap_movers() if screen_mode else r2000_movers()
+        print("⑤ S&P 500 등락 상·하위")
+        movers = sp500_movers(prices)
         if movers and fh_key:
             for row in movers["gainers"] + movers["losers"]:
                 nn = company_news(row["ticker"], fh_key, days=3, n=1)
@@ -1097,6 +1303,44 @@ def main() -> None:
             warn("Finnhub 시장 뉴스가 비어 있습니다(키 오류·호출 한도 가능성)")
         market_news = [news_item(x) for x in rows[:12]] if isinstance(rows, list) else []
 
+    print("⑥ 공포·탐욕 지수")
+    fg = fear_greed(prices, [yahoo_symbol(s_["ticker"]) for s_ in stocks])
+    if fg:
+        print(f"   {fg['asOf']}: {fg['score']} ({fg['label']})")
+
+    print("⑦ 뉴스 한국어 번역")
+    import re as _re
+    em = _re.search(r"[\w.+-]+@[\w-]+\.[\w.]+", ua or "")
+    tr = KoTranslator(em.group(0) if em else None, (os.environ.get("GEMINI_API_KEY") or "").strip() or None)
+    mover_news = [r_["news"] for r_ in ((movers or {}).get("gainers", []) + (movers or {}).get("losers", [])) if r_.get("news")]
+    texts = [n_["headline"] for n_ in market_news + mover_news] + [n_["summary"] for n_ in market_news if n_.get("summary")]
+    ko = tr.translate(texts)
+    for n_ in market_news + mover_news:
+        n_["headlineKo"] = ko.get(n_["headline"])
+        if n_.get("summary"):
+            n_["summaryKo"] = ko.get(n_["summary"])
+    comp_files = list((out / "fin").glob("*.json"))
+    cn_texts = []
+    for fp in comp_files:
+        try:
+            cn_texts += [n_["headline"] for n_ in json.loads(fp.read_text()).get("news", [])]
+        except Exception:  # noqa: BLE001
+            pass
+    if cn_texts:
+        ko2 = tr.translate(cn_texts)
+        for fp in comp_files:
+            try:
+                d_ = json.loads(fp.read_text())
+                if d_.get("news"):
+                    for n_ in d_["news"]:
+                        n_["headlineKo"] = ko2.get(n_["headline"])
+                    dump(fp, d_)
+            except Exception:  # noqa: BLE001
+                pass
+    tr.save()
+    n_ok = sum(1 for n_ in market_news + mover_news if n_.get("headlineKo"))
+    print(f"   번역: {tr.provider or '없음'} · 메인 헤드라인 {n_ok}/{len(market_news) + len(mover_news)} · MyMemory {tr.chars}자")
+
     now = dt.datetime.now(dt.timezone.utc)
     dump(out / "summary.json", {
         "meta": {
@@ -1105,12 +1349,13 @@ def main() -> None:
             "universe": source, "universeSize": len(stocks),
             "sources": {"prices": "Yahoo Finance 일별 종가(분할 반영·배당 미반영)", "financials": "SEC EDGAR XBRL (GAAP)",
                         "universe": source, "fwdPe": "Yahoo 컨센서스", "news": "Finnhub" if fh_key else None,
-                        "movers": movers["source"] if movers else None},
+                        "movers": movers["source"] if movers else None,
+                        "translation": tr.provider, "fearGreed": "AlphaDesk 자체 계산(CNN 방법론 근사)" if fg else None},
             "warnings": WARNINGS[:200],
         },
         "defaultPortfolio": cfg.get("default_portfolio", []),
         "benchmarks": benchmarks, "stocks": stocks, "movers": movers,
-        "news": {"market": market_news},
+        "news": {"market": market_news}, "fearGreed": fg,
     })
     print(f"완료 → {out} ({len(stocks)}종목, 경고 {len(WARNINGS)}건)")
 

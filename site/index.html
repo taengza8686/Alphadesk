@@ -132,6 +132,31 @@
         <div id="heatmap-container" class="w-full h-[78vh] min-h-[560px]"></div>
       </div>
       <p class="text-[11px] text-slate-500">데이터·화면: TradingView Stock Heatmap 위젯(공식 임베드). Finviz는 이용약관상 자동 수집이 금지되어 같은 형태의 공식 위젯을 사용합니다.</p>
+
+      <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-5 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-bold text-white">공포 &amp; 탐욕 지수</h2>
+              <span id="fg-asof" class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">-</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">CNN Fear &amp; Greed 방법론을 공개 데이터로 재현한 근사치 · 0 = 극단적 공포, 100 = 극단적 탐욕 · 각 지표의 최근 1년 백분위 평균</p>
+          </div>
+          <a href="https://edition.cnn.com/markets/fear-and-greed" target="_blank" rel="noopener" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 whitespace-nowrap">CNN 공식 지수 보기 ↗</a>
+        </div>
+        <div id="fg-body" class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+          <div class="xl:col-span-4 flex flex-col items-center justify-center">
+            <svg id="fg-gauge" viewBox="0 0 240 150" class="w-full max-w-[340px]"></svg>
+            <div id="fg-prev" class="grid grid-cols-4 gap-2 w-full max-w-[340px] mt-2"></div>
+          </div>
+          <div class="xl:col-span-4 space-y-2.5" id="fg-components"></div>
+          <div class="xl:col-span-4 flex flex-col">
+            <div class="text-[11px] text-slate-400 mb-1">최근 1년 추이</div>
+            <svg id="fg-history" viewBox="0 0 400 210" preserveAspectRatio="none" class="w-full h-[210px]"></svg>
+          </div>
+        </div>
+        <p id="fg-method" class="text-[11px] text-slate-500"></p>
+      </div>
     </section>
 
     <!-- TAB 0 -->
@@ -177,10 +202,10 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
             <div class="flex items-center gap-2">
-              <h2 class="text-base font-bold text-white">Russell 2000 전일 수익률 상위 10 · 하위 10</h2>
+              <h2 class="text-base font-bold text-white">S&P 500 전일 수익률 상위 10 · 하위 10</h2>
               <span id="r2000-movers-badge" class="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300">-</span>
             </div>
-            <p id="r2000-movers-sub" class="text-xs text-slate-400 mt-0.5">iShares IWM 보유종목 기준 전 거래일 종가 등락률 · 우측은 해당 종목 최근 뉴스 헤드라인(Finnhub)</p>
+            <p id="r2000-movers-sub" class="text-xs text-slate-400 mt-0.5">S&P 500 구성종목 전 거래일 종가 등락률 · 우측은 해당 종목 최근 뉴스 헤드라인(Finnhub, 한국어 자동 번역)</p>
           </div>
         </div>
         <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
@@ -757,6 +782,7 @@
     renderIndexCards();
     renderMarketNews();
     renderRussell2000Movers();
+    renderFearGreed();
     switchTab(currentTab);
   }
   function renderAllEmpty() {
@@ -848,16 +874,59 @@
     $('active-index-title').textContent = `${b.name || marketIndexKey} — 차트는 지수 추종 ETF ${sym.split(':')[1]} (TradingView는 지수 원지수 차트의 외부 게시를 허용하지 않음)`;
     mountTvChart('market_index_tv_container', sym, { interval: TV_INT[marketIndexInterval] });
   }
+  // ---------------------------------------------------------------- 공포·탐욕 지수
+  const FG_COLORS = [[25, '#e11d48'], [45, '#f97316'], [56, '#94a3b8'], [76, '#4ade80'], [101, '#10b981']];
+  const fgColor = v => (FG_COLORS.find(([hi]) => v < hi) || FG_COLORS[4])[1];
+  function renderFearGreed() {
+    const f = DATA?.fearGreed;
+    if (!f) { $('fg-asof').textContent = '데이터 없음'; $('fg-gauge').innerHTML = '<text x="120" y="80" text-anchor="middle" fill="#64748b" font-size="11">다음 자동 갱신 후 표시됩니다</text>'; return; }
+    $('fg-asof').textContent = `${f.asOf} 종가 기준`;
+    const cx = 120, cy = 120, R = 95, r0 = 72;
+    const pt = (v, rad) => { const a = Math.PI * (1 - v / 100); return [cx + rad * Math.cos(a), cy - rad * Math.sin(a)]; };
+    const seg = (a, b, col) => { const [x1, y1] = pt(a, R), [x2, y2] = pt(b, R), [x3, y3] = pt(b, r0), [x4, y4] = pt(a, r0);
+      return `<path d="M${x1},${y1} A${R},${R} 0 0 1 ${x2},${y2} L${x3},${y3} A${r0},${r0} 0 0 0 ${x4},${y4} Z" fill="${col}" opacity="0.85"/>`; };
+    const bands = [[0, 25, '#e11d48'], [25, 45, '#f97316'], [45, 55, '#64748b'], [55, 75, '#4ade80'], [75, 100, '#10b981']];
+    const [nx, ny] = pt(f.score, r0 - 8);
+    const labels = [[12, '극단적\n공포'], [35, '공포'], [50, '중립'], [65, '탐욕'], [88, '극단적\n탐욕']].map(([v, t]) => { const [x, y] = pt(v, R + 13);
+      return t.split('\n').map((ln, i) => `<text x="${x}" y="${y + i * 9 - (t.includes('\n') ? 4 : 0)}" text-anchor="middle" fill="#94a3b8" font-size="7.5">${ln}</text>`).join(''); }).join('');
+    $('fg-gauge').innerHTML = bands.map(([a, b, c]) => seg(a + 0.6, b - 0.6, c)).join('') + labels
+      + `<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#f8fafc" stroke-width="3" stroke-linecap="round"/><circle cx="${cx}" cy="${cy}" r="6" fill="#f8fafc"/>`
+      + `<text x="${cx}" y="${cy + 26}" text-anchor="middle" fill="${fgColor(f.score)}" font-size="26" font-weight="800" font-family="ui-monospace,monospace">${Math.round(f.score)}</text>`
+      + `<text x="${cx}" y="${cy - 30}" text-anchor="middle" fill="${fgColor(f.score)}" font-size="13" font-weight="700">${esc(f.label)}</text>`;
+    $('fg-gauge').setAttribute('viewBox', '0 0 240 155');
+    $('fg-prev').innerHTML = [['1D', '전일'], ['1W', '1주 전'], ['1M', '1개월 전'], ['1Y', '1년 전']].map(([k, l]) => { const v = f.prev?.[k];
+      return `<div class="bg-slate-900/70 border border-slate-800 rounded-lg py-1.5 text-center"><div class="text-[10px] text-slate-500">${l}</div><div class="font-mono font-bold text-sm" style="color:${isNum(v) ? fgColor(v) : '#64748b'}">${isNum(v) ? Math.round(v) : '-'}</div></div>`; }).join('');
+    $('fg-components').innerHTML = (f.components || []).map(c => `
+      <div class="bg-slate-900/60 border border-slate-800 rounded-xl px-3 py-2" title="${esc(c.desc)}">
+        <div class="flex items-center justify-between text-xs"><span class="font-semibold text-slate-200">${esc(c.name)}</span>
+          <span class="font-mono font-bold" style="color:${isNum(c.score) ? fgColor(c.score) : '#64748b'}">${isNum(c.score) ? Math.round(c.score) : '-'} <span class="text-[10px] font-sans font-semibold">${esc(c.label || '')}</span></span></div>
+        <div class="mt-1.5 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" style="width:${isNum(c.score) ? c.score : 0}%;background:${isNum(c.score) ? fgColor(c.score) : '#334155'}"></div></div>
+        <div class="text-[10px] text-slate-500 mt-1">${esc(c.desc)}</div>
+      </div>`).join('');
+    const h = f.history || { d: [], v: [] }, W = 400, H = 210, pl = 26, pb = 18;
+    const n = h.v.length, X = i => pl + (W - pl - 4) * (n > 1 ? i / (n - 1) : 0), Y = v => 6 + (H - pb - 6) * (1 - v / 100);
+    const bandRects = bands.map(([a, b, c]) => `<rect x="${pl}" y="${Y(b)}" width="${W - pl - 4}" height="${Y(a) - Y(b)}" fill="${c}" opacity="0.07"/>`).join('');
+    const grid = [0, 25, 50, 75, 100].map(v => `<line x1="${pl}" x2="${W - 4}" y1="${Y(v)}" y2="${Y(v)}" stroke="#1e293b"/><text x="${pl - 4}" y="${Y(v) + 3}" text-anchor="end" fill="#64748b" font-size="9">${v}</text>`).join('');
+    const path = h.v.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+    const months = []; let lastM = '';
+    h.d.forEach((d, i) => { const m = d.slice(0, 7); if (m !== lastM) { lastM = m; if (i > 5 && i < n - 5) months.push(`<text x="${X(i)}" y="${H - 4}" text-anchor="middle" fill="#64748b" font-size="9">${d.slice(2, 4)}.${d.slice(5, 7)}</text>`); } });
+    $('fg-history').innerHTML = bandRects + grid + months.filter((_, i) => i % 2 === 0).join('')
+      + `<path d="${path}" fill="none" stroke="#e2e8f0" stroke-width="1.6"/>`
+      + (n ? `<circle cx="${X(n - 1)}" cy="${Y(h.v[n - 1])}" r="3.5" fill="${fgColor(h.v[n - 1])}"/>` : '');
+    $('fg-method').textContent = `산출 방식: ${f.method || ''} · 데이터: Yahoo Finance(S&P 500·VIX·HYG·IEF) + AlphaDesk 유니버스 종가. CNN 공식 수치와 다를 수 있습니다.`;
+  }
   function newsCard(n, compact = false) {
     const t = n.time ? new Date(n.time).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
     return `<a href="${esc(safeUrl(n.url))}" target="_blank" rel="noopener" class="block bg-slate-900/80 border border-slate-800 hover:border-blue-500/40 rounded-xl p-3 space-y-1 transition-colors">
-      <div class="font-bold text-white leading-snug">${esc(n.headline)}</div>
-      ${!compact && n.summary ? `<p class="text-slate-400 leading-relaxed">${esc(n.summary)}</p>` : ''}
+      <div class="font-bold text-white leading-snug">${esc(n.headlineKo || n.headline)}</div>
+      ${n.headlineKo ? `<div class="text-[10px] text-slate-500 leading-snug">${esc(n.headline)}</div>` : ''}
+      ${!compact && (n.summaryKo || n.summary) ? `<p class="text-slate-400 leading-relaxed">${esc(n.summaryKo || n.summary)}</p>` : ''}
       <div class="text-[10px] text-slate-500 font-mono">${esc(n.source)} · ${esc(t)} KST</div></a>`;
   }
   function renderMarketNews() {
     const items = DATA?.news?.market || [];
-    $('market-news-date').textContent = DATA ? `${DATA.meta?.generatedAtKST || ''} 수집` : '-';
+    const trp = DATA?.meta?.sources?.translation;
+    $('market-news-date').textContent = DATA ? `${DATA.meta?.generatedAtKST || ''} 수집${trp ? ' · 번역 ' + trp : ''}` : '-';
     $('market-news-grid').innerHTML = items.length ? items.map(n => newsCard(n)).join('')
       : `<div class="lg:col-span-2 text-slate-400 bg-slate-900/60 border border-slate-800 rounded-xl p-4">뉴스 데이터가 없습니다. 파이프라인 실행 시 환경변수 <span class="font-mono text-slate-200">FINNHUB_API_KEY</span>(무료 발급)를 설정하면 실제 헤드라인이 표시됩니다.</div>`;
   }
@@ -871,13 +940,13 @@
         <td class="py-2.5 px-2.5 text-right font-num font-bold ${up ? 'text-emerald-400' : 'text-rose-400'}">${fmtPct(m.r1D, 2)}</td>
         <td class="py-2.5 px-3 text-[11px] leading-snug max-w-[260px] whitespace-normal">
           <div class="text-slate-500">${esc(m.sector || '')}</div>
-          ${m.news ? `<a href="${esc(safeUrl(m.news.url))}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-300 hover:text-blue-300">${esc(m.news.headline)}</a>` : '<span class="text-slate-600">뉴스 없음</span>'}
+          ${m.news ? `<a href="${esc(safeUrl(m.news.url))}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="text-slate-300 hover:text-blue-300" title="${esc(m.news.headline)}">${esc(m.news.headlineKo || m.news.headline)}</a>` : '<span class="text-slate-600">뉴스 없음</span>'}
         </td>
       </tr>`).join('');
   }
   function renderRussell2000Movers() {
     const m = DATA?.movers;
-    $('r2000-movers-badge').textContent = m ? `${m.asOf} · ${m.universeCount}종목` : '데이터 없음';
+    $('r2000-movers-badge').textContent = m ? `${m.asOf} · ${m.universeCount ? m.universeCount + '종목' : ''}` : '데이터 없음';
     $('r2000-gainers-tbody').innerHTML = moverRows(m?.gainers, true);
     $('r2000-losers-tbody').innerHTML = moverRows(m?.losers, false);
   }

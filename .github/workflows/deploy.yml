@@ -37,6 +37,8 @@ jobs:
             .cache/holdings_IWB.json
             .cache/holdings_IWM.json
             .cache/company_tickers.json
+            .cache/sp500.json
+            .cache/tr_ko.json
           key: alphadesk-${{ github.run_id }}
           restore-keys: alphadesk-
       - name: Build data (Russell 1000)
@@ -44,6 +46,7 @@ jobs:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT || format('AlphaDesk {0}@users.noreply.github.com', github.repository_owner) }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY || secrets.FINHUB_API_KEY || secrets.FINNHUB_KEY || secrets.FINNHUB || vars.FINNHUB_API_KEY || vars.FINHUB_API_KEY || vars.FINNHUB_KEY }}
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python build_data.py --out-dir site/data --info-budget 300
       - name: Mirror to Cloudflare Pages (github 없는 주소)
         continue-on-error: true
