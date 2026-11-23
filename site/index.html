@@ -916,6 +916,27 @@
     const cal = f.calibration ? ` · CNN 눈금 보정 적용(보정 전 원점수 ${Math.round(f.rawScore)}): 점수 = ${f.calibration.a} + ${f.calibration.b} × 원점수 — ${f.calibration.note || ''}` : '';
     $('fg-method').textContent = `산출 방식: ${f.method || ''}${cal} · 구성 지표 점수는 보정 전 백분위 · 데이터: Yahoo Finance(S&P 500·VIX·HYG·IEF) + AlphaDesk 유니버스 종가. CNN 공식 수치와 다를 수 있습니다.`;
   }
+  // 파이프라인에서 번역되지 않은 헤드라인은 브라우저에서 MyMemory로 번역 (결과는 이 브라우저에 저장)
+  const TR_KEY = 'alphadesk_tr_ko_v1';
+  function trCache() { try { return JSON.parse(localStorage.getItem(TR_KEY) || '{}'); } catch (e) { return {}; } }
+  function trSave(c) { try { const k = Object.keys(c); if (k.length > 3000) k.slice(0, k.length - 2000).forEach(x => delete c[x]); localStorage.setItem(TR_KEY, JSON.stringify(c)); } catch (e) {} }
+  async function translateNewsInBrowser(list, containerId) {
+    const todo = (list || []).filter(n => n.headline && !n.headlineKo);
+    if (!todo.length) return;
+    const cache = trCache(); let changed = false;
+    for (const n of todo) {
+      if (cache[n.headline]) { n.headlineKo = cache[n.headline]; continue; }
+      try {
+        const r = await fetch('https://api.mymemory.translated.net/get?langpair=en|ko&q=' + encodeURIComponent(n.headline.slice(0, 480)));
+        const j = await r.json(); const t = j?.responseData?.translatedText;
+        if (String(j?.responseStatus) !== '200' || !t || /MYMEMORY WARNING/i.test(t)) break;
+        n.headlineKo = cache[n.headline] = t; changed = true;
+      } catch (e) { break; }
+    }
+    if (changed) trSave(cache);
+    const el = $(containerId);
+    if (el && el._list === list && todo.some(n => n.headlineKo)) el.innerHTML = list.map(n => newsCard(n, true)).join('');
+  }
   function newsCard(n, compact = false) {
     const t = n.time ? new Date(n.time).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
     return `<a href="${esc(safeUrl(n.url))}" target="_blank" rel="noopener" class="block bg-slate-900/80 border border-slate-800 hover:border-blue-500/40 rounded-xl p-3 space-y-1 transition-colors">
@@ -1443,7 +1464,9 @@
         <span class="text-slate-300">${f.isEarnings ? '실적 발표 (Item 2.02)' : esc(f.desc || f.form)}${f.period ? ` · 기준 ${esc(f.period)}` : ''}</span></div>
       <span class="font-mono text-slate-500">${esc(f.filed)}</span></a>`).join('') || '<div class="text-slate-500">공시 데이터 없음</div>';
     const cn = finFile.news || [];
-    $('company-news-list').innerHTML = cn.map(n => newsCard(n, true)).join('') || '<div class="text-slate-500">뉴스 없음 (FINNHUB_API_KEY 설정 시 수집)</div>';
+    $('company-news-list').innerHTML = cn.map(n => newsCard(n, true)).join('') || '<div class="text-slate-500">최근 10일 내 수집된 뉴스가 없습니다</div>';
+    $('company-news-list')._list = cn;
+    translateNewsInBrowser(cn, 'company-news-list');
   }
 
   // ---------------------------------------------------------------- TAB 5

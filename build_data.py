@@ -1288,7 +1288,7 @@ def main() -> None:
         df = prices.get(ys)
         if df is not None:
             dump(out / "hist" / f"{rec['file']}.json", history_pack(df))
-        cn = company_news(t, fh_key) if (fh_key and i <= 40) else []
+        cn = company_news(t, fh_key, days=4 if i <= 100 else 10) if fh_key else []
         dump(out / "fin" / f"{rec['file']}.json", {"financials": fin, "filings": filings, "news": cn})
 
     movers = None
@@ -1323,7 +1323,10 @@ def main() -> None:
         n_["headlineKo"] = ko.get(n_["headline"])
         if n_.get("summary"):
             n_["summaryKo"] = ko.get(n_["summary"])
-    comp_files = list((out / "fin").glob("*.json"))
+    comp_files = [out / "fin" / f"{s_['file']}.json" for s_ in stocks[:int(cfg.get("news_translate_top", 80))]]
+    comp_files = [fp for fp in comp_files if fp.exists()]
+    if tr.gkey:   # Gemini 키가 있으면 전 종목 번역
+        comp_files = [fp for fp in (out / "fin" / f"{s_['file']}.json" for s_ in stocks) if fp.exists()]
     cn_texts = []
     for fp in comp_files:
         try:
