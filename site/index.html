@@ -226,23 +226,42 @@
           <div class="flex flex-wrap items-center gap-2.5">
             <input id="screener-search" type="text" oninput="currentPage=1; renderOverviewTable()" placeholder="티커 또는 기업명 검색 (예: NVDA, LITE)..." class="w-60 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500" />
             <select id="sector-filter" onchange="currentPage=1; renderOverviewTable()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none"><option value="ALL">전체 GICS 섹터</option></select>
+            <select id="group-filter" onchange="onGroupFilterChange()" class="bg-slate-900 border border-indigo-700/60 rounded-xl px-3 py-2 text-xs text-indigo-200 focus:outline-none" title="AI 밸류체인 중심 투자 테마 대분류"><option value="ALL">전체 테마 대분류</option></select>
+            <select id="theme-filter" onchange="currentPage=1; renderOverviewTable()" class="bg-slate-900 border border-indigo-700/60 rounded-xl px-3 py-2 text-xs text-indigo-200 focus:outline-none max-w-[220px]" title="세부 테마 (예: 하이퍼스케일러, 메모리, 광통신)"><option value="ALL">전체 세부 테마</option></select>
+            <select id="industry-filter" onchange="currentPage=1; renderOverviewTable()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none max-w-[200px]" title="Yahoo Finance 세부 업종(약 130개)"><option value="ALL">전체 세부 업종(Yahoo)</option></select>
+            <label class="flex items-center gap-1.5 text-[11px] text-slate-400 cursor-pointer" title="체크하면 주 테마가 아니어도 보조 태그로 해당 테마에 걸친 종목까지 표시"><input id="theme-include-tags" type="checkbox" onchange="currentPage=1; renderOverviewTable()" class="accent-indigo-500"> 보조 태그 포함</label>
             <select id="mcap-filter" onchange="currentPage=1; renderOverviewTable()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
               <option value="ALL">전체 시총 구간</option><option value="MEGA">Mega Cap ($200B+)</option><option value="LARGE">Large Cap ($20B ~ $200B)</option><option value="MID">Mid/Small ($20B 미만)</option>
             </select>
           </div>
           <div class="flex items-center gap-2 text-xs text-slate-400">
+            <div class="inline-flex rounded-lg bg-slate-900 p-0.5 border border-slate-700 mr-2">
+              <button id="btn-view-stocks" onclick="setScreenerView('STOCKS')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-blue-600 text-white">종목별</button>
+              <button id="btn-view-themes" onclick="setScreenerView('THEMES')" class="px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-400 hover:text-white">테마별 묶어보기</button>
+            </div>
             <span>페이지당 표시:</span>
             <select id="page-size-select" onchange="currentPage=1; renderOverviewTable()" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-slate-200"><option value="25">25개</option><option value="50" selected>50개</option><option value="100">100개</option></select>
           </div>
         </div>
 
-        <div class="bg-terminal-panel border border-terminal-border rounded-2xl overflow-hidden shadow-xl">
+        <div id="theme-summary-box" class="hidden bg-terminal-panel border border-terminal-border rounded-2xl overflow-hidden shadow-xl">
+          <div class="px-5 py-3 border-b border-terminal-border text-xs text-slate-400">테마별 요약 — 현재 필터(검색·시총·대분류) 적용 · 수익률/멀티플은 <b class="text-slate-200">중앙값</b>, 시총은 합계 · 행을 누르면 해당 테마 종목 목록으로 이동</div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse whitespace-nowrap text-xs">
+              <thead><tr class="bg-slate-900/90 border-b border-terminal-border text-[11px] text-slate-400 uppercase select-none" id="theme-summary-head"></tr></thead>
+              <tbody id="theme-summary-tbody" class="divide-y divide-slate-800/70"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="stock-table-box" class="bg-terminal-panel border border-terminal-border rounded-2xl overflow-hidden shadow-xl">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse whitespace-nowrap text-xs">
               <thead>
                 <tr class="bg-slate-900/90 border-b border-terminal-border text-[11px] text-slate-400 uppercase select-none">
                   <th onclick="sortOverview('ticker')" class="py-3.5 px-4 cursor-pointer hover:text-white">티커 / 기업명 ↕</th>
                   <th onclick="sortOverview('gicsSector')" class="py-3.5 px-3 cursor-pointer hover:text-white">GICS 섹터 ↕</th>
+                  <th onclick="sortOverview('theme')" class="py-3.5 px-3 cursor-pointer hover:text-white" title="투자 테마 (대분류 · 세부)">테마 ↕</th>
                   <th onclick="sortOverview('price')" class="py-3.5 px-3 text-right cursor-pointer hover:text-white">종가 ↕</th>
                   <th onclick="sortOverview('pctFromHigh')" class="py-3.5 px-3 text-right cursor-pointer hover:text-white" title="52주 최고가 대비 하락률">52W 고점대비 ↕</th>
                   <th onclick="sortOverview('r1D')" class="py-3.5 px-3 text-right cursor-pointer hover:text-white">1D ↕</th>
@@ -731,7 +750,10 @@
     const nW = (d.meta?.warnings || []).length;
     $('sidebar-warn-btn').classList.toggle('hidden', nW === 0);
     $('sidebar-warn-btn').textContent = `⚠ 수집 경고 ${nW}건 보기`;
+    attachThemes();
     populateSelectors();
+    populateThemeSelectors();
+    if (!Object.keys(THEMES).length) loadThemes().then(() => { populateThemeSelectors(); if (currentTab === 'tab1') renderOverviewTable(); });
     renderIndexCards();
     renderMarketNews();
     renderRussell2000Movers();
@@ -889,8 +911,134 @@
     };
     return `<span class="text-[11px] px-2 py-0.5 rounded-md border ${palette[sector] || 'bg-slate-800 text-slate-300 border-slate-700'}">${esc(sector || '-')}</span>`;
   }
+  // ---------------------------------------------------------------- 투자 테마 (site/themes.csv)
+  let THEMES = {}, screenerView = 'STOCKS', THEME_ROWS = [];
+  function parseCsv(text) {
+    const rows = []; let row = [], f = '', q = false;
+    text = text.replace(/^\uFEFF/, '');
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) { if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+      else if (c === '"') q = true;
+      else if (c === ',') { row.push(f); f = ''; }
+      else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(f); f = ''; if (row.some(x => x !== '')) rows.push(row); row = []; }
+      else f += c;
+    }
+    if (f !== '' || row.length) { row.push(f); rows.push(row); }
+    const head = rows.shift() || [];
+    return rows.map(r => Object.fromEntries(head.map((h, i) => [h.trim(), (r[i] || '').trim()])));
+  }
+  async function loadThemes() {
+    try {
+      const res = await fetch('themes.csv?ts=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      THEMES = {};
+      parseCsv(await res.text()).forEach(r => { if (r.ticker) THEMES[r.ticker.toUpperCase()] = r; });
+    } catch (e) { THEMES = {}; }
+    attachThemes();
+  }
+  function attachThemes() {
+    stocksData.forEach(s => {
+      const t = THEMES[s.ticker];
+      s.themeGroup = t?.group || '미분류';
+      s.theme = t?.theme || (s.industry ? s.industry : '미분류');
+      s.themeTags = (t?.tags || '').split(';').map(x => x.trim()).filter(Boolean);
+      s.themeBasis = t?.basis || (t ? '' : '테마표에 없음 — themes.csv에 추가 필요');
+    });
+  }
+  function onGroupFilterChange() { currentPage = 1; fillThemeSelect(); renderOverviewTable(); }
+  function fillThemeSelect() {
+    const g = $('group-filter').value, el = $('theme-filter'), cur = el.value;
+    const cnt = {};
+    stocksData.forEach(s => { if (g === 'ALL' || s.themeGroup === g) cnt[s.theme] = (cnt[s.theme] || 0) + 1; });
+    const list = Object.keys(cnt).sort((a, b) => a.localeCompare(b, 'ko'));
+    el.innerHTML = `<option value="ALL">전체 세부 테마 (${list.length})</option>` + list.map(t => `<option value="${esc(t)}">${esc(t)} (${cnt[t]})</option>`).join('');
+    if (list.includes(cur)) el.value = cur;
+  }
+  function populateThemeSelectors() {
+    const gc = {}; stocksData.forEach(s => { gc[s.themeGroup] = (gc[s.themeGroup] || 0) + 1; });
+    const order = ['AI 클라우드·모델', '반도체', '네트워킹', 'AI 하드웨어·인프라', 'AI 전력', '소프트웨어'];
+    const groups = Object.keys(gc).sort((a, b) => { const ia = order.indexOf(a), ib = order.indexOf(b); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b, 'ko'); });
+    const gEl = $('group-filter'), gCur = gEl.value;
+    gEl.innerHTML = `<option value="ALL">전체 테마 대분류</option>` + groups.map(g => `<option value="${esc(g)}">${esc(g)} (${gc[g]})</option>`).join('');
+    if (groups.includes(gCur)) gEl.value = gCur;
+    fillThemeSelect();
+    const ic = {}; stocksData.forEach(s => { if (s.industry) ic[s.industry] = (ic[s.industry] || 0) + 1; });
+    const iEl = $('industry-filter'), iCur = iEl.value, inds = Object.keys(ic).sort();
+    iEl.innerHTML = `<option value="ALL">전체 세부 업종(Yahoo) (${inds.length})</option>` + inds.map(i => `<option value="${esc(i)}">${esc(i)} (${ic[i]})</option>`).join('');
+    if (inds.includes(iCur)) iEl.value = iCur;
+  }
+  function screenerBaseFilter(applyTheme) {
+    const g = $('group-filter').value, th = $('theme-filter').value, ind = $('industry-filter').value, tags = $('theme-include-tags').checked;
+    const q = ($('screener-search').value || '').trim().toLowerCase(), sec = $('sector-filter').value, mc = $('mcap-filter').value;
+    return stocksData.filter(s => {
+      if (ind !== 'ALL' && s.industry !== ind) return false;
+      if (!applyTheme) {
+        if (q && !s.ticker.toLowerCase().includes(q) && !(s.name || '').toLowerCase().includes(q)) return false;
+        if (sec !== 'ALL' && s.gicsSector !== sec) return false;
+        const capB = (s.mktCap || 0) / 1e9;
+        if (mc === 'MEGA' && capB < 200) return false;
+        if (mc === 'LARGE' && (capB < 20 || capB >= 200)) return false;
+        if (mc === 'MID' && capB >= 20) return false;
+      }
+      if (th !== 'ALL') return s.theme === th || (tags && s.themeTags.includes(th));
+      if (g !== 'ALL') return s.themeGroup === g || (tags && s.themeTags.some(t => stocksData.some(o => o.theme === t && o.themeGroup === g)));
+      return true;
+    });
+  }
+  function setScreenerView(v) {
+    screenerView = v;
+    $('btn-view-stocks').className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold ' + (v === 'STOCKS' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white');
+    $('btn-view-themes').className = 'px-2.5 py-1 rounded-md text-[11px] font-semibold ' + (v === 'THEMES' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white');
+    $('theme-summary-box').classList.toggle('hidden', v !== 'THEMES');
+    $('stock-table-box').classList.toggle('hidden', v === 'THEMES');
+    renderOverviewTable();
+  }
+  let themeSortCol = 'cap', themeSortAsc = false;
+  function sortThemeSummary(col) { if (themeSortCol === col) themeSortAsc = !themeSortAsc; else { themeSortCol = col; themeSortAsc = col === 'theme'; } renderThemeSummary(); }
+  function renderThemeSummary() {
+    const pool = screenerBaseFilter(false), th = $('theme-filter').value, tags = $('theme-include-tags').checked;
+    const buckets = {};
+    pool.forEach(s => {
+      const keys = [s.theme, ...(tags ? s.themeTags : [])];
+      keys.forEach((k, i) => { if (th !== 'ALL' && k !== th) return; (buckets[k] = buckets[k] || { theme: k, group: null, list: [] }).list.push(s); if (i === 0) buckets[k].group = s.themeGroup; });
+    });
+    const cols = [['theme', '세부 테마'], ['n', '종목수'], ['cap', '시총 합계'], ['r1D', '1D'], ['r1W', '1W'], ['r1M', '1M'], ['r3M', '3M'], ['rYTD', 'YTD'], ['r1Y', '1Y'], ['fwdPe', 'Fwd P/E'], ['peTTM', 'P/E TTM'], ['evEbitda', 'EV/EBITDA'], ['top', '시총 상위 종목']];
+    const rows = Object.values(buckets).map(b => {
+      const r = { theme: b.theme, group: b.group || stocksData.find(o => o.theme === b.theme)?.themeGroup || '', n: b.list.length, cap: b.list.reduce((a, s) => a + (s.mktCap || 0), 0) };
+      ['r1D', 'r1W', 'r1M', 'r3M', 'rYTD', 'r1Y', 'fwdPe', 'peTTM', 'evEbitda'].forEach(k => r[k] = median(b.list.map(s => s[k])));
+      r.top = [...b.list].sort((a, c) => (c.mktCap || 0) - (a.mktCap || 0)).slice(0, 4).map(s => s.ticker).join(', ');
+      return r;
+    }).sort((a, b) => {
+      const va = a[themeSortCol], vb = b[themeSortCol];
+      if (typeof va === 'string') return themeSortAsc ? va.localeCompare(vb, 'ko') : vb.localeCompare(va, 'ko');
+      const na = isNum(va), nb = isNum(vb); if (!na && !nb) return 0; if (!na) return 1; if (!nb) return -1;
+      return themeSortAsc ? va - vb : vb - va;
+    });
+    $('theme-summary-head').innerHTML = cols.map(([k, l], i) => `<th onclick="sortThemeSummary('${k}')" class="py-3.5 ${i === 0 ? 'px-4' : 'px-3'} ${i > 0 && i < 12 ? 'text-right' : ''} cursor-pointer hover:text-white">${l} ↕</th>`).join('');
+    THEME_ROWS = rows.map(r => r.theme);
+    $('theme-summary-tbody').innerHTML = rows.map((r, i) => `
+      <tr onclick="drillTheme(THEME_ROWS[${i}])" class="hover:bg-slate-800/60 cursor-pointer transition-colors">
+        <td class="py-3 px-4"><div class="font-semibold text-indigo-200">${esc(r.theme)}</div><div class="text-[10px] text-slate-500">${esc(r.group)}</div></td>
+        <td class="py-3 px-3 text-right font-num text-slate-300">${r.n}</td>
+        <td class="py-3 px-3 text-right font-num text-slate-200">${fmtUsdBig(r.cap)}</td>
+        ${['r1D', 'r1W', 'r1M', 'r3M', 'rYTD', 'r1Y'].map(k => `<td class="py-3 px-3 text-right">${fmtPctHtml(r[k])}</td>`).join('')}
+        ${['fwdPe', 'peTTM', 'evEbitda'].map(k => `<td class="py-3 px-3 text-right font-num text-slate-300">${fmtX(r[k])}</td>`).join('')}
+        <td class="py-3 px-3 font-mono text-[11px] text-slate-400">${esc(r.top)}</td>
+      </tr>`).join('') || `<tr><td colspan="13" class="py-8 text-center text-slate-500">조건에 맞는 테마가 없습니다</td></tr>`;
+    $('pagination-info').textContent = `테마 ${rows.length}개 · 대상 종목 ${pool.length}개 · 종가 기준일 ${DATA?.meta?.priceAsOf || '-'}`;
+    $('page-indicator').textContent = '-';
+  }
+  function drillTheme(theme) {
+    const s = stocksData.find(o => o.theme === theme);
+    $('group-filter').value = s ? s.themeGroup : 'ALL';
+    fillThemeSelect();
+    $('theme-filter').value = theme;
+    currentPage = 1; sortCol = 'mktCap'; sortAsc = false;
+    setScreenerView('STOCKS');
+  }
   function sortOverview(col) {
-    if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = (col === 'ticker' || col === 'gicsSector'); }
+    if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = (col === 'ticker' || col === 'gicsSector' || col === 'theme'); }
     renderOverviewTable();
   }
   function changePage(delta) { currentPage = Math.max(1, currentPage + delta); renderOverviewTable(); }
@@ -899,7 +1047,8 @@
     const q = ($('screener-search').value || '').trim().toLowerCase();
     const sec = $('sector-filter').value, mc = $('mcap-filter').value;
     const pageSize = parseInt($('page-size-select').value, 10);
-    const filtered = stocksData.filter(s => {
+    if (screenerView === 'THEMES') { renderThemeSummary(); return; }
+    const filtered = screenerBaseFilter(true).filter(s => {
       if (q && !s.ticker.toLowerCase().includes(q) && !(s.name || '').toLowerCase().includes(q)) return false;
       if (sec !== 'ALL' && s.gicsSector !== sec) return false;
       const capB = (s.mktCap || 0) / 1e9;
@@ -921,6 +1070,7 @@
       <tr onclick="openCompanyDrawer('${esc(s.ticker)}')" class="hover:bg-slate-800/60 cursor-pointer transition-colors">
         <td class="py-3 px-4"><div class="font-mono font-bold text-white">${esc(s.ticker)}</div><div class="text-[11px] text-slate-400 truncate max-w-[170px]">${esc(s.name)}</div></td>
         <td class="py-3 px-3">${getGicsBadge(s.gicsSector)}</td>
+        <td class="py-3 px-3" title="${esc([s.themeBasis, s.themeTags.length ? '보조: ' + s.themeTags.join(', ') : ''].filter(Boolean).join(' · '))}"><div class="text-[11px] text-indigo-200 font-semibold">${esc(s.theme || '-')}</div><div class="text-[10px] text-slate-500">${esc(s.themeGroup || '')}${s.themeTags.length ? ' · +' + s.themeTags.length : ''}</div></td>
         <td class="py-3 px-3 text-right font-num font-semibold text-white">${isNum(s.price) ? '$' + s.price.toFixed(2) : '-'}</td>
         <td class="py-3 px-3 text-right">${fmtPctHtml(s.pctFromHigh, 1)}</td>
         ${['r1D', 'r1W', 'r1M', 'r3M', 'r6M', 'r1Y', 'rYTD', 'r3Y'].map(k => `<td class="py-3 px-3 text-right">${fmtPctHtml(s[k])}</td>`).join('')}
@@ -929,7 +1079,7 @@
         <td class="py-3 px-3 text-right font-num text-slate-300">${fmtX(s.peTTM)}</td>
         <td class="py-3 px-3 text-right font-num text-slate-300">${fmtX(s.evEbitda)}</td>
         <td class="py-3 px-4 text-right font-num text-slate-400">${fmtVol(s.volume)}</td>
-      </tr>`).join('') || `<tr><td colspan="17" class="py-8 text-center text-slate-500">${DATA ? '조건에 맞는 종목이 없습니다' : '데이터를 불러오는 중입니다'}</td></tr>`;
+      </tr>`).join('') || `<tr><td colspan="18" class="py-8 text-center text-slate-500">${DATA ? '조건에 맞는 종목이 없습니다' : '데이터를 불러오는 중입니다'}</td></tr>`;
     $('pagination-info').textContent = `총 ${total}개 종목 중 ${total ? start + 1 : 0}-${Math.min(start + pageSize, total)} 표시 · 종가 기준일 ${DATA?.meta?.priceAsOf || '-'}`;
     $('page-indicator').textContent = `${currentPage} / ${totalPages}`;
   }
@@ -940,12 +1090,12 @@
     $('drawer-ticker').textContent = s.ticker;
     $('drawer-exchange').textContent = s.exchange || '-';
     $('drawer-name').textContent = s.name || '-';
-    $('drawer-gics').textContent = [s.gicsSector, s.industry].filter(Boolean).join(' · ') || '-';
+    $('drawer-gics').textContent = [s.gicsSector, s.industry, s.theme && `테마: ${s.themeGroup} › ${s.theme}`].filter(Boolean).join(' · ') || '-';
     $('drawer-ipo').textContent = s.firstTradeDate || '-';
     $('drawer-price').innerHTML = `${isNum(s.price) ? '$' + s.price.toFixed(2) : '-'} (${fmtPct(s.r1D, 2)}) <span class="text-slate-500">${esc(s.priceAsOf || '')}</span>`;
     $('drawer-val').textContent = `${fmtUsdBig(s.mktCap)} / ${fmtX(s.fwdPe)} / ${fmtX(s.peTTM)}`;
     $('drawer-desc').textContent = s.description || '설명 없음';
-    $('drawer-tags').innerHTML = [s.sic && `SIC: ${s.sic}`, s.cik && `CIK ${s.cik}`, s.mktCapSource && `시총 출처: ${s.mktCapSource}`]
+    $('drawer-tags').innerHTML = [s.themeBasis && `테마 근거: ${s.themeBasis}`, s.themeTags.length && `보조 테마: ${s.themeTags.join(', ')}`, s.sic && `SIC: ${s.sic}`, s.cik && `CIK ${s.cik}`, s.mktCapSource && `시총 출처: ${s.mktCapSource}`]
       .filter(Boolean).map(t => `<span class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">${esc(t)}</span>`).join('')
       + (s.website ? `<a href="${esc(safeUrl(s.website))}" target="_blank" rel="noopener" class="text-xs px-2.5 py-1 rounded-lg bg-blue-900/40 border border-blue-700 text-blue-300">IR/홈페이지 ↗</a>` : '');
     $('drawer-backdrop').classList.remove('hidden');

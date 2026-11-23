@@ -25,3 +25,9 @@
 - `build_data.py` 데이터 수집·계산 → `site/data/` (summary.json, hist/, fin/)
 - `site/index.html` 홈페이지
 - `.github/workflows/deploy.yml` 매일 자동 실행·배포
+
+## 투자 테마 분류표 (`site/themes.csv`)
+02 스크리너의 **테마 대분류 / 세부 테마** 드롭다운은 이 파일을 읽습니다. 코딩 없이 GitHub 웹에서 고칠 수 있습니다.
+- 열: `ticker, name, group(대분류), theme(세부 테마), tags(보조 테마, ; 로 구분), basis(분류 근거), source, yahooIndustry`
+- `source=직접 지정`: AI 밸류체인 등 사업 구조를 보고 지정한 종목 / `업종 자동`: Yahoo 세부 업종을 한국어 테마로 자동 매핑
+- 파일을 저장(Commit)하면 자동으로 사이트가 다시 배포됩니다. 표에 없는 신규 종목은 Yahoo 업종명으로 표시됩니다.

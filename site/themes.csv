@@ -1,0 +1,1001 @@
+﻿ticker,name,group,theme,tags,basis,source,yahooIndustry
+AAPL,Apple Inc.,소비자 기술,스마트폰·디바이스,,아이폰 중심 디바이스 + 서비스,직접 지정,Consumer Electronics
+MSFT,Microsoft Corporation,AI 클라우드·모델,하이퍼스케일러,LLM·파운데이션 모델;엔터프라이즈 SaaS,Azure(Intelligent Cloud) 사업부,직접 지정,Software - Infrastructure
+GOOGL,Alphabet Inc.,AI 클라우드·모델,하이퍼스케일러,LLM·파운데이션 모델;인터넷 플랫폼·소셜,Google Cloud + 자체 TPU·Gemini,직접 지정,Internet Content & Information
+GOOG,Alphabet Inc.,AI 클라우드·모델,하이퍼스케일러,LLM·파운데이션 모델;인터넷 플랫폼·소셜,Google Cloud + 자체 TPU·Gemini,직접 지정,Internet Content & Information
+NVDA,NVIDIA Corporation,반도체,GPU·AI 가속기,,데이터센터 GPU가 매출 대부분,직접 지정,Semiconductors
+AMZN,"Amazon.com, Inc.",AI 클라우드·모델,하이퍼스케일러,이커머스;디지털 광고 기술,AWS: 매출 약 17%·영업이익 약 50%(4Q25),직접 지정,Internet Retail
+SPCX,Space Exploration Technologies Cor,항공·방산·우주,우주·위성,위성통신·우주,발사체 + Starlink 위성통신,직접 지정,Aerospace & Defense
+AVGO,Broadcom Inc.,반도체,커스텀 ASIC(XPU),데이터센터 스위치·라우터;인프라 소프트웨어,하이퍼스케일러 맞춤형 AI 칩 + 이더넷 스위치 칩,직접 지정,Semiconductors
+META,"Meta Platforms, Inc.",AI 클라우드·모델,하이퍼스케일러,LLM·파운데이션 모델;인터넷 플랫폼·소셜,클라우드 외판 없음 — 매출은 광고지만 AI 데이터센터 투자 규모로 분류,직접 지정,Internet Content & Information
+TSLA,"Tesla, Inc.",소비재,EV·자율주행,로봇·자동화,전기차,직접 지정,Auto Manufacturers
+BRK-B,Berkshire Hathaway Inc.,금융,보험,,Yahoo 업종: Insurance - Diversified,업종 자동,Insurance - Diversified
+BRK-A,Berkshire Hathaway Inc.,금융,보험,,Yahoo 업종: Insurance - Diversified,업종 자동,Insurance - Diversified
+LLY,Eli Lilly and Company,헬스케어,대형 제약,,Yahoo 업종: Drug Manufacturers - General,업종 자동,Drug Manufacturers - General
+ANT,"Anthropic, PBC Class A Common Stoc",AI 클라우드·모델,LLM·파운데이션 모델,,Claude 모델 개발사,직접 지정,Software - Application
+WMT,Walmart Inc.,필수소비재,대형마트·할인점,,Yahoo 업종: Discount Stores,업종 자동,Discount Stores
+JPM,JPMorgan Chase & Co.,금융,대형 은행,,Yahoo 업종: Banks - Diversified,업종 자동,Banks - Diversified
+V,Visa Inc.,금융,결제 네트워크,,카드 결제망,직접 지정,Credit Services
+AMD,"Advanced Micro Devices, Inc.",반도체,GPU·AI 가속기,CPU·모바일 SoC,데이터센터 GPU(Instinct)·CPU(EPYC),직접 지정,Semiconductors
+MU,"Micron Technology, Inc.",반도체,메모리(DRAM·NAND),,DRAM·HBM·NAND,직접 지정,Semiconductors
+XOM,ExxonMobil Holdings Corporation,에너지,통합 석유,,Yahoo 업종: Oil & Gas Integrated,업종 자동,Oil & Gas Integrated
+JNJ,Johnson & Johnson,헬스케어,대형 제약,,Yahoo 업종: Drug Manufacturers - General,업종 자동,Drug Manufacturers - General
+MA,Mastercard Incorporated,금융,결제 네트워크,,카드 결제망,직접 지정,Credit Services
+ABBV,AbbVie Inc.,헬스케어,대형 제약,,Yahoo 업종: Drug Manufacturers - General,업종 자동,Drug Manufacturers - General
+COST,Costco Wholesale Corporation,필수소비재,대형마트·할인점,,Yahoo 업종: Discount Stores,업종 자동,Discount Stores
+KO,The Coca-Cola Company,필수소비재,음료,,Yahoo 업종: Beverages - Non-Alcoholic,업종 자동,Beverages - Non-Alcoholic
+CVX,Chevron Corporation,에너지,통합 석유,,Yahoo 업종: Oil & Gas Integrated,업종 자동,Oil & Gas Integrated
+PG,The Procter & Gamble Company,필수소비재,생활용품,,Yahoo 업종: Household & Personal Products,업종 자동,Household & Personal Products
+CSCO,"Cisco Systems, Inc.",네트워킹,데이터센터 스위치·라우터,사이버보안,스위치·라우터 + 보안 SW,직접 지정,Communication Equipment
+PLTR,Palantir Technologies Inc.,소프트웨어,AI 데이터·분석 플랫폼,방산 프라임,AI 플랫폼(AIP)·정부/기업 데이터 분석,직접 지정,Software - Infrastructure
+HD,"The Home Depot, Inc.",소비재,주택개량 소매,,Yahoo 업종: Home Improvement Retail,업종 자동,Home Improvement Retail
+MRK,"Merck & Co., Inc.",헬스케어,대형 제약,,Yahoo 업종: Drug Manufacturers - General,업종 자동,Drug Manufacturers - General
+BAC,Bank of America Corporation,금융,대형 은행,,Yahoo 업종: Banks - Diversified,업종 자동,Banks - Diversified
+GE,GE Aerospace,항공·방산·우주,항공기·엔진,,항공기·엔진,직접 지정,Aerospace & Defense
+ORCL,Oracle Corporation,AI 클라우드·모델,하이퍼스케일러,엔터프라이즈 SaaS,OCI(Oracle Cloud Infrastructure) 성장 중심,직접 지정,Software - Infrastructure
+UNH,UnitedHealth Group Incorporated,헬스케어,건강보험,,Yahoo 업종: Healthcare Plans,업종 자동,Healthcare Plans
+PM,Philip Morris International Inc.,필수소비재,담배,,Yahoo 업종: Tobacco,업종 자동,Tobacco
+PANW,"Palo Alto Networks, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+INTC,Intel Corporation,반도체,CPU·모바일 SoC,,x86 CPU + 파운드리,직접 지정,Semiconductors
+MS,Morgan Stanley,금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+RTX,RTX Corporation,항공·방산·우주,방산 프라임,,미 국방 주계약자,직접 지정,Aerospace & Defense
+TMO,Thermo Fisher Scientific Inc.,헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+TXN,Texas Instruments Incorporated,반도체,아날로그·전력 반도체,,아날로그·전력관리·MCU,직접 지정,Semiconductors
+AMAT,"Applied Materials, Inc.",반도체,반도체 장비(전공정),,증착·식각·검사 장비,직접 지정,Semiconductor Equipment & Materials
+WFC,Wells Fargo & Company,금융,대형 은행,,Yahoo 업종: Banks - Diversified,업종 자동,Banks - Diversified
+AMGN,Amgen Inc.,헬스케어,대형 제약,,Yahoo 업종: Drug Manufacturers - General,업종 자동,Drug Manufacturers - General
+CRWD,"CrowdStrike Holdings, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+CAT,Caterpillar Inc.,산업재,건설·농기계,,Yahoo 업종: Farm & Heavy Construction Machinery,업종 자동,Farm & Heavy Construction Machinery
+NFLX,"Netflix, Inc.",인터넷·미디어,스트리밍,,구독 스트리밍,직접 지정,Entertainment
+LRCX,Lam Research Corporation,반도체,반도체 장비(전공정),,증착·식각·검사 장비,직접 지정,Semiconductor Equipment & Materials
+GS,"The Goldman Sachs Group, Inc.",금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+IBM,International Business Machines Co,소프트웨어,IT 서비스·컨설팅,양자컴퓨팅,컨설팅 + 하이브리드 클라우드·메인프레임,직접 지정,Information Technology Services
+ANET,"Arista Networks, Inc.",네트워킹,데이터센터 스위치·라우터,,클라우드 데이터센터 이더넷 스위치,직접 지정,Computer Hardware
+GILD,"Gilead Sciences, Inc.",헬스케어,대형 제약,,Yahoo 업종: Drug Manufacturers - General,업종 자동,Drug Manufacturers - General
+AXP,American Express Company,금융,결제·카드·소비자금융,,Yahoo 업종: Credit Services,업종 자동,Credit Services
+DIS,The Walt Disney Company,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+MCD,McDonald's Corporation,소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+VZ,Verizon Communications Inc.,통신,통신 서비스,,Yahoo 업종: Telecom Services,업종 자동,Telecom Services
+PEP,"PepsiCo, Inc.",필수소비재,음료,,Yahoo 업종: Beverages - Non-Alcoholic,업종 자동,Beverages - Non-Alcoholic
+GEV,GE Vernova Inc.,AI 전력,발전·송배전 설비,,가스터빈·전력망 장비,직접 지정,Specialty Industrial Machinery
+C,Citigroup Inc.,금융,대형 은행,,Yahoo 업종: Banks - Diversified,업종 자동,Banks - Diversified
+ABT,Abbott Laboratories,헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+DELL,Dell Technologies Inc.,AI 하드웨어·인프라,AI 서버,,AI 서버(GPU 서버) 조립,직접 지정,Computer Hardware
+WELL,Welltower Inc.,부동산,헬스케어 리츠,,Yahoo 업종: REIT - Healthcare Facilities,업종 자동,REIT - Healthcare Facilities
+TMUS,"T-Mobile US, Inc.",통신,통신 서비스,,Yahoo 업종: Telecom Services,업종 자동,Telecom Services
+NEE,"NextEra Energy, Inc.",유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+APH,Amphenol Corporation,네트워킹,커넥터·케이블,,데이터센터 고속 커넥터·케이블,직접 지정,Electronic Components
+UNP,Union Pacific Corporation,운송,철도,,Yahoo 업종: Railroads,업종 자동,Railroads
+BLK,"BlackRock, Inc.",금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+ADI,"Analog Devices, Inc.",반도체,아날로그·전력 반도체,,아날로그·전력관리·MCU,직접 지정,Semiconductors
+KLAC,KLA Corporation,반도체,반도체 장비(전공정),,증착·식각·검사 장비,직접 지정,Semiconductor Equipment & Materials
+DE,Deere & Company,산업재,건설·농기계,,Yahoo 업종: Farm & Heavy Construction Machinery,업종 자동,Farm & Heavy Construction Machinery
+COP,ConocoPhillips,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+QCOM,QUALCOMM Incorporated,반도체,CPU·모바일 SoC,RF·오디오 칩,모바일 SoC(스냅드래곤),직접 지정,Semiconductors
+CVNA,Carvana Co.,소비재,중고차 플랫폼,,온라인 중고차,직접 지정,Auto & Truck Dealerships
+PFE,Pfizer Inc.,헬스케어,대형 제약,,Yahoo 업종: Drug Manufacturers - General,업종 자동,Drug Manufacturers - General
+SCHW,The Charles Schwab Corporation,금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+DHR,Danaher Corporation,헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+TJX,"The TJX Companies, Inc.",소비재,의류 리테일,,Yahoo 업종: Apparel Retail,업종 자동,Apparel Retail
+T,AT&T Inc.,통신,통신 서비스,,Yahoo 업종: Telecom Services,업종 자동,Telecom Services
+CRM,"Salesforce, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+ISRG,"Intuitive Surgical, Inc.",헬스케어,수술 로봇,로봇·자동화,다빈치 수술 로봇,직접 지정,Medical Instruments & Supplies
+BX,Blackstone Inc.,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+PGR,The Progressive Corporation,금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+LMT,Lockheed Martin Corporation,항공·방산·우주,방산 프라임,,미 국방 주계약자,직접 지정,Aerospace & Defense
+VRTX,Vertex Pharmaceuticals Incorporate,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+UBER,"Uber Technologies, Inc.",인터넷·미디어,모빌리티·배달 플랫폼,,차량호출·배달,직접 지정,Software - Application
+SPGI,S&P Global Inc.,금융,거래소·금융 데이터,,Yahoo 업종: Financial Data & Stock Exchanges,업종 자동,Financial Data & Stock Exchanges
+MO,"Altria Group, Inc.",필수소비재,담배,,Yahoo 업종: Tobacco,업종 자동,Tobacco
+LOW,"Lowe's Companies, Inc.",소비재,주택개량 소매,,Yahoo 업종: Home Improvement Retail,업종 자동,Home Improvement Retail
+BA,The Boeing Company,항공·방산·우주,항공기·엔진,,항공기·엔진,직접 지정,Aerospace & Defense
+MCK,McKesson Corporation,헬스케어,의약품 유통,,Yahoo 업종: Medical Distribution,업종 자동,Medical Distribution
+IBKR,"Interactive Brokers Group, Inc.",금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+BMY,Bristol-Myers Squibb Company,헬스케어,대형 제약,,Yahoo 업종: Drug Manufacturers - General,업종 자동,Drug Manufacturers - General
+PLD,"Prologis, Inc.",부동산,물류창고 리츠,,Yahoo 업종: REIT - Industrial,업종 자동,REIT - Industrial
+ADP,"Automatic Data Processing, Inc.",소프트웨어,HR·급여 SW,,급여·HR 아웃소싱,직접 지정,Software - Application
+SYK,Stryker Corporation,헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+SBUX,Starbucks Corporation,소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+APP,AppLovin Corporation,소프트웨어,디지털 광고 기술,,광고 기술(애드테크),직접 지정,Advertising Agencies
+SCCO,Southern Copper Corporation,소재,구리·광산,,Yahoo 업종: Copper,업종 자동,Copper
+CME,CME Group Inc.,금융,거래소·금융 데이터,,Yahoo 업종: Financial Data & Stock Exchanges,업종 자동,Financial Data & Stock Exchanges
+MRVL,"Marvell Technology, Inc.",반도체,커스텀 ASIC(XPU),광통신(트랜시버·부품),맞춤형 AI 칩 + 광 DSP,직접 지정,Semiconductors
+PH,Parker-Hannifin Corporation,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+SO,The Southern Company,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+BKNG,Booking Holdings Inc.,인터넷·미디어,여행 플랫폼,,온라인 여행,직접 지정,Travel Services
+COF,Capital One Financial Corporation,금융,결제·카드·소비자금융,,Yahoo 업종: Credit Services,업종 자동,Credit Services
+MAR,"Marriott International, Inc.",소비재,호텔·리조트,,Yahoo 업종: Lodging,업종 자동,Lodging
+CVS,CVS Health Corporation,헬스케어,건강보험,,Yahoo 업종: Healthcare Plans,업종 자동,Healthcare Plans
+ABNB,"Airbnb, Inc.",인터넷·미디어,여행 플랫폼,,온라인 여행,직접 지정,Travel Services
+DUK,Duke Energy Corporation,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+WFC-PC,Wells Fargo & Company,금융,대형 은행,,Yahoo 업종: Banks - Diversified,업종 자동,Banks - Diversified
+MPC,Marathon Petroleum Corporation,에너지,정유,,Yahoo 업종: Oil & Gas Refining & Marketing,업종 자동,Oil & Gas Refining & Marketing
+HCA,"HCA Healthcare, Inc.",헬스케어,병원·의료 서비스,,Yahoo 업종: Medical Care Facilities,업종 자동,Medical Care Facilities
+NET,"Cloudflare, Inc.",소프트웨어,엣지·인터넷 인프라,사이버보안,CDN·엣지 컴퓨팅,직접 지정,Software - Infrastructure
+NEM,Newmont Corporation,소재,금·귀금속,,Yahoo 업종: Gold,업종 자동,Gold
+MRSH,"Marsh & McLennan Companies, Inc.",금융,보험 중개,,Yahoo 업종: Insurance Brokers,업종 자동,Insurance Brokers
+WDC,Western Digital Corporation,반도체,스토리지(HDD·시스템),,HDD(SanDisk 분할 후),직접 지정,Computer Hardware
+EQIX,"Equinix, Inc.",AI 클라우드·모델,데이터센터 리츠,,코로케이션·하이퍼스케일 데이터센터 임대,직접 지정,REIT - Specialty
+WM,"Waste Management, Inc.",산업재,환경 서비스,,Yahoo 업종: Waste Management,업종 자동,Waste Management
+REGN,"Regeneron Pharmaceuticals, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+BNY,The Bank of New York Mellon Corpor,금융,대형 은행,,Yahoo 업종: Banks - Diversified,업종 자동,Banks - Diversified
+ICE,"Intercontinental Exchange, Inc.",금융,거래소·금융 데이터,,Yahoo 업종: Financial Data & Stock Exchanges,업종 자동,Financial Data & Stock Exchanges
+PSX,Phillips 66,에너지,정유,,Yahoo 업종: Oil & Gas Refining & Marketing,업종 자동,Oil & Gas Refining & Marketing
+VLO,Valero Energy Corporation,에너지,정유,,Yahoo 업종: Oil & Gas Refining & Marketing,업종 자동,Oil & Gas Refining & Marketing
+GD,General Dynamics Corporation,항공·방산·우주,방산 프라임,,미 국방 주계약자,직접 지정,Aerospace & Defense
+MMM,3M Company,산업재,복합기업,,Yahoo 업종: Conglomerates,업종 자동,Conglomerates
+FTNT,"Fortinet, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+NOW,"ServiceNow, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+CSX,CSX Corporation,운송,철도,,Yahoo 업종: Railroads,업종 자동,Railroads
+UPS,"United Parcel Service, Inc.",운송,물류·택배,,Yahoo 업종: Integrated Freight & Logistics,업종 자동,Integrated Freight & Logistics
+SNDK,Sandisk Corporation,반도체,메모리(DRAM·NAND),,NAND 플래시·SSD,직접 지정,Computer Hardware
+SNOW,Snowflake Inc.,소프트웨어,AI 데이터·분석 플랫폼,,데이터 클라우드·DB·옵저버빌리티,직접 지정,Software - Application
+CMCSA,Comcast Corporation,통신,통신 서비스,,Yahoo 업종: Telecom Services,업종 자동,Telecom Services
+CTAS,Cintas Corporation,산업재,비즈니스 서비스,,Yahoo 업종: Specialty Business Services,업종 자동,Specialty Business Services
+USB,U.S. Bancorp,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+WAT,Waters Corporation,헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+MSI,"Motorola Solutions, Inc.",네트워킹,통신 장비,,공공안전 무전·산업용 단말,직접 지정,Communication Equipment
+MNST,Monster Beverage Corporation,필수소비재,음료,,Yahoo 업종: Beverages - Non-Alcoholic,업종 자동,Beverages - Non-Alcoholic
+AMT,American Tower Corporation,부동산,리츠(기타),,Yahoo 업종: REIT - Specialty,업종 자동,REIT - Specialty
+ELV,"Elevance Health, Inc.",헬스케어,건강보험,,Yahoo 업종: Healthcare Plans,업종 자동,Healthcare Plans
+SPG,"Simon Property Group, Inc.",부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+ADBE,Adobe Inc.,소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+PNC,"The PNC Financial Services Group, ",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+PWR,"Quanta Services, Inc.",AI 전력,데이터센터·전력망 건설,,송배전·통신망 시공,직접 지정,Engineering & Construction
+MDLZ,"Mondelez International, Inc.",필수소비재,가공식품,,Yahoo 업종: Confectioners,업종 자동,Confectioners
+CEG,Constellation Energy Corporation,AI 전력,독립발전(IPP)·원전,,"원전·가스 발전, 데이터센터 전력계약",직접 지정,Utilities - Independent Power Producers
+HWM,Howmet Aerospace Inc.,항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+EMR,Emerson Electric Co.,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+ECL,Ecolab Inc.,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+SHW,The Sherwin-Williams Company,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+GLW,Corning Incorporated,네트워킹,광통신(장비·광섬유),,광섬유·광케이블(+디스플레이 유리),직접 지정,Electronic Components
+KKR,KKR & Co. Inc.,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+TRV,"The Travelers Companies, Inc.",금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+MCO,Moody's Corporation,금융,거래소·금융 데이터,,Yahoo 업종: Financial Data & Stock Exchanges,업종 자동,Financial Data & Stock Exchanges
+WMB,"The Williams Companies, Inc.",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+RCL,Royal Caribbean Cruises Ltd.,소비재,여행 플랫폼,,Yahoo 업종: Travel Services,업종 자동,Travel Services
+HLT,Hilton Worldwide Holdings Inc.,소비재,호텔·리조트,,Yahoo 업종: Lodging,업종 자동,Lodging
+MRNA,"Moderna, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+CL,Colgate-Palmolive Company,필수소비재,생활용품,,Yahoo 업종: Household & Personal Products,업종 자동,Household & Personal Products
+BAM,Brookfield Asset Management Ltd.,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+ITW,Illinois Tool Works Inc.,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+EPD,Enterprise Products Partners L.P.,에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+CDNS,"Cadence Design Systems, Inc.",반도체,설계 SW(EDA·IP),,칩 설계 소프트웨어·IP,직접 지정,Software - Application
+EOG,"EOG Resources, Inc.",에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+SNPS,"Synopsys, Inc.",반도체,설계 SW(EDA·IP),,칩 설계 소프트웨어·IP,직접 지정,Software - Infrastructure
+NOC,Northrop Grumman Corporation,항공·방산·우주,방산 프라임,,미 국방 주계약자,직접 지정,Aerospace & Defense
+RSG,"Republic Services, Inc.",산업재,환경 서비스,,Yahoo 업종: Waste Management,업종 자동,Waste Management
+TGT,Target Corporation,필수소비재,대형마트·할인점,,Yahoo 업종: Discount Stores,업종 자동,Discount Stores
+ORLY,"O'Reilly Automotive, Inc.",소비재,자동차 부품,,Yahoo 업종: Auto Parts,업종 자동,Auto Parts
+INTU,Intuit Inc.,소프트웨어,금융·세무 SW,,세무·신용평가 SW,직접 지정,Software - Application
+AJG,Arthur J. Gallagher & Co.,금융,보험 중개,,Yahoo 업종: Insurance Brokers,업종 자동,Insurance Brokers
+CI,The Cigna Group,헬스케어,건강보험,,Yahoo 업종: Healthcare Plans,업종 자동,Healthcare Plans
+FDX,FedEx Corporation,운송,물류·택배,,Yahoo 업종: Integrated Freight & Logistics,업종 자동,Integrated Freight & Logistics
+NSC,Norfolk Southern Corporation,운송,철도,,Yahoo 업종: Railroads,업종 자동,Railroads
+ROST,"Ross Stores, Inc.",소비재,의류 리테일,,Yahoo 업종: Apparel Retail,업종 자동,Apparel Retail
+AEP,"American Electric Power Company, I",유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+SLB,SLB N.V.,에너지,유전 서비스,,Yahoo 업종: Oil & Gas Equipment & Services,업종 자동,Oil & Gas Equipment & Services
+KMI,"Kinder Morgan, Inc.",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+HON,Honeywell International Inc.,산업재,복합기업,,Yahoo 업종: Conglomerates,업종 자동,Conglomerates
+DASH,"DoorDash, Inc.",인터넷·미디어,모빌리티·배달 플랫폼,,차량호출·배달,직접 지정,Internet Retail
+GM,General Motors Company,소비재,자동차·EV,,Yahoo 업종: Auto Manufacturers,업종 자동,Auto Manufacturers
+APD,"Air Products and Chemicals, Inc.",소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+ALL,The Allstate Corporation,금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+FCX,Freeport-McMoRan Inc.,소재,구리·광산,,Yahoo 업종: Copper,업종 자동,Copper
+APO,"Apollo Global Management, Inc.",금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+KMB,Kimberly-Clark Corporation,필수소비재,생활용품,,Yahoo 업종: Household & Personal Products,업종 자동,Household & Personal Products
+COR,"Cencora, Inc.",헬스케어,의약품 유통,,Yahoo 업종: Medical Distribution,업종 자동,Medical Distribution
+VRT,Vertiv Holdings Co,AI 전력,데이터센터 전력·냉각,,데이터센터 전원·액침/액체 냉각,직접 지정,Electrical Equipment & Parts
+GWW,"W.W. Grainger, Inc.",산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+CAH,"Cardinal Health, Inc.",헬스케어,의약품 유통,,Yahoo 업종: Medical Distribution,업종 자동,Medical Distribution
+DLR,"Digital Realty Trust, Inc.",AI 클라우드·모델,데이터센터 리츠,,코로케이션·하이퍼스케일 데이터센터 임대,직접 지정,REIT - Specialty
+AFL,Aflac Incorporated,금융,보험,,Yahoo 업종: Insurance - Life,업종 자동,Insurance - Life
+TDG,TransDigm Group Incorporated,항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+BSX,Boston Scientific Corporation,헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+PSA,Public Storage,부동산,물류창고 리츠,,Yahoo 업종: REIT - Industrial,업종 자동,REIT - Industrial
+URI,"United Rentals, Inc.",산업재,장비 렌탈·리스,,Yahoo 업종: Rental & Leasing Services,업종 자동,Rental & Leasing Services
+LNG,"Cheniere Energy, Inc.",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+MET,"MetLife, Inc.",금융,보험,,Yahoo 업종: Insurance - Life,업종 자동,Insurance - Life
+TRGP,Targa Resources Corp.,에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+EW,Edwards Lifesciences Corporation,헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+D,"Dominion Energy, Inc.",유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+FAST,Fastenal Company,산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+BDX,"Becton, Dickinson and Company",헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+NDAQ,"Nasdaq, Inc.",금융,거래소·금융 데이터,,Yahoo 업종: Financial Data & Stock Exchanges,업종 자동,Financial Data & Stock Exchanges
+DDOG,"Datadog, Inc.",소프트웨어,AI 데이터·분석 플랫폼,,데이터 클라우드·DB·옵저버빌리티,직접 지정,Software - Application
+MPLX,MPLX LP,에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+HOOD,"Robinhood Markets, Inc.",금융,디지털자산,,암호화폐 거래·보유·채굴,직접 지정,Capital Markets
+MPWR,"Monolithic Power Systems, Inc.",반도체,아날로그·전력 반도체,,아날로그·전력관리·MCU,직접 지정,Semiconductors
+O,Realty Income Corporation,부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+CMI,Cummins Inc.,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+TFC,Truist Financial Corporation,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+HPE,Hewlett Packard Enterprise Company,네트워킹,데이터센터 스위치·라우터,AI 서버,서버 + 네트워킹(Juniper 인수),직접 지정,Communication Equipment
+NUE,Nucor Corporation,소재,철강,,Yahoo 업종: Steel,업종 자동,Steel
+OXY,Occidental Petroleum Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+PCAR,PACCAR Inc,산업재,건설·농기계,,Yahoo 업종: Farm & Heavy Construction Machinery,업종 자동,Farm & Heavy Construction Machinery
+IDXX,"IDEXX Laboratories, Inc.",헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+OKE,"ONEOK, Inc.",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+DAL,"Delta Air Lines, Inc.",운송,항공사,,Yahoo 업종: Airlines,업종 자동,Airlines
+AZO,"AutoZone, Inc.",소비재,자동차 부품,,Yahoo 업종: Auto Parts,업종 자동,Auto Parts
+AME,"AMETEK, Inc.",산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+ADSK,"Autodesk, Inc.",소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+XEL,Xcel Energy Inc.,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+EBAY,eBay Inc.,인터넷·미디어,이커머스,,온라인 커머스,직접 지정,Internet Retail
+ETR,Entergy Corporation,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+SRE,Sempra,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Diversified,업종 자동,Utilities - Diversified
+KDP,Keurig Dr Pepper Inc.,필수소비재,음료,,Yahoo 업종: Beverages - Non-Alcoholic,업종 자동,Beverages - Non-Alcoholic
+FANG,"Diamondback Energy, Inc.",에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+NKE,"NIKE, Inc.",소비재,의류·신발 브랜드,,Yahoo 업종: Footwear & Accessories,업종 자동,Footwear & Accessories
+VMRK,Vivmark Residential,부동산,주거 리츠,,Yahoo 업종: REIT - Residential,업종 자동,REIT - Residential
+MDLN,Medline Inc.,헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+A,"Agilent Technologies, Inc.",헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+HONA,Honeywell Aerospace Inc.,항공·방산·우주,항공기·엔진,,항공기·엔진,직접 지정,Aerospace & Defense
+DVN,Devon Energy Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+EXC,Exelon Corporation,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+HUM,Humana Inc.,헬스케어,건강보험,,Yahoo 업종: Healthcare Plans,업종 자동,Healthcare Plans
+FERG,Ferguson Enterprises Inc.,산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+LHX,"L3Harris Technologies, Inc.",항공·방산·우주,방산 프라임,,미 국방 주계약자,직접 지정,Aerospace & Defense
+VTR,"Ventas, Inc.",부동산,헬스케어 리츠,,Yahoo 업종: REIT - Healthcare Facilities,업종 자동,REIT - Healthcare Facilities
+ROP,"Roper Technologies, Inc.",소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+VYLR,Vylor Inc.,금융,기타 금융,,Yahoo 업종: Shell Companies,업종 자동,Shell Companies
+WAB,Westinghouse Air Brake Technologie,운송,철도,,Yahoo 업종: Railroads,업종 자동,Railroads
+HEI,HEICO Corporation,항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+CMG,"Chipotle Mexican Grill, Inc.",소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+WCN,"Waste Connections, Inc.",산업재,환경 서비스,,Yahoo 업종: Waste Management,업종 자동,Waste Management
+FITB,Fifth Third Bancorp,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+F,Ford Motor Company,소비재,자동차·EV,,Yahoo 업종: Auto Manufacturers,업종 자동,Auto Manufacturers
+KEYS,"Keysight Technologies, Inc.",산업재,계측·검사 장비,,Yahoo 업종: Scientific & Technical Instruments,업종 자동,Scientific & Technical Instruments
+BKR,Baker Hughes Company,에너지,유전 서비스,,Yahoo 업종: Oil & Gas Equipment & Services,업종 자동,Oil & Gas Equipment & Services
+ED,"Consolidated Edison, Inc.",유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+PYPL,"PayPal Holdings, Inc.",금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Credit Services
+MSCI,MSCI Inc.,금융,거래소·금융 데이터,,Yahoo 업종: Financial Data & Stock Exchanges,업종 자동,Financial Data & Stock Exchanges
+YUM,"Yum! Brands, Inc.",소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+VEEV,Veeva Systems Inc.,헬스케어,헬스케어 IT,,Yahoo 업종: Health Information Services,업종 자동,Health Information Services
+STT,State Street Corporation,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+XYZ,"Block, Inc.",금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Software - Infrastructure
+BE,Bloom Energy Corporation,AI 전력,온사이트 발전(연료전지),,고체산화물 연료전지 — 데이터센터 현장 발전,직접 지정,Electrical Equipment & Parts
+WDAY,"Workday, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+LITE,Lumentum Holdings Inc.,네트워킹,광통신(트랜시버·부품),,데이터센터 광 트랜시버·레이저,직접 지정,Communication Equipment
+AMP,"Ameriprise Financial, Inc.",금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+AIG,"American International Group, Inc.",금융,보험,,Yahoo 업종: Insurance - Diversified,업종 자동,Insurance - Diversified
+LYV,"Live Nation Entertainment, Inc.",인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+ARES,Ares Management Corporation,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+CARR,Carrier Global Corporation,산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+IQV,IQVIA Holdings Inc.,헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+KR,The Kroger Co.,필수소비재,대형마트·할인점,,Yahoo 업종: Grocery Stores,업종 자동,Grocery Stores
+PRU,"Prudential Financial, Inc.",금융,보험,,Yahoo 업종: Insurance - Life,업종 자동,Insurance - Life
+PAYX,"Paychex, Inc.",소프트웨어,HR·급여 SW,,급여·HR 아웃소싱,직접 지정,Software - Application
+ROK,"Rockwell Automation, Inc.",산업재,로봇·자동화,,물류 로봇·공장 자동화,직접 지정,Specialty Industrial Machinery
+NTRA,"Natera, Inc.",헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+RPRX,Royalty Pharma plc,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+TTWO,"Take-Two Interactive Software, Inc",인터넷·미디어,게임,,게임,직접 지정,Electronic Gaming & Multimedia
+VST,Vistra Corp.,AI 전력,독립발전(IPP)·원전,,"원전·가스 발전, 데이터센터 전력계약",직접 지정,Utilities - Independent Power Producers
+RKT,"Rocket Companies, Inc.",금융,결제·카드·소비자금융,,Yahoo 업종: Mortgage Finance,업종 자동,Mortgage Finance
+DHI,"D.R. Horton, Inc.",소비재,주택 건설,,Yahoo 업종: Residential Construction,업종 자동,Residential Construction
+WEC,"WEC Energy Group, Inc.",유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+SYY,Sysco Corporation,필수소비재,식품 유통,,Yahoo 업종: Food Distribution,업종 자동,Food Distribution
+BIIB,Biogen Inc.,헬스케어,대형 제약,,Yahoo 업종: Drug Manufacturers - General,업종 자동,Drug Manufacturers - General
+COHR,Coherent Corp.,네트워킹,광통신(트랜시버·부품),,데이터센터 광 트랜시버·레이저,직접 지정,Scientific & Technical Instruments
+PEG,Public Service Enterprise Group In,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+HIG,"The Hartford Insurance Group, Inc.",금융,보험,,Yahoo 업종: Insurance - Diversified,업종 자동,Insurance - Diversified
+CBRE,"CBRE Group, Inc.",부동산,부동산 서비스,,Yahoo 업종: Real Estate Services,업종 자동,Real Estate Services
+FIX,"Comfort Systems USA, Inc.",AI 전력,데이터센터·전력망 건설,,데이터센터 기계·전기 공사,직접 지정,Engineering & Construction
+GEHC,GE HealthCare Technologies Inc.,헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+EL,The Estée Lauder Companies Inc.,필수소비재,생활용품,,Yahoo 업종: Household & Personal Products,업종 자동,Household & Personal Products
+CCL,Carnival Corporation Ltd.,소비재,여행 플랫폼,,Yahoo 업종: Travel Services,업종 자동,Travel Services
+FOXA,Fox Corporation,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+UI,Ubiquiti Inc.,네트워킹,엔터프라이즈 네트워크,,엔터프라이즈 네트워크·애플리케이션 전송,직접 지정,Communication Equipment
+MLM,"Martin Marietta Materials, Inc.",소재,시멘트·골재,,Yahoo 업종: Building Materials,업종 자동,Building Materials
+HSY,The Hershey Company,필수소비재,가공식품,,Yahoo 업종: Confectioners,업종 자동,Confectioners
+CCI,Crown Castle Inc.,부동산,리츠(기타),,Yahoo 업종: REIT - Specialty,업종 자동,REIT - Specialty
+RVMD,"Revolution Medicines, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+VMC,Vulcan Materials Company,소재,시멘트·골재,,Yahoo 업종: Building Materials,업종 자동,Building Materials
+ODFL,"Old Dominion Freight Line, Inc.",운송,트럭 운송,,Yahoo 업종: Trucking,업종 자동,Trucking
+TEAM,Atlassian Corporation,소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+EXR,Extra Space Storage Inc.,부동산,물류창고 리츠,,Yahoo 업종: REIT - Industrial,업종 자동,REIT - Industrial
+TKO,"TKO Group Holdings, Inc.",인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+HEI-A,HEICO Corporation,항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+OKTA,"Okta, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+RBLX,Roblox Corporation,인터넷·미디어,게임,,게임,직접 지정,Electronic Gaming & Multimedia
+QSR,Restaurant Brands International In,소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+CIEN,Ciena Corporation,네트워킹,광통신(장비·광섬유),,광전송 장비,직접 지정,Communication Equipment
+MTD,Mettler-Toledo International Inc.,헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+RMD,ResMed Inc.,헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+MSTR,Strategy Inc,금융,디지털자산,,암호화폐 거래·보유·채굴,직접 지정,Software - Application
+UAL,"United Airlines Holdings, Inc.",운송,항공사,,Yahoo 업종: Airlines,업종 자동,Airlines
+ZTS,Zoetis Inc.,헬스케어,특수·제네릭 제약,,Yahoo 업종: Drug Manufacturers - Specialty & Generic,업종 자동,Drug Manufacturers - Specialty & Generic
+TER,"Teradyne, Inc.",반도체,패키징·테스트,,반도체 테스트 장비·프로브카드,직접 지정,Semiconductor Equipment & Materials
+ADM,Archer-Daniels-Midland Company,필수소비재,농산물,,Yahoo 업종: Farm Products,업종 자동,Farm Products
+ZS,"Zscaler, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+CNC,Centene Corporation,헬스케어,건강보험,,Yahoo 업종: Healthcare Plans,업종 자동,Healthcare Plans
+ALAB,"Astera Labs, Inc.",반도체,인터커넥트·고속연결 칩,,PCIe·CXL 리타이머·스위치,직접 지정,Semiconductors
+SKYD,Skydance Corporation,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+INSM,Insmed Incorporated,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+AEE,Ameren Corporation,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+NTAP,"NetApp, Inc.",반도체,스토리지(HDD·시스템),,엔터프라이즈 스토리지 시스템,직접 지정,Software - Infrastructure
+P,"Everpure, Inc.",반도체,스토리지(HDD·시스템),,엔터프라이즈 스토리지 시스템,직접 지정,Computer Hardware
+EQT,EQT Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+RKLB,Rocket Lab Corporation,항공·방산·우주,우주·위성,,소형 발사체·위성,직접 지정,Aerospace & Defense
+IRM,Iron Mountain Incorporated,AI 클라우드·모델,데이터센터 리츠,,"문서보관 중심, 데이터센터 사업 확대",직접 지정,REIT - Specialty
+PCG,PG&E Corporation,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+MCHP,Microchip Technology Incorporated,반도체,아날로그·전력 반도체,,아날로그·전력관리·MCU,직접 지정,Semiconductors
+VG,"Venture Global, Inc.",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+IR,Ingersoll Rand Inc.,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+KHC,The Kraft Heinz Company,필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+SN,"SharkNinja, Inc.",소비재,가구·가전,,"Yahoo 업종: Furnishings, Fixtures & Appliances",업종 자동,"Furnishings, Fixtures & Appliances"
+RJF,"Raymond James Financial, Inc.",금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+SUNB,"Sunbelt Rentals Holdings, Inc.",산업재,장비 렌탈·리스,,Yahoo 업종: Rental & Leasing Services,업종 자동,Rental & Leasing Services
+MTB,M&T Bank Corporation,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+LH,Labcorp Holdings Inc.,헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+AWK,"American Water Works Company, Inc.",유틸리티,가스·수도 유틸리티,,Yahoo 업종: Utilities - Regulated Water,업종 자동,Utilities - Regulated Water
+FISV,"Fiserv, Inc.",금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,
+DXCM,"DexCom, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+NTRS,Northern Trust Corporation,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+STLD,"Steel Dynamics, Inc.",소재,철강,,Yahoo 업종: Steel,업종 자동,Steel
+ILMN,"Illumina, Inc.",헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+WRB,W. R. Berkley Corporation,금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+OTIS,Otis Worldwide Corporation,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+CPRT,"Copart, Inc.",산업재,비즈니스 서비스,,Yahoo 업종: Specialty Business Services,업종 자동,Specialty Business Services
+DG,Dollar General Corporation,필수소비재,대형마트·할인점,,Yahoo 업종: Discount Stores,업종 자동,Discount Stores
+HBAN,Huntington Bancshares Incorporated,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+ATO,Atmos Energy Corporation,유틸리티,가스·수도 유틸리티,,Yahoo 업종: Utilities - Regulated Gas,업종 자동,Utilities - Regulated Gas
+CINF,Cincinnati Financial Corporation,금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+DGX,Quest Diagnostics Incorporated,헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+VLTO,Veralto Corporation,산업재,환경 서비스,,Yahoo 업종: Pollution & Treatment Controls,업종 자동,Pollution & Treatment Controls
+DTE,DTE Energy Company,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+EXPE,"Expedia Group, Inc.",인터넷·미디어,여행 플랫폼,,온라인 여행,직접 지정,Travel Services
+TDY,Teledyne Technologies Incorporated,산업재,계측·검사 장비,,Yahoo 업종: Scientific & Technical Instruments,업종 자동,Scientific & Technical Instruments
+VRSN,"VeriSign, Inc.",소프트웨어,인프라 소프트웨어,,클라우드 인프라·개발·통신 SW,직접 지정,Software - Infrastructure
+CPAY,"Corpay, Inc.",금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Software - Infrastructure
+CQP,"Cheniere Energy Partners, L.P.",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+FE,FirstEnergy Corp.,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+WST,"West Pharmaceutical Services, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+TW,Tradeweb Markets Inc.,금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+COIN,"Coinbase Global, Inc.",금융,디지털자산,,암호화폐 거래·보유·채굴,직접 지정,Financial Data & Stock Exchanges
+ALL-PH,The Allstate Corporation,금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+ES,Eversource Energy,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+VICI,VICI Properties Inc.,부동산,리츠(기타),,Yahoo 업종: REIT - Diversified,업종 자동,REIT - Diversified
+TWLO,Twilio Inc.,소프트웨어,인프라 소프트웨어,,클라우드 인프라·개발·통신 SW,직접 지정,Software - Infrastructure
+EME,"EMCOR Group, Inc.",AI 전력,데이터센터·전력망 건설,,데이터센터 기계·전기 공사,직접 지정,Engineering & Construction
+FWONK,Formula One Group,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+ULTA,"Ulta Beauty, Inc.",소비재,전문 소매,,Yahoo 업종: Specialty Retail,업종 자동,Specialty Retail
+CHD,"Church & Dwight Co., Inc.",필수소비재,생활용품,,Yahoo 업종: Household & Personal Products,업종 자동,Household & Personal Products
+PPL,PPL Corporation,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+CTSH,Cognizant Technology Solutions Cor,소프트웨어,IT 서비스·컨설팅,,Yahoo 업종: Information Technology Services,업종 자동,Information Technology Services
+VRSK,"Verisk Analytics, Inc.",산업재,비즈니스 서비스,,Yahoo 업종: Consulting Services,업종 자동,Consulting Services
+CNP,"CenterPoint Energy, Inc.",유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+DLTR,"Dollar Tree, Inc.",필수소비재,대형마트·할인점,,Yahoo 업종: Discount Stores,업종 자동,Discount Stores
+PPG,"PPG Industries, Inc.",소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+DOV,Dover Corporation,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+CPNG,"Coupang, Inc.",인터넷·미디어,이커머스,,온라인 커머스,직접 지정,Internet Retail
+CASY,"Casey's General Stores, Inc.",소비재,전문 소매,,Yahoo 업종: Specialty Retail,업종 자동,Specialty Retail
+DRI,"Darden Restaurants, Inc.",소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+FWONA,Formula One Group,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+HAL,Halliburton Company,에너지,유전 서비스,,Yahoo 업종: Oil & Gas Equipment & Services,업종 자동,Oil & Gas Equipment & Services
+HPQ,HP Inc.,AI 하드웨어·인프라,서버·PC 하드웨어,,PC·주변기기,직접 지정,Computer Hardware
+EXPD,Expeditors International of Washin,운송,물류·택배,,Yahoo 업종: Integrated Freight & Logistics,업종 자동,Integrated Freight & Logistics
+WSM,"Williams-Sonoma, Inc.",소비재,전문 소매,,Yahoo 업종: Specialty Retail,업종 자동,Specialty Retail
+CFG,"Citizens Financial Group, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+ECHO,EchoStar Corporation,네트워킹,위성통신·우주,,위성 통신,직접 지정,Telecom Services
+FLEX,Flex Ltd.,AI 하드웨어·인프라,전자부품·EMS,AI 서버,서버·랙 위탁생산(EMS),직접 지정,Electronic Components
+LVS,Las Vegas Sands Corp.,소비재,호텔·리조트,,Yahoo 업종: Resorts & Casinos,업종 자동,Resorts & Casinos
+GPN,Global Payments Inc.,금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Specialty Business Services
+BRO,"Brown & Brown, Inc.",금융,보험 중개,,Yahoo 업종: Insurance Brokers,업종 자동,Insurance Brokers
+STZ,"Constellation Brands, Inc.",필수소비재,주류,,Yahoo 업종: Beverages - Brewers,업종 자동,Beverages - Brewers
+EIX,Edison International,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+ZM,"Zoom Communications, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+AXON,"Axon Enterprise, Inc.",항공·방산·우주,공공안전 기술,,바디캠·테이저·경찰 SW,직접 지정,Aerospace & Defense
+ON,ON Semiconductor Corporation,반도체,아날로그·전력 반도체,,아날로그·전력관리·MCU,직접 지정,Semiconductors
+MKL,Markel Group Inc.,금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+FOX,Fox Corporation,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+UTHR,United Therapeutics Corporation,헬스케어,특수·제네릭 제약,,Yahoo 업종: Drug Manufacturers - Specialty & Generic,업종 자동,Drug Manufacturers - Specialty & Generic
+TPR,"Tapestry, Inc.",소비재,의류·신발 브랜드,,Yahoo 업종: Luxury Goods,업종 자동,Luxury Goods
+INCY,Incyte Corporation,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+JBL,Jabil Inc.,AI 하드웨어·인프라,전자부품·EMS,AI 서버,서버·랙 위탁생산(EMS),직접 지정,Electronic Components
+OMC,Omnicom Group Inc.,인터넷·미디어,디지털 광고,,Yahoo 업종: Advertising Agencies,업종 자동,Advertising Agencies
+CHTR,"Charter Communications, Inc.",통신,통신 서비스,,Yahoo 업종: Telecom Services,업종 자동,Telecom Services
+USFD,US Foods Holding Corp.,필수소비재,식품 유통,,Yahoo 업종: Food Distribution,업종 자동,Food Distribution
+MDB,"MongoDB, Inc.",소프트웨어,AI 데이터·분석 플랫폼,,데이터 클라우드·DB·옵저버빌리티,직접 지정,Software - Infrastructure
+FCNCA,"First Citizens BancShares, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+PHM,"PulteGroup, Inc.",소비재,주택 건설,,Yahoo 업종: Residential Construction,업종 자동,Residential Construction
+RF,Regions Financial Corporation,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+VTRS,Viatris Inc.,헬스케어,특수·제네릭 제약,,Yahoo 업종: Drug Manufacturers - Specialty & Generic,업종 자동,Drug Manufacturers - Specialty & Generic
+ATI,ATI Inc.,산업재,산업 기계,,Yahoo 업종: Metal Fabrication,업종 자동,Metal Fabrication
+TSN,"Tyson Foods, Inc.",필수소비재,농산물,,Yahoo 업종: Farm Products,업종 자동,Farm Products
+PFG,"Principal Financial Group, Inc.",금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+L,Loews Corporation,금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+CMS,CMS Energy Corporation,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+CRWV,"CoreWeave, Inc.",AI 클라우드·모델,네오클라우드(GPU 클라우드),,GPU·클라우드 인프라 임대,직접 지정,Software - Infrastructure
+RBRK,"Rubrik, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+IOT,Samsara Inc.,소프트웨어,인프라 소프트웨어,,클라우드 인프라·개발·통신 SW,직접 지정,Software - Infrastructure
+XYL,Xylem Inc.,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+RL,Ralph Lauren Corporation,소비재,의류·신발 브랜드,,Yahoo 업종: Apparel Manufacturing,업종 자동,Apparel Manufacturing
+Q,"Qnity Electronics, Inc.",반도체,반도체 소재,,공정 소재·특수가스·CMP,직접 지정,Semiconductor Equipment & Materials
+LUV,Southwest Airlines Co.,운송,항공사,,Yahoo 업종: Airlines,업종 자동,Airlines
+TROW,"T. Rowe Price Group, Inc.",금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+HUBB,Hubbell Incorporated,AI 전력,전력 장비,,배전·전기 설비,직접 지정,Electrical Equipment & Parts
+NI,NiSource Inc.,유틸리티,가스·수도 유틸리티,,Yahoo 업종: Utilities - Regulated Gas,업종 자동,Utilities - Regulated Gas
+PTC,PTC Inc.,소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+SYF,Synchrony Financial,금융,결제·카드·소비자금융,,Yahoo 업종: Credit Services,업종 자동,Credit Services
+DOW,Dow Inc.,소재,범용화학,,Yahoo 업종: Chemicals,업종 자동,Chemicals
+THC,Tenet Healthcare Corporation,헬스케어,병원·의료 서비스,,Yahoo 업종: Medical Care Facilities,업종 자동,Medical Care Facilities
+ARXS,"Arxis, Inc.",항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+PKG,Packaging Corporation of America,소재,포장재,,Yahoo 업종: Packaging & Containers,업종 자동,Packaging & Containers
+EFX,Equifax Inc.,산업재,비즈니스 서비스,,Yahoo 업종: Consulting Services,업종 자동,Consulting Services
+VNOM,"Viper Energy, Inc.",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+LPLA,LPL Financial Holdings Inc.,금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+BBY,"Best Buy Co., Inc.",소비재,전문 소매,,Yahoo 업종: Specialty Retail,업종 자동,Specialty Retail
+KEY,KeyCorp,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+BR,"Broadridge Financial Solutions, In",금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Information Technology Services
+JBHT,"J.B. Hunt Transport Services, Inc.",운송,물류·택배,,Yahoo 업종: Integrated Freight & Logistics,업종 자동,Integrated Freight & Logistics
+XPO,"XPO, Inc.",운송,트럭 운송,,Yahoo 업종: Trucking,업종 자동,Trucking
+RS,"Reliance, Inc.",소재,철강,,Yahoo 업종: Steel,업종 자동,Steel
+CDW,CDW Corporation,소프트웨어,IT 서비스·컨설팅,,Yahoo 업종: Information Technology Services,업종 자동,Information Technology Services
+EVRG,"Evergy, Inc.",유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+CBRS,Cerebras Systems Inc.,반도체,GPU·AI 가속기,,웨이퍼 스케일 AI 가속기,직접 지정,Semiconductors
+IFF,International Flavors & Fragrances,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+TSCO,Tractor Supply Company,소비재,전문 소매,,Yahoo 업종: Specialty Retail,업종 자동,Specialty Retail
+U,Unity Software Inc.,소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+GH,"Guardant Health, Inc.",헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+DD,"DuPont de Nemours, Inc.",소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+ALNY,"Alnylam Pharmaceuticals, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+LEN,Lennar Corporation,소비재,주택 건설,,Yahoo 업종: Residential Construction,업종 자동,Residential Construction
+ZBH,"Zimmer Biomet Holdings, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+GIS,"General Mills, Inc.",필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+FTV,Fortive Corporation,산업재,계측·검사 장비,,Yahoo 업종: Scientific & Technical Instruments,업종 자동,Scientific & Technical Instruments
+WWD,"Woodward, Inc.",항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+ENTG,"Entegris, Inc.",반도체,반도체 소재,,공정 소재·특수가스·CMP,직접 지정,Semiconductor Equipment & Materials
+SYM,Symbotic Inc.,산업재,로봇·자동화,,물류 로봇·공장 자동화,직접 지정,Specialty Industrial Machinery
+RGLD,"Royal Gold, Inc.",소재,금·귀금속,,Yahoo 업종: Gold,업종 자동,Gold
+EXE,Expand Energy Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+LEN-B,Lennar Corporation,소비재,주택 건설,,Yahoo 업종: Residential Construction,업종 자동,Residential Construction
+ESS,"Essex Property Trust, Inc.",부동산,주거 리츠,,Yahoo 업종: REIT - Residential,업종 자동,REIT - Residential
+LNT,Alliant Energy Corporation,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+TPL,Texas Pacific Land Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+NRG,"NRG Energy, Inc.",AI 전력,독립발전(IPP)·원전,,"원전·가스 발전, 데이터센터 전력계약",직접 지정,Utilities - Independent Power Producers
+AFRM,"Affirm Holdings, Inc.",금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Credit Services
+TOST,"Toast, Inc.",금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Software - Infrastructure
+SBAC,SBA Communications Corporation,부동산,리츠(기타),,Yahoo 업종: REIT - Specialty,업종 자동,REIT - Specialty
+ROL,"Rollins, Inc.",소비재,생활 서비스,,Yahoo 업종: Personal Services,업종 자동,Personal Services
+LYB,LyondellBasell Industries N.V.,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+SNA,Snap-on Incorporated,산업재,공구,,Yahoo 업종: Tools & Accessories,업종 자동,Tools & Accessories
+ITT,ITT Inc.,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+APG,APi Group Corporation,산업재,엔지니어링·건설,,Yahoo 업종: Engineering & Construction,업종 자동,Engineering & Construction
+PR,Permian Resources Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+FDXF,"FedEx Freight Holding Company, Inc",운송,물류·택배,,Yahoo 업종: Integrated Freight & Logistics,업종 자동,Integrated Freight & Logistics
+J,Jacobs Solutions Inc.,산업재,엔지니어링·건설,,Yahoo 업종: Engineering & Construction,업종 자동,Engineering & Construction
+SSNC,"SS&C Technologies Holdings, Inc.",소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+SWKS,"Skyworks Solutions, Inc.",반도체,RF·오디오 칩,,스마트폰 RF·오디오 칩,직접 지정,Semiconductors
+RGA,"Reinsurance Group of America, Inco",금융,보험,,Yahoo 업종: Insurance - Reinsurance,업종 자동,Insurance - Reinsurance
+GEN,Gen Digital Inc.,소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+FFIV,"F5, Inc.",네트워킹,엔터프라이즈 네트워크,,엔터프라이즈 네트워크·애플리케이션 전송,직접 지정,Software - Infrastructure
+SNX,TD SYNNEX Corporation,AI 하드웨어·인프라,IT 유통,,Yahoo 업종: Electronics & Computer Distribution,업종 자동,Electronics & Computer Distribution
+WMG,Warner Music Group Corp.,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+NDSN,Nordson Corporation,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+PFGC,Performance Food Group Company,필수소비재,식품 유통,,Yahoo 업종: Food Distribution,업종 자동,Food Distribution
+MEDP,"Medpace Holdings, Inc.",헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+TPG,TPG Inc.,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+H,Hyatt Hotels Corporation,소비재,호텔·리조트,,Yahoo 업종: Lodging,업종 자동,Lodging
+CF,"CF Industries Holdings, Inc.",소재,비료·농업 소재,,Yahoo 업종: Agricultural Inputs,업종 자동,Agricultural Inputs
+KIM,Kimco Realty Corporation,부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+PAA,"Plains All American Pipeline, L.P.",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+HST,"Host Hotels & Resorts, Inc.",부동산,리츠(기타),,Yahoo 업종: REIT - Hotel & Motel,업종 자동,REIT - Hotel & Motel
+YUMC,"Yum China Holdings, Inc.",소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+EWBC,"East West Bancorp, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+BALL,Ball Corporation,소재,포장재,,Yahoo 업종: Packaging & Containers,업종 자동,Packaging & Containers
+WES,"Western Midstream Partners, LP",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+RDDT,"Reddit, Inc.",인터넷·미디어,인터넷 플랫폼·소셜,,광고·구독 플랫폼,직접 지정,Internet Content & Information
+BEN,Franklin Templeton Inc.,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+OVV,Ovintiv Inc.,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+GPC,Genuine Parts Company,소비재,자동차 부품,,Yahoo 업종: Auto Parts,업종 자동,Auto Parts
+RVTY,"Revvity, Inc.",헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+SOFI,"SoFi Technologies, Inc.",금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Credit Services
+IEX,IDEX Corporation,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+TYL,"Tyler Technologies, Inc.",소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+IP,International Paper Company,소재,포장재,,Yahoo 업종: Packaging & Containers,업종 자동,Packaging & Containers
+CW,Curtiss-Wright Corporation,항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+MAS,Masco Corporation,산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+SWK,"Stanley Black & Decker, Inc.",산업재,공구,,Yahoo 업종: Tools & Accessories,업종 자동,Tools & Accessories
+JLL,Jones Lang LaSalle Incorporated,부동산,부동산 서비스,,Yahoo 업종: Real Estate Services,업종 자동,Real Estate Services
+EXEL,"Exelixis, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+HAS,"Hasbro, Inc.",소비재,레저 용품,,Yahoo 업종: Leisure,업종 자동,Leisure
+AIZ,"Assurant, Inc.",금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+CHRW,"C.H. Robinson Worldwide, Inc.",운송,물류·택배,,Yahoo 업종: Integrated Freight & Logistics,업종 자동,Integrated Freight & Logistics
+KEY-PK,KeyCorp,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+LAMR,Lamar Advertising Company,부동산,리츠(기타),,Yahoo 업종: REIT - Specialty,업종 자동,REIT - Specialty
+BURL,"Burlington Stores, Inc.",소비재,의류 리테일,,Yahoo 업종: Apparel Retail,업종 자동,Apparel Retail
+FTAI,FTAI Aviation Ltd.,항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+NBIX,"Neurocrine Biosciences, Inc.",헬스케어,특수·제네릭 제약,,Yahoo 업종: Drug Manufacturers - Specialty & Generic,업종 자동,Drug Manufacturers - Specialty & Generic
+INVH,Invitation Homes Inc.,부동산,주거 리츠,,Yahoo 업종: REIT - Residential,업종 자동,REIT - Residential
+APA,APA Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+RIVN,"Rivian Automotive, Inc.",소비재,EV·자율주행,로봇·자동화,전기차,직접 지정,Auto Manufacturers
+CRL,Charles River Laboratories Interna,헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+WPC,W. P. Carey Inc.,부동산,리츠(기타),,Yahoo 업종: REIT - Diversified,업종 자동,REIT - Diversified
+MTSI,MACOM Technology Solutions Holding,반도체,인터커넥트·고속연결 칩,광통신(트랜시버·부품),광·아날로그 고속 연결 칩,직접 지정,Semiconductors
+NWS,News Corporation,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+CLH,"Clean Harbors, Inc.",산업재,환경 서비스,,Yahoo 업종: Waste Management,업종 자동,Waste Management
+LDOS,"Leidos Holdings, Inc.",소프트웨어,정부 IT·방산 서비스,,미 정부 IT 서비스,직접 지정,Information Technology Services
+FICO,Fair Isaac Corporation,소프트웨어,금융·세무 SW,,세무·신용평가 SW,직접 지정,Software - Application
+BBIO,"BridgeBio Pharma, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+DINO,HF Sinclair Corporation,에너지,정유,,Yahoo 업종: Oil & Gas Refining & Marketing,업종 자동,Oil & Gas Refining & Marketing
+FSLR,"First Solar, Inc.",에너지 전환,태양광,,태양광 모듈·트래커,직접 지정,Solar
+NTNX,"Nutanix, Inc.",소프트웨어,인프라 소프트웨어,,클라우드 인프라·개발·통신 SW,직접 지정,Software - Infrastructure
+ULS,UL Solutions Inc.,산업재,비즈니스 서비스,,Yahoo 업종: Specialty Business Services,업종 자동,Specialty Business Services
+CSL,Carlisle Companies Incorporated,산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+RBC,RBC Bearings Incorporated,산업재,공구,,Yahoo 업종: Tools & Accessories,업종 자동,Tools & Accessories
+OHI,"Omega Healthcare Investors, Inc.",부동산,헬스케어 리츠,,Yahoo 업종: REIT - Healthcare Facilities,업종 자동,REIT - Healthcare Facilities
+TLN,Talen Energy Corporation,AI 전력,독립발전(IPP)·원전,,"원전·가스 발전, 데이터센터 전력계약",직접 지정,Utilities - Independent Power Producers
+NVR,"NVR, Inc.",소비재,주택 건설,,Yahoo 업종: Residential Construction,업종 자동,Residential Construction
+SOLV,Solventum Corporation,헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+CRBG,"Corebridge Financial, Inc.",금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+SJM,The J. M. Smucker Company,필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+SMCI,"Super Micro Computer, Inc.",AI 하드웨어·인프라,AI 서버,,AI 서버(GPU 서버) 조립,직접 지정,Computer Hardware
+SUI,"Sun Communities, Inc.",부동산,주거 리츠,,Yahoo 업종: REIT - Residential,업종 자동,REIT - Residential
+ERIE,Erie Indemnity Company,금융,보험 중개,,Yahoo 업종: Insurance Brokers,업종 자동,Insurance Brokers
+ZBRA,Zebra Technologies Corporation,네트워킹,통신 장비,,공공안전 무전·산업용 단말,직접 지정,Communication Equipment
+ARMK,Aramark,산업재,비즈니스 서비스,,Yahoo 업종: Specialty Business Services,업종 자동,Specialty Business Services
+TRU,TransUnion,금융,거래소·금융 데이터,,Yahoo 업종: Financial Data & Stock Exchanges,업종 자동,Financial Data & Stock Exchanges
+WY,Weyerhaeuser Company,부동산,리츠(기타),,Yahoo 업종: REIT - Specialty,업종 자동,REIT - Specialty
+MANH,"Manhattan Associates, Inc.",소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+BF-A,Brown-Forman Corporation,필수소비재,주류,,Yahoo 업종: Beverages - Wineries & Distilleries,업종 자동,Beverages - Wineries & Distilleries
+GKOS,Glaukos Corporation,헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+PNFP,"Pinnacle Financial Partners, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+LSCC,Lattice Semiconductor Corporation,반도체,FPGA·타이밍·기타 칩,,FPGA·타이밍·IoT 칩,직접 지정,Semiconductors
+DOC,"Healthpeak Properties, Inc.",부동산,헬스케어 리츠,,Yahoo 업종: REIT - Healthcare Facilities,업종 자동,REIT - Healthcare Facilities
+PAG,"Penske Automotive Group, Inc.",소비재,자동차 딜러,,Yahoo 업종: Auto & Truck Dealerships,업종 자동,Auto & Truck Dealerships
+DOCU,"DocuSign, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+OWL,Blue Owl Capital Inc.,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+LOGI,Logitech International S.A.,AI 하드웨어·인프라,서버·PC 하드웨어,,PC·주변기기,직접 지정,Computer Hardware
+REG,Regency Centers Corporation,부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+BF-B,Brown-Forman Corporation,필수소비재,주류,,Yahoo 업종: Beverages - Wineries & Distilleries,업종 자동,Beverages - Wineries & Distilleries
+WCC,"WESCO International, Inc.",산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+AVY,Avery Dennison Corporation,소재,포장재,,Yahoo 업종: Packaging & Containers,업종 자동,Packaging & Containers
+CART,Maplebear Inc.,인터넷·미디어,모빌리티·배달 플랫폼,,차량호출·배달,직접 지정,Internet Retail
+LECO,"Lincoln Electric Holdings, Inc.",산업재,공구,,Yahoo 업종: Tools & Accessories,업종 자동,Tools & Accessories
+TXT,Textron Inc.,항공·방산·우주,항공기·엔진,,항공기·엔진,직접 지정,Aerospace & Defense
+GME,GameStop Corp.,소비재,전문 소매,,Yahoo 업종: Specialty Retail,업종 자동,Specialty Retail
+PS,Pershing Square Inc.,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+NWSA,News Corporation,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+MAA,"Mid-America Apartment Communities,",부동산,주거 리츠,,Yahoo 업종: REIT - Residential,업종 자동,REIT - Residential
+EQH,"Equitable Holdings, Inc.",금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+COKE,"Coca-Cola Consolidated, Inc.",필수소비재,음료,,Yahoo 업종: Beverages - Non-Alcoholic,업종 자동,Beverages - Non-Alcoholic
+AHR,"American Healthcare REIT, Inc.",부동산,헬스케어 리츠,,Yahoo 업종: REIT - Healthcare Facilities,업종 자동,REIT - Healthcare Facilities
+FIS,Fidelity National Information Serv,금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Information Technology Services
+SGI,Somnigroup International Inc.,소비재,가구·가전,,"Yahoo 업종: Furnishings, Fixtures & Appliances",업종 자동,"Furnishings, Fixtures & Appliances"
+ARCC,Ares Capital Corporation,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+NLY,"Annaly Capital Management, Inc.",부동산,리츠(기타),,Yahoo 업종: REIT - Mortgage,업종 자동,REIT - Mortgage
+BJ,"BJ's Wholesale Club Holdings, Inc.",필수소비재,대형마트·할인점,,Yahoo 업종: Discount Stores,업종 자동,Discount Stores
+BAX,Baxter International Inc.,헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+EHC,Encompass Health Corporation,헬스케어,병원·의료 서비스,,Yahoo 업종: Medical Care Facilities,업종 자동,Medical Care Facilities
+TOL,"Toll Brothers, Inc.",소비재,주택 건설,,Yahoo 업종: Residential Construction,업종 자동,Residential Construction
+RPM,RPM International Inc.,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+AFG,"American Financial Group, Inc.",금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+CACI,CACI International Inc,소프트웨어,정부 IT·방산 서비스,,미 정부 IT 서비스,직접 지정,Information Technology Services
+W,Wayfair Inc.,인터넷·미디어,이커머스,,온라인 커머스,직접 지정,Internet Retail
+AMH,American Homes 4 Rent,부동산,주거 리츠,,Yahoo 업종: REIT - Residential,업종 자동,REIT - Residential
+CNA,CNA Financial Corporation,금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+HRL,Hormel Foods Corporation,필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+WTRG,"Essential Utilities, Inc.",유틸리티,가스·수도 유틸리티,,Yahoo 업종: Utilities - Regulated Water,업종 자동,Utilities - Regulated Water
+UDR,"UDR, Inc.",부동산,주거 리츠,,Yahoo 업종: REIT - Residential,업종 자동,REIT - Residential
+ELAN,Elanco Animal Health Incorporated,헬스케어,특수·제네릭 제약,,Yahoo 업종: Drug Manufacturers - Specialty & Generic,업종 자동,Drug Manufacturers - Specialty & Generic
+MKC-V,"McCormick & Company, Incorporated",필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+MKC,"McCormick & Company, Incorporated",필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+CCK,"Crown Holdings, Inc.",소재,포장재,,Yahoo 업종: Packaging & Containers,업종 자동,Packaging & Containers
+CG,The Carlyle Group Inc.,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+CLX,The Clorox Company,필수소비재,생활용품,,Yahoo 업종: Household & Personal Products,업종 자동,Household & Personal Products
+CRS,Carpenter Technology Corporation,산업재,산업 기계,,Yahoo 업종: Metal Fabrication,업종 자동,Metal Fabrication
+FROG,JFrog Ltd.,소프트웨어,인프라 소프트웨어,,클라우드 인프라·개발·통신 SW,직접 지정,Software - Application
+PEN,"Penumbra, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+BTSG,"BrightSpring Health Services, Inc.",헬스케어,헬스케어 IT,,Yahoo 업종: Health Information Services,업종 자동,Health Information Services
+BSY,"Bentley Systems, Incorporated",소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+MKSI,MKS Inc.,반도체,반도체 장비(전공정),계측·검사 장비,장비용 부품·레이저,직접 지정,Scientific & Technical Instruments
+DT,"Dynatrace, Inc.",소프트웨어,AI 데이터·분석 플랫폼,,데이터 클라우드·DB·옵저버빌리티,직접 지정,Software - Application
+AKAM,"Akamai Technologies, Inc.",소프트웨어,엣지·인터넷 인프라,사이버보안,CDN·엣지 컴퓨팅,직접 지정,Software - Infrastructure
+PNW,Pinnacle West Capital Corporation,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+ELS,"Equity LifeStyle Properties, Inc.",부동산,주거 리츠,,Yahoo 업종: REIT - Residential,업종 자동,REIT - Residential
+WSO-B,"Watsco, Inc.",산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+CRCL,Circle Internet Group,금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+FIVE,"Five Below, Inc.",소비재,전문 소매,,Yahoo 업종: Specialty Retail,업종 자동,Specialty Retail
+SAIL,"SailPoint, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+WSO,"Watsco, Inc.",산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+GDDY,GoDaddy Inc.,소프트웨어,인프라 소프트웨어,,클라우드 인프라·개발·통신 SW,직접 지정,Software - Infrastructure
+VIRT,"Virtu Financial, Inc.",금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+SEIC,SEI Investments Company,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+RYAN,"Ryan Specialty Holdings, Inc.",금융,보험 중개,,Yahoo 업종: Insurance Brokers,업종 자동,Insurance Brokers
+JKHY,"Jack Henry & Associates, Inc.",금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Information Technology Services
+CSGP,"CoStar Group, Inc.",부동산,부동산 서비스,,Yahoo 업종: Real Estate Services,업종 자동,Real Estate Services
+UNM,Unum Group,금융,보험,,Yahoo 업종: Insurance - Life,업종 자동,Insurance - Life
+DKS,"DICK'S Sporting Goods, Inc.",소비재,전문 소매,,Yahoo 업종: Specialty Retail,업종 자동,Specialty Retail
+BMRN,BioMarin Pharmaceutical Inc.,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+CR,Crane Company,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+TXRH,"Texas Roadhouse, Inc.",소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+FLUT,Flutter Entertainment plc,소비재,카지노·스포츠베팅,,Yahoo 업종: Gambling,업종 자동,Gambling
+FNF,"Fidelity National Financial, Inc.",금융,보험,,Yahoo 업종: Insurance - Specialty,업종 자동,Insurance - Specialty
+IVZ,Invesco Ltd.,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+CHYM,"Chime Financial, Inc.",금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Software - Application
+MTZ,"MasTec, Inc.",AI 전력,데이터센터·전력망 건설,,송배전·통신망 시공,직접 지정,Engineering & Construction
+TRMB,Trimble Inc.,산업재,계측·검사 장비,,Yahoo 업종: Scientific & Technical Instruments,업종 자동,Scientific & Technical Instruments
+WTS,"Watts Water Technologies, Inc.",산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+DPZ,"Domino's Pizza, Inc.",소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+LII,Lennox International Inc.,산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+GL,Globe Life Inc.,금융,보험,,Yahoo 업종: Insurance - Life,업종 자동,Insurance - Life
+TECH,Bio-Techne Corporation,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+GNRC,Generac Holdings Inc.,AI 전력,백업 발전기,,발전기(가정용·데이터센터),직접 지정,Specialty Industrial Machinery
+GLPI,"Gaming and Leisure Properties, Inc",부동산,리츠(기타),,Yahoo 업종: REIT - Specialty,업종 자동,REIT - Specialty
+DTM,"DT Midstream, Inc.",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+RRC,Range Resources Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+COO,"The Cooper Companies, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+GGG,Graco Inc.,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+GSAT,"Globalstar, Inc.",네트워킹,위성통신·우주,,위성 통신,직접 지정,Telecom Services
+BXP,"BXP, Inc.",부동산,리츠(기타),,Yahoo 업종: REIT - Office,업종 자동,REIT - Office
+HII,"Huntington Ingalls Industries, Inc",항공·방산·우주,방산 프라임,,미 국방 주계약자,직접 지정,Aerospace & Defense
+MAIR,Madison Air Solutions Corporation,산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+GWRE,"Guidewire Software, Inc.",소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+IT,"Gartner, Inc.",소프트웨어,IT 서비스·컨설팅,,Yahoo 업종: Information Technology Services,업종 자동,Information Technology Services
+FDS,FactSet Research Systems Inc.,금융,거래소·금융 데이터,,Yahoo 업종: Financial Data & Stock Exchanges,업종 자동,Financial Data & Stock Exchanges
+NYT,The New York Times Company,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Publishing,업종 자동,Publishing
+AR,Antero Resources Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+ALGN,"Align Technology, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+CDE,"Coeur Mining, Inc.",소재,금·귀금속,,Yahoo 업종: Gold,업종 자동,Gold
+SITM,SiTime Corporation,반도체,FPGA·타이밍·기타 칩,,FPGA·타이밍·IoT 칩,직접 지정,Semiconductors
+ALLY,Ally Financial Inc.,금융,결제·카드·소비자금융,,Yahoo 업종: Credit Services,업종 자동,Credit Services
+PAYC,"Paycom Software, Inc.",소프트웨어,HR·급여 SW,,급여·HR 아웃소싱,직접 지정,Software - Application
+MLI,"Mueller Industries, Inc.",산업재,산업 기계,,Yahoo 업종: Metal Fabrication,업종 자동,Metal Fabrication
+JAN,"Janus Living, Inc.",부동산,주거 리츠,,Yahoo 업종: REIT - Residential,업종 자동,REIT - Residential
+QXO,"QXO, Inc.",산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+HZN,Bright Horizon Energy Corporation,유틸리티,가스·수도 유틸리티,,Yahoo 업종: Utilities - Regulated Gas,업종 자동,Utilities - Regulated Gas
+PCOR,"Procore Technologies, Inc.",소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+MOG-B,Moog Inc.,항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+AES,The AES Corporation,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Diversified,업종 자동,Utilities - Diversified
+MOG-A,Moog Inc.,항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+OGE,OGE Energy Corp.,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+R,"Ryder System, Inc.",산업재,장비 렌탈·리스,,Yahoo 업종: Rental & Leasing Services,업종 자동,Rental & Leasing Services
+RGEN,Repligen Corporation,헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+SIRI,Sirius XM Holdings Inc.,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+HALO,"Halozyme Therapeutics, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+LTH,"Life Time Group Holdings, Inc.",소비재,레저 용품,,Yahoo 업종: Leisure,업종 자동,Leisure
+DECK,Deckers Outdoor Corporation,소비재,의류·신발 브랜드,,Yahoo 업종: Footwear & Accessories,업종 자동,Footwear & Accessories
+MOH,"Molina Healthcare, Inc.",헬스케어,건강보험,,Yahoo 업종: Healthcare Plans,업종 자동,Healthcare Plans
+UHS,"Universal Health Services, Inc.",헬스케어,병원·의료 서비스,,Yahoo 업종: Medical Care Facilities,업종 자동,Medical Care Facilities
+EVR,Evercore Inc.,금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+EGP,"EastGroup Properties, Inc.",부동산,물류창고 리츠,,Yahoo 업종: REIT - Industrial,업종 자동,REIT - Industrial
+ENSG,"The Ensign Group, Inc.",헬스케어,병원·의료 서비스,,Yahoo 업종: Medical Care Facilities,업종 자동,Medical Care Facilities
+FHN,First Horizon Corporation,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+NXT,Nextpower Inc.,에너지 전환,태양광,,태양광 모듈·트래커,직접 지정,Solar
+UHAL,U-Haul Holding Company,산업재,장비 렌탈·리스,,Yahoo 업종: Rental & Leasing Services,업종 자동,Rental & Leasing Services
+RRX,Regal Rexnord Corporation,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+ACM,AECOM,산업재,엔지니어링·건설,,Yahoo 업종: Engineering & Construction,업종 자동,Engineering & Construction
+DVA,DaVita Inc.,헬스케어,병원·의료 서비스,,Yahoo 업종: Medical Care Facilities,업종 자동,Medical Care Facilities
+AVTR,"Avantor, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+AIT,"Applied Industrial Technologies, I",산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+SF,Stifel Financial Corp.,금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+BWXT,"BWX Technologies, Inc.",AI 전력,원전 부품·연료,방산 프라임,원자로 부품·핵연료,직접 지정,Aerospace & Defense
+FRHC,Freedom Holdings Corp.,금융,증권·투자은행,,Yahoo 업종: Financial Conglomerates,업종 자동,Financial Conglomerates
+CUBE,CubeSmart,부동산,물류창고 리츠,,Yahoo 업종: REIT - Industrial,업종 자동,REIT - Industrial
+TEM,"Tempus AI, Inc.",헬스케어,헬스케어 AI,AI 데이터·분석 플랫폼,AI 기반 정밀의료 데이터,직접 지정,Health Information Services
+AGNC,AGNC Investment Corp.,부동산,리츠(기타),,Yahoo 업종: REIT - Mortgage,업종 자동,REIT - Mortgage
+KYMR,"Kymera Therapeutics, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+NTSK,"Netskope, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+WTFC,Wintrust Financial Corporation,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+FLS,Flowserve Corporation,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+KNX,Knight-Swift Transportation Holdin,운송,트럭 운송,,Yahoo 업종: Trucking,업종 자동,Trucking
+BIO,"Bio-Rad Laboratories, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+BAH,Booz Allen Hamilton Holding Corpor,산업재,비즈니스 서비스,,Yahoo 업종: Consulting Services,업종 자동,Consulting Services
+UMBF,UMB Financial Corporation,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+IONQ,"IonQ, Inc.",AI 하드웨어·인프라,양자컴퓨팅,,이온트랩 양자컴퓨터,직접 지정,Computer Hardware
+SSB,SouthState Bank Corporation,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+CPT,Camden Property Trust,부동산,주거 리츠,,Yahoo 업종: REIT - Residential,업종 자동,REIT - Residential
+TGTX,"TG Therapeutics, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+ORI,Old Republic International Corpora,금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+ALSN,"Allison Transmission Holdings, Inc",소비재,자동차 부품,,Yahoo 업종: Auto Parts,업종 자동,Auto Parts
+TTC,The Toro Company,산업재,공구,,Yahoo 업종: Tools & Accessories,업종 자동,Tools & Accessories
+FRT,Federal Realty Investment Trust,부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+SOLS,"Solstice Advanced Materials, Inc.",소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+CTRE,"CareTrust REIT, Inc.",부동산,헬스케어 리츠,,Yahoo 업종: REIT - Healthcare Facilities,업종 자동,REIT - Healthcare Facilities
+HUBS,"HubSpot, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+LLYVK,"Liberty Live Holdings, Inc.",인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+BWA,BorgWarner Inc.,소비재,자동차 부품,,Yahoo 업종: Auto Parts,업종 자동,Auto Parts
+ALB,Albemarle Corporation,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+SCI,Service Corporation International,소비재,생활 서비스,,Yahoo 업종: Personal Services,업종 자동,Personal Services
+PINS,"Pinterest, Inc.",인터넷·미디어,인터넷 플랫폼·소셜,,광고·구독 플랫폼,직접 지정,Internet Content & Information
+DCI,"Donaldson Company, Inc.",산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+TTEK,"Tetra Tech, Inc.",산업재,엔지니어링·건설,,Yahoo 업종: Engineering & Construction,업종 자동,Engineering & Construction
+ASTS,"AST SpaceMobile, Inc.",네트워킹,위성통신·우주,,위성 통신,직접 지정,Communication Equipment
+AM,Antero Midstream Corporation,에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+BRX,Brixmor Property Group Inc.,부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+ADC,Agree Realty Corporation,부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+PODD,Insulet Corporation,헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+HSIC,"Henry Schein, Inc.",헬스케어,의약품 유통,,Yahoo 업종: Medical Distribution,업종 자동,Medical Distribution
+AYI,Acuity Inc.,AI 전력,전력 장비,,배전·전기 설비,직접 지정,Electrical Equipment & Parts
+LLYVA,"Liberty Live Holdings, Inc.",인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+MUSA,Murphy USA Inc.,소비재,전문 소매,,Yahoo 업종: Specialty Retail,업종 자동,Specialty Retail
+RHP,"Ryman Hospitality Properties, Inc.",부동산,리츠(기타),,Yahoo 업종: REIT - Hotel & Motel,업종 자동,REIT - Hotel & Motel
+HLI,"Houlihan Lokey, Inc.",금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+KRYS,"Krystal Biotech, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+AMG,"Affiliated Managers Group, Inc.",금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+LFUS,"Littelfuse, Inc.",네트워킹,커넥터·케이블,,회로보호·센서 부품,직접 지정,Electronic Components
+PCTY,Paylocity Holding Corporation,소프트웨어,HR·급여 SW,,급여·HR 아웃소싱,직접 지정,Software - Application
+UHAL-B,U-Haul Holding Company,산업재,장비 렌탈·리스,,Yahoo 업종: Rental & Leasing Services,업종 자동,Rental & Leasing Services
+BPOP,"Popular, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+KNSL,"Kinsale Capital Group, Inc.",금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+KNTK,Kinetik Holdings Inc.,에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+JEF,Jefferies Financial Group Inc.,금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+MTCH,"Match Group, Inc.",인터넷·미디어,인터넷 플랫폼·소셜,,광고·구독 플랫폼,직접 지정,Internet Content & Information
+ATR,"AptarGroup, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+SYRE,"Spyre Therapeutics, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+GMED,"Globus Medical, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+ZION,"Zions Bancorporation, National Ass",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+ONB,Old National Bancorp,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+AA,Alcoa Corporation,소재,비철금속,,Yahoo 업종: Aluminum,업종 자동,Aluminum
+MDGL,"Madrigal Pharmaceuticals, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+CBC,"Central Bancompany, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+PCVX,"Vaxcyte, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+LEVI,Levi Strauss & Co.,소비재,의류·신발 브랜드,,Yahoo 업종: Apparel Manufacturing,업종 자동,Apparel Manufacturing
+SARO,"StandardAero, Inc.",항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+PRI,"Primerica, Inc.",금융,보험,,Yahoo 업종: Insurance - Life,업종 자동,Insurance - Life
+ARW,"Arrow Electronics, Inc.",AI 하드웨어·인프라,IT 유통,,Yahoo 업종: Electronics & Computer Distribution,업종 자동,Electronics & Computer Distribution
+BRKR,Bruker Corporation,헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+MORN,"Morningstar, Inc.",금융,거래소·금융 데이터,,Yahoo 업종: Financial Data & Stock Exchanges,업종 자동,Financial Data & Stock Exchanges
+HNGE,"Hinge Health, Inc.",헬스케어,헬스케어 IT,,Yahoo 업종: Health Information Services,업종 자동,Health Information Services
+VOYA,"Voya Financial, Inc.",금융,증권·투자은행,,Yahoo 업종: Financial Conglomerates,업종 자동,Financial Conglomerates
+AOS,A. O. Smith Corporation,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+OC,Owens Corning,산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+FIG,"Figma, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+PRMB,Primo Brands Corporation,필수소비재,음료,,Yahoo 업종: Beverages - Non-Alcoholic,업종 자동,Beverages - Non-Alcoholic
+PRAX,"Praxis Precision Medicines, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+JXN,Jackson Financial Inc.,금융,보험,,Yahoo 업종: Insurance - Life,업종 자동,Insurance - Life
+SAIA,"Saia, Inc.",운송,트럭 운송,,Yahoo 업종: Trucking,업종 자동,Trucking
+THG,"The Hanover Insurance Group, Inc.",금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+ONTO,Onto Innovation Inc.,반도체,반도체 장비(전공정),,증착·식각·검사 장비,직접 지정,Semiconductor Equipment & Materials
+DRS,"Leonardo DRS, Inc.",항공·방산·우주,방산 프라임,,미 국방 주계약자,직접 지정,Aerospace & Defense
+PB,"Prosperity Bancshares, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+IDA,"IDACORP, Inc.",유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+ALV,"Autoliv, Inc.",소비재,자동차 부품,,Yahoo 업종: Auto Parts,업종 자동,Auto Parts
+WYNN,"Wynn Resorts, Limited",소비재,호텔·리조트,,Yahoo 업종: Resorts & Casinos,업종 자동,Resorts & Casinos
+WMS,"Advanced Drainage Systems, Inc.",산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+MHK,"Mohawk Industries, Inc.",소비재,가구·가전,,"Yahoo 업종: Furnishings, Fixtures & Appliances",업종 자동,"Furnishings, Fixtures & Appliances"
+MGM,MGM Resorts International,소비재,호텔·리조트,,Yahoo 업종: Resorts & Casinos,업종 자동,Resorts & Casinos
+SMTC,Semtech Corporation,반도체,인터커넥트·고속연결 칩,광통신(트랜시버·부품),광·아날로그 고속 연결 칩,직접 지정,Semiconductors
+BMNR,"Bitmine Immersion Technologies, In",금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+COLB,"Columbia Banking System, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+S,"SentinelOne, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+SMMT,Summit Therapeutics Inc.,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+OSK,Oshkosh Corporation,산업재,건설·농기계,,Yahoo 업종: Farm & Heavy Construction Machinery,업종 자동,Farm & Heavy Construction Machinery
+ESTC,Elastic N.V.,소프트웨어,AI 데이터·분석 플랫폼,,데이터 클라우드·DB·옵저버빌리티,직접 지정,Software - Application
+PTGX,"Protagonist Therapeutics, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+YOU,"Clear Secure, Inc.",소프트웨어,엔터프라이즈 SaaS,,Yahoo 업종: Software - Application,업종 자동,Software - Application
+AAL,American Airlines Group Inc.,운송,항공사,,Yahoo 업종: Airlines,업종 자동,Airlines
+DOCN,"DigitalOcean Holdings, Inc.",AI 클라우드·모델,네오클라우드(GPU 클라우드),,GPU·클라우드 인프라 임대,직접 지정,Software - Infrastructure
+DKNG,DraftKings Inc.,소비재,카지노·스포츠베팅,,Yahoo 업종: Gambling,업종 자동,Gambling
+SNAP,Snap Inc.,인터넷·미디어,인터넷 플랫폼·소셜,,광고·구독 플랫폼,직접 지정,Internet Content & Information
+DAR,Darling Ingredients Inc.,필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+CHWY,"Chewy, Inc.",인터넷·미디어,이커머스,,온라인 커머스,직접 지정,Internet Retail
+HQY,"HealthEquity, Inc.",헬스케어,헬스케어 IT,,Yahoo 업종: Health Information Services,업종 자동,Health Information Services
+VSAT,"Viasat, Inc.",네트워킹,위성통신·우주,,위성 통신,직접 지정,Communication Equipment
+EPAM,"EPAM Systems, Inc.",소프트웨어,IT 서비스·컨설팅,,Yahoo 업종: Information Technology Services,업종 자동,Information Technology Services
+NNN,"NNN REIT, Inc.",부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+RYTM,"Rhythm Pharmaceuticals, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+TAP-A,Molson Coors Beverage Company,필수소비재,주류,,Yahoo 업종: Beverages - Brewers,업종 자동,Beverages - Brewers
+LINE,"Lineage, Inc.",부동산,물류창고 리츠,,Yahoo 업종: REIT - Industrial,업종 자동,REIT - Industrial
+EAT,"Brinker International, Inc.",소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+REXR,"Rexford Industrial Realty, Inc.",부동산,물류창고 리츠,,Yahoo 업종: REIT - Industrial,업종 자동,REIT - Industrial
+AEIS,"Advanced Energy Industries, Inc.",AI 전력,데이터센터 전력·냉각,반도체 장비(전공정),정밀 전원 장비(반도체·데이터센터),직접 지정,Electrical Equipment & Parts
+OSCR,"Oscar Health, Inc.",헬스케어,건강보험,,Yahoo 업종: Healthcare Plans,업종 자동,Healthcare Plans
+SSD,"Simpson Manufacturing Co., Inc.",소재,목재·임업,,Yahoo 업종: Lumber & Wood Production,업종 자동,Lumber & Wood Production
+UGI,UGI Corporation,유틸리티,가스·수도 유틸리티,,Yahoo 업종: Utilities - Regulated Gas,업종 자동,Utilities - Regulated Gas
+VFC,V.F. Corporation,소비재,의류·신발 브랜드,,Yahoo 업종: Apparel Manufacturing,업종 자동,Apparel Manufacturing
+BOKF,BOK Financial Corporation,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+STRL,"Sterling Infrastructure, Inc.",AI 전력,데이터센터·전력망 건설,,데이터센터 기계·전기 공사,직접 지정,Engineering & Construction
+LNC,Lincoln National Corporation,금융,보험,,Yahoo 업종: Insurance - Life,업종 자동,Insurance - Life
+VSXY,Victorias Secret & Co.,소비재,의류 리테일,,Yahoo 업종: Apparel Retail,업종 자동,Apparel Retail
+ZETA,Zeta Global Holdings Corp.,소프트웨어,디지털 광고 기술,,광고 기술(애드테크),직접 지정,Software - Infrastructure
+SFD,"Smithfield Foods, Inc.",필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+VLY,Valley National Bancorp,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+AMKR,"Amkor Technology, Inc.",반도체,패키징·테스트,,OSAT(후공정 패키징·테스트),직접 지정,Semiconductor Equipment & Materials
+CBSH,"Commerce Bancshares, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+CGNX,Cognex Corporation,산업재,로봇·자동화,,물류 로봇·공장 자동화,직접 지정,Scientific & Technical Instruments
+CNM,"Core & Main, Inc.",산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+PBF,PBF Energy Inc.,에너지,정유,,Yahoo 업종: Oil & Gas Refining & Marketing,업종 자동,Oil & Gas Refining & Marketing
+POOL,Pool Corporation,산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+WLK,Westlake Corporation,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+COMP,"Compass, Inc.",부동산,부동산 서비스,,Yahoo 업종: Real Estate Services,업종 자동,Real Estate Services
+VMI,"Valmont Industries, Inc.",산업재,복합기업,,Yahoo 업종: Conglomerates,업종 자동,Conglomerates
+SANM,Sanmina Corporation,AI 하드웨어·인프라,전자부품·EMS,AI 서버,서버·랙 위탁생산(EMS),직접 지정,Electronic Components
+GAP,"The Gap, Inc.",소비재,의류 리테일,,Yahoo 업종: Apparel Retail,업종 자동,Apparel Retail
+TTAN,"ServiceTitan, Inc.",소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+SLAB,Silicon Laboratories Inc.,반도체,FPGA·타이밍·기타 칩,,FPGA·타이밍·IoT 칩,직접 지정,Semiconductors
+NCLH,Norwegian Cruise Line Holdings Ltd,소비재,여행 플랫폼,,Yahoo 업종: Travel Services,업종 자동,Travel Services
+MSGK,MSG Knickerbockers Corp.,인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Entertainment,업종 자동,Entertainment
+AXTA,Axalta Coating Systems Ltd.,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+WAL,Western Alliance Bancorporation,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+DBX,"Dropbox, Inc.",소프트웨어,인프라 소프트웨어,,클라우드 인프라·개발·통신 SW,직접 지정,Software - Infrastructure
+TAP,Molson Coors Beverage Company,필수소비재,주류,,Yahoo 업종: Beverages - Brewers,업종 자동,Beverages - Brewers
+FR,"First Industrial Realty Trust, Inc",부동산,물류창고 리츠,,Yahoo 업종: REIT - Industrial,업종 자동,REIT - Industrial
+CHRD,Chord Energy Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+ZWS,Zurn Elkay Water Solutions Corpora,산업재,환경 서비스,,Yahoo 업종: Pollution & Treatment Controls,업종 자동,Pollution & Treatment Controls
+URBN,"Urban Outfitters, Inc.",소비재,의류 리테일,,Yahoo 업종: Apparel Retail,업종 자동,Apparel Retail
+APPF,"AppFolio, Inc.",소프트웨어,산업·설계 SW,,설계·산업·버티컬 SW,직접 지정,Software - Application
+ADT,ADT Inc.,산업재,보안 서비스,,Yahoo 업종: Security & Protection Services,업종 자동,Security & Protection Services
+GTLB,GitLab Inc.,소프트웨어,인프라 소프트웨어,,클라우드 인프라·개발·통신 SW,직접 지정,Software - Infrastructure
+ESI,Element Solutions Inc,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+CELH,"Celsius Holdings, Inc.",필수소비재,음료,,Yahoo 업종: Beverages - Non-Alcoholic,업종 자동,Beverages - Non-Alcoholic
+LW,"Lamb Weston Holdings, Inc.",필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+CAG,"Conagra Brands, Inc.",필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+CHE,Chemed Corporation,헬스케어,병원·의료 서비스,,Yahoo 업종: Medical Care Facilities,업종 자동,Medical Care Facilities
+CPB,The Campbell's Company,필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+FCFS,"FirstCash Holdings, Inc.",금융,결제·카드·소비자금융,,Yahoo 업종: Credit Services,업종 자동,Credit Services
+RMBS,Rambus Inc.,반도체,인터커넥트·고속연결 칩,메모리(DRAM·NAND),메모리 인터페이스 칩·IP,직접 지정,Semiconductors
+CGON,"CG Oncology, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+AUR,"Aurora Innovation, Inc.",소비재,자동차 부품,,Yahoo 업종: Auto Parts,업종 자동,Auto Parts
+STAG,"STAG Industrial, Inc.",부동산,물류창고 리츠,,Yahoo 업종: REIT - Industrial,업종 자동,REIT - Industrial
+TRNO,Terreno Realty Corporation,부동산,물류창고 리츠,,Yahoo 업종: REIT - Industrial,업종 자동,REIT - Industrial
+CYTK,"Cytokinetics, Incorporated",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+CROX,"Crocs, Inc.",소비재,의류·신발 브랜드,,Yahoo 업종: Footwear & Accessories,업종 자동,Footwear & Accessories
+HL,Hecla Mining Company,소재,금·귀금속,,Yahoo 업종: Other Precious Metals & Mining,업종 자동,Other Precious Metals & Mining
+TWST,Twist Bioscience Corporation,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+VCTR,"Victory Capital Holdings, Inc.",금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+RAL,Ralliant Corporation,AI 하드웨어·인프라,전자부품·EMS,,Yahoo 업종: Electronic Components,업종 자동,Electronic Components
+ARE,"Alexandria Real Estate Equities, I",부동산,리츠(기타),,Yahoo 업종: REIT - Office,업종 자동,REIT - Office
+NFG,National Fuel Gas Company,에너지,통합 석유,,Yahoo 업종: Oil & Gas Integrated,업종 자동,Oil & Gas Integrated
+CORT,Corcept Therapeutics Incorporated,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+AGCO,AGCO Corporation,산업재,건설·농기계,,Yahoo 업종: Farm & Heavy Construction Machinery,업종 자동,Farm & Heavy Construction Machinery
+AWI,"Armstrong World Industries, Inc.",산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+PACS,"PACS Group, Inc.",헬스케어,병원·의료 서비스,,Yahoo 업종: Medical Care Facilities,업종 자동,Medical Care Facilities
+MAC,The Macerich Company,부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+DUOL,"Duolingo, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+SPXC,"SPX Technologies, Inc.",산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+KMX,"CarMax, Inc.",소비재,자동차 딜러,,Yahoo 업종: Auto & Truck Dealerships,업종 자동,Auto & Truck Dealerships
+TXG,"10x Genomics, Inc.",헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+PPC,Pilgrim's Pride Corporation,필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+AXSM,"Axsome Therapeutics, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+TKR,The Timken Company,산업재,공구,,Yahoo 업종: Tools & Accessories,업종 자동,Tools & Accessories
+HR,Healthcare Realty Trust Incorporat,부동산,헬스케어 리츠,,Yahoo 업종: REIT - Healthcare Facilities,업종 자동,REIT - Healthcare Facilities
+EMN,Eastman Chemical Company,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+SM,SM Energy Company,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+MBGL,"Mobility Global, Inc.",소프트웨어,인프라 소프트웨어,,Yahoo 업종: Software - Infrastructure,업종 자동,Software - Infrastructure
+LNTH,"Lantheus Holdings, Inc.",헬스케어,특수·제네릭 제약,,Yahoo 업종: Drug Manufacturers - Specialty & Generic,업종 자동,Drug Manufacturers - Specialty & Generic
+FSS,Federal Signal Corporation,산업재,건설·농기계,,Yahoo 업종: Farm & Heavy Construction Machinery,업종 자동,Farm & Heavy Construction Machinery
+MOD,"Modexus Solutions, Inc.",AI 전력,데이터센터 전력·냉각,건축자재·HVAC,데이터센터 냉각 장비,직접 지정,Building Products & Equipment
+RUSHB,"Rush Enterprises, Inc.",소비재,자동차 딜러,,Yahoo 업종: Auto & Truck Dealerships,업종 자동,Auto & Truck Dealerships
+IESC,"IES Holdings, Inc.",AI 전력,데이터센터·전력망 건설,,데이터센터 기계·전기 공사,직접 지정,Engineering & Construction
+VNO,Vornado Realty Trust,부동산,리츠(기타),,Yahoo 업종: REIT - Office,업종 자동,REIT - Office
+ETSY,"Etsy, Inc.",인터넷·미디어,이커머스,,온라인 커머스,직접 지정,Internet Retail
+FAF,First American Financial Corporati,금융,보험,,Yahoo 업종: Insurance - Specialty,업종 자동,Insurance - Specialty
+IMVT,"Immunovant, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+VIAV,Viavi Solutions Inc.,네트워킹,광통신(장비·광섬유),,광·네트워크 테스트 장비,직접 지정,Communication Equipment
+RLI,RLI Corp.,금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+MSA,MSA Safety Incorporated,산업재,보안 서비스,,Yahoo 업종: Security & Protection Services,업종 자동,Security & Protection Services
+IDCC,"InterDigital, Inc.",소프트웨어,특허·IP 라이선스,,통신·오디오 특허 라이선스,직접 지정,Software - Application
+ORKA,"Oruka Therapeutics, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+QLYS,"Qualys, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+TXNM,"TXNM Energy, Inc.",유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+PDI,PIMCO Dynamic Income Fund,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+NEU,NewMarket Corporation,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+TFX,Teleflex Incorporated,헬스케어,의료기기,,Yahoo 업종: Medical Instruments & Supplies,업종 자동,Medical Instruments & Supplies
+IBRX,"ImmunityBio, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+KEX,Kirby Corporation,운송,해운,,Yahoo 업종: Marine Shipping,업종 자동,Marine Shipping
+SWX,"Southwest Gas Holdings, Inc.",유틸리티,가스·수도 유틸리티,,Yahoo 업종: Utilities - Regulated Gas,업종 자동,Utilities - Regulated Gas
+KOD,Kodiak Sciences Inc.,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+TTD,"The Trade Desk, Inc.",소프트웨어,디지털 광고 기술,,광고 기술(애드테크),직접 지정,Advertising Agencies
+CHDN,Churchill Downs Incorporated,소비재,카지노·스포츠베팅,,Yahoo 업종: Gambling,업종 자동,Gambling
+CWST,"Casella Waste Systems, Inc.",산업재,환경 서비스,,Yahoo 업종: Waste Management,업종 자동,Waste Management
+NAVN,"Navan, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+EXLS,"ExlService Holdings, Inc.",소프트웨어,IT 서비스·컨설팅,,Yahoo 업종: Information Technology Services,업종 자동,Information Technology Services
+MIRM,"Mirum Pharmaceuticals, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+KVYO,"Klaviyo, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+GATX,GATX Corporation,산업재,장비 렌탈·리스,,Yahoo 업종: Rental & Leasing Services,업종 자동,Rental & Leasing Services
+OMF,"OneMain Holdings, Inc.",금융,결제·카드·소비자금융,,Yahoo 업종: Credit Services,업종 자동,Credit Services
+LYFT,"Lyft, Inc.",인터넷·미디어,모빌리티·배달 플랫폼,,차량호출·배달,직접 지정,Software - Application
+ZG,"Zillow Group, Inc.",인터넷·미디어,인터넷 플랫폼·소셜,,광고·구독 플랫폼,직접 지정,Internet Content & Information
+MGY,Magnolia Oil & Gas Corporation,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+LAD,"Lithia Motors, Inc.",소비재,자동차 딜러,,Yahoo 업종: Auto & Truck Dealerships,업종 자동,Auto & Truck Dealerships
+IBP,"Installed Building Products, Inc.",소비재,주택 건설,,Yahoo 업종: Residential Construction,업종 자동,Residential Construction
+AAON,"AAON, Inc.",AI 전력,데이터센터 전력·냉각,건축자재·HVAC,데이터센터 냉각 장비,직접 지정,Building Products & Equipment
+TTMI,"TTM Technologies, Inc.",AI 하드웨어·인프라,전자부품·EMS,,PCB(서버·방산),직접 지정,Electronic Components
+DY,"Dycom Industries, Inc.",AI 전력,데이터센터·전력망 건설,,송배전·통신망 시공,직접 지정,Engineering & Construction
+UBSI,"United Bankshares, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+EPRT,"Essential Properties Realty Trust,",부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+JBTM,JBT Marel Corporation,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+Z,"Zillow Group, Inc.",인터넷·미디어,인터넷 플랫폼·소셜,,광고·구독 플랫폼,직접 지정,Internet Content & Information
+ELF,"e.l.f. Beauty, Inc.",필수소비재,생활용품,,Yahoo 업종: Household & Personal Products,업종 자동,Household & Personal Products
+SIGI,"Selective Insurance Group, Inc.",금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+RIOT,"Riot Platforms, Inc.",금융,디지털자산,,암호화폐 거래·보유·채굴,직접 지정,Capital Markets
+CLF,Cleveland-Cliffs Inc.,소재,철강,,Yahoo 업종: Steel,업종 자동,Steel
+MP,MP Materials Corp.,소재,희토류·핵심광물,,희토류 채굴·자석,직접 지정,Other Industrial Metals & Mining
+M,"Macy's, Inc.",소비재,의류 리테일,,Yahoo 업종: Department Stores,업종 자동,Department Stores
+NXST,"Nexstar Media Group, Inc.",인터넷·미디어,미디어·엔터테인먼트,,Yahoo 업종: Broadcasting,업종 자동,Broadcasting
+AVT,"Avnet, Inc.",AI 하드웨어·인프라,IT 유통,,Yahoo 업종: Electronics & Computer Distribution,업종 자동,Electronics & Computer Distribution
+INGM,Ingram Micro Holding Corporation,소프트웨어,IT 서비스·컨설팅,,Yahoo 업종: Information Technology Services,업종 자동,Information Technology Services
+BOX,"Box, Inc.",소프트웨어,인프라 소프트웨어,,클라우드 인프라·개발·통신 SW,직접 지정,Software - Infrastructure
+FTDR,"Frontdoor, Inc.",소비재,생활 서비스,,Yahoo 업종: Personal Services,업종 자동,Personal Services
+MTDR,Matador Resources Company,에너지,석유·가스 탐사생산,,Yahoo 업종: Oil & Gas E&P,업종 자동,Oil & Gas E&P
+RYN,Rayonier Inc.,부동산,리츠(기타),,Yahoo 업종: REIT - Specialty,업종 자동,REIT - Specialty
+CMC,Commercial Metals Company,산업재,산업 기계,,Yahoo 업종: Metal Fabrication,업종 자동,Metal Fabrication
+HESM,Hess Midstream LP,에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+XMTR,"Xometry, Inc.",산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+CVLT,"Commvault Systems, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Application
+LOAR,Loar Holdings Inc.,항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+SAIC,Science Applications International,소프트웨어,정부 IT·방산 서비스,,미 정부 IT 서비스,직접 지정,Information Technology Services
+PAGP,"Plains GP Holdings, L.P.",에너지,미드스트림(파이프라인),,Yahoo 업종: Oil & Gas Midstream,업종 자동,Oil & Gas Midstream
+SUPN,"Supernus, Inc.",헬스케어,특수·제네릭 제약,,Yahoo 업종: Drug Manufacturers - Specialty & Generic,업종 자동,Drug Manufacturers - Specialty & Generic
+ACT,"Enact Holdings, Inc.",금융,보험,,Yahoo 업종: Insurance - Specialty,업종 자동,Insurance - Specialty
+MOS,The Mosaic Company,소재,비료·농업 소재,,Yahoo 업종: Agricultural Inputs,업종 자동,Agricultural Inputs
+MATX,"Matson, Inc.",운송,해운,,Yahoo 업종: Marine Shipping,업종 자동,Marine Shipping
+GBCI,"Glacier Bancorp, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+CZR,"Caesars Entertainment, Inc.",소비재,호텔·리조트,,Yahoo 업종: Resorts & Casinos,업종 자동,Resorts & Casinos
+BLDR,"Builders FirstSource, Inc.",산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+FNB,F.N.B. Corporation,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+GXO,"GXO Logistics, Inc.",운송,물류·택배,,Yahoo 업종: Integrated Freight & Logistics,업종 자동,Integrated Freight & Logistics
+SRRK,Scholar Rock Holding Corporation,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+NE,Noble Corporation plc,에너지,유전 서비스,,Yahoo 업종: Oil & Gas Drilling,업종 자동,Oil & Gas Drilling
+ANF,Abercrombie & Fitch Co.,소비재,의류 리테일,,Yahoo 업종: Apparel Retail,업종 자동,Apparel Retail
+ARWR,"Arrowhead Pharmaceuticals, Inc.",헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+MKTX,MarketAxess Holdings Inc.,금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+VICR,Vicor Corporation,반도체,아날로그·전력 반도체,데이터센터 전력·냉각,고밀도 전력 모듈(AI 서버 전원),직접 지정,Electronic Components
+MSM,"MSC Industrial Direct Co., Inc.",산업재,산업재 유통,,Yahoo 업종: Industrial Distribution,업종 자동,Industrial Distribution
+WEX,WEX Inc.,금융,핀테크·결제,,디지털 결제·금융 IT,직접 지정,Software - Infrastructure
+LGND,Ligand Pharmaceuticals Incorporate,헬스케어,바이오텍,,Yahoo 업종: Biotechnology,업종 자동,Biotechnology
+MIDD,The Middleby Corporation,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+PECO,"Phillips Edison & Company, Inc.",부동산,리테일 리츠,,Yahoo 업종: REIT - Retail,업종 자동,REIT - Retail
+FORM,"FormFactor, Inc.",반도체,패키징·테스트,,반도체 테스트 장비·프로브카드,직접 지정,Semiconductor Equipment & Materials
+PATH,"UiPath, Inc.",소프트웨어,인프라 소프트웨어,,클라우드 인프라·개발·통신 SW,직접 지정,Software - Infrastructure
+NOV,NOV Inc.,에너지,유전 서비스,,Yahoo 업종: Oil & Gas Equipment & Services,업종 자동,Oil & Gas Equipment & Services
+CAVA,"CAVA Group, Inc.",소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+VNT,Vontier Corporation,산업재,계측·검사 장비,,Yahoo 업종: Scientific & Technical Instruments,업종 자동,Scientific & Technical Instruments
+ACI,"Albertsons Companies, Inc.",필수소비재,대형마트·할인점,,Yahoo 업종: Grocery Stores,업종 자동,Grocery Stores
+VRNS,"Varonis Systems, Inc.",소프트웨어,사이버보안,,보안 소프트웨어,직접 지정,Software - Infrastructure
+TEX,Terex Corporation,산업재,건설·농기계,,Yahoo 업종: Farm & Heavy Construction Machinery,업종 자동,Farm & Heavy Construction Machinery
+NJR,New Jersey Resources Corporation,유틸리티,가스·수도 유틸리티,,Yahoo 업종: Utilities - Regulated Gas,업종 자동,Utilities - Regulated Gas
+HOMB,"Home BancShares, Inc.",금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+WH,"Wyndham Hotels & Resorts, Inc.",소비재,호텔·리조트,,Yahoo 업종: Lodging,업종 자동,Lodging
+RNG,"RingCentral, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+AN,"AutoNation, Inc.",소비재,자동차 딜러,,Yahoo 업종: Auto & Truck Dealerships,업종 자동,Auto & Truck Dealerships
+FCN,"FTI Consulting, Inc.",산업재,비즈니스 서비스,,Yahoo 업종: Consulting Services,업종 자동,Consulting Services
+HRB,"H&R Block, Inc.",소비재,생활 서비스,,Yahoo 업종: Personal Services,업종 자동,Personal Services
+FLR,Fluor Corporation,산업재,엔지니어링·건설,,Yahoo 업종: Engineering & Construction,업종 자동,Engineering & Construction
+INGR,Ingredion Incorporated,필수소비재,가공식품,,Yahoo 업종: Packaged Foods,업종 자동,Packaged Foods
+GTES,Gates Industrial Corporation Ltd.,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+HXL,Hexcel Corporation,항공·방산·우주,항공우주 부품,,Yahoo 업종: Aerospace & Defense,업종 자동,Aerospace & Defense
+HUT,Hut 8 Corp.,금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+CRUS,"Cirrus Logic, Inc.",반도체,RF·오디오 칩,,스마트폰 RF·오디오 칩,직접 지정,Semiconductors
+FBIN,"Fortune Brands Innovations, Inc.",산업재,건축자재·HVAC,,Yahoo 업종: Building Products & Equipment,업종 자동,Building Products & Equipment
+RDNT,"RadNet, Inc.",헬스케어,진단·생명과학 도구,,Yahoo 업종: Diagnostics & Research,업종 자동,Diagnostics & Research
+OUT,OUTFRONT Media Inc.,부동산,리츠(기타),,Yahoo 업종: REIT - Specialty,업종 자동,REIT - Specialty
+FPS,"Forgent Power Solutions, Inc.",AI 전력,전력 장비,,배전·전기 설비,직접 지정,Electrical Equipment & Parts
+HLNE,Hamilton Lane Incorporated,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+HAE,Haemonetics Corporation,헬스케어,의료기기,,Yahoo 업종: Medical Devices,업종 자동,Medical Devices
+SEI,"Solaris Energy Infrastructure, Inc",에너지,유전 서비스,,Yahoo 업종: Oil & Gas Equipment & Services,업종 자동,Oil & Gas Equipment & Services
+ESE,ESCO Technologies Inc.,산업재,계측·검사 장비,,Yahoo 업종: Scientific & Technical Instruments,업종 자동,Scientific & Technical Instruments
+OCTV,Octave Intelligence plc,소프트웨어,엔터프라이즈 SaaS,,Yahoo 업종: Software - Application,업종 자동,Software - Application
+WFRD,Weatherford International Corp,에너지,유전 서비스,,Yahoo 업종: Oil & Gas Equipment & Services,업종 자동,Oil & Gas Equipment & Services
+POWL,"Powell Industries, Inc.",AI 전력,전력 장비,,배전·전기 설비,직접 지정,Electrical Equipment & Parts
+ASB,Associated Banc-Corp,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+JMKE,Jersey Mike's Subs Inc.,소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+POR,Portland General Electric Company,유틸리티,규제 전력 유틸리티,,Yahoo 업종: Utilities - Regulated Electric,업종 자동,Utilities - Regulated Electric
+CAKE,The Cheesecake Factory Incorporate,소비재,외식,,Yahoo 업종: Restaurants,업종 자동,Restaurants
+FIGR,"Figure Technology Solutions, Inc.",금융,증권·투자은행,,Yahoo 업종: Capital Markets,업종 자동,Capital Markets
+NPO,Enpro Inc.,산업재,산업 기계,,Yahoo 업종: Specialty Industrial Machinery,업종 자동,Specialty Industrial Machinery
+BXSL,Blackstone Secured Lending Fund,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+OLLI,"Ollie's Bargain Outlet Holdings, I",필수소비재,대형마트·할인점,,Yahoo 업종: Discount Stores,업종 자동,Discount Stores
+SBRA,"Sabra Health Care REIT, Inc.",부동산,헬스케어 리츠,,Yahoo 업종: REIT - Healthcare Facilities,업종 자동,REIT - Healthcare Facilities
+ABCB,Ameris Bancorp,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+MTN,"Vail Resorts, Inc.",소비재,호텔·리조트,,Yahoo 업종: Resorts & Casinos,업종 자동,Resorts & Casinos
+MTG,MGIC Investment Corporation,금융,보험,,Yahoo 업종: Insurance - Specialty,업종 자동,Insurance - Specialty
+PSN,Parsons Corporation,소프트웨어,정부 IT·방산 서비스,,미 정부 IT 서비스,직접 지정,Information Technology Services
+BYD,Boyd Gaming Corporation,소비재,호텔·리조트,,Yahoo 업종: Resorts & Casinos,업종 자동,Resorts & Casinos
+BILL,"BILL Holdings, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+CTVA,"Corteva, Inc.",소재,비료·농업 소재,,Yahoo 업종: Agricultural Inputs,업종 자동,Agricultural Inputs
+CON,"Concentra Group Holdings Parent, I",헬스케어,병원·의료 서비스,,Yahoo 업종: Medical Care Facilities,업종 자동,Medical Care Facilities
+PSMT,"PriceSmart, Inc.",필수소비재,대형마트·할인점,,Yahoo 업종: Discount Stores,업종 자동,Discount Stores
+BRZE,"Braze, Inc.",소프트웨어,엔터프라이즈 SaaS,,기업용 애플리케이션,직접 지정,Software - Application
+LFST,"LifeStance Health Group, Inc.",헬스케어,병원·의료 서비스,,Yahoo 업종: Medical Care Facilities,업종 자동,Medical Care Facilities
+WTM,"White Mountains Insurance Group, L",금융,보험,,Yahoo 업종: Insurance - Property & Casualty,업종 자동,Insurance - Property & Casualty
+EXP,Eagle Materials Inc.,소재,시멘트·골재,,Yahoo 업종: Building Materials,업종 자동,Building Materials
+GHC,Graham Holdings Company,산업재,복합기업,,Yahoo 업종: Conglomerates,업종 자동,Conglomerates
+CHH,"Choice Hotels International, Inc.",소비재,호텔·리조트,,Yahoo 업종: Lodging,업종 자동,Lodging
+BCPC,Balchem Corporation,소재,특수화학,,Yahoo 업종: Specialty Chemicals,업종 자동,Specialty Chemicals
+OBDC,Blue Owl Capital Corporation,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+DLB,"Dolby Laboratories, Inc.",소프트웨어,특허·IP 라이선스,,통신·오디오 특허 라이선스,직접 지정,Specialty Business Services
+MAIN,Main Street Capital Corporation,금융,자산운용·대체투자,,Yahoo 업종: Asset Management,업종 자동,Asset Management
+OZK,Bank OZK,금융,지역 은행,,Yahoo 업종: Banks - Regional,업종 자동,Banks - Regional
+ORA,"Ormat Technologies, Inc.",에너지 전환,재생에너지 발전,,Yahoo 업종: Utilities - Renewable,업종 자동,Utilities - Renewable
