@@ -23,6 +23,9 @@
     ::-webkit-scrollbar-track { background: #090d16; }
     ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    .sticky-col { position: sticky; left: 0; z-index: 5; background: #0f1623; box-shadow: 1px 0 0 #1e293b, 6px 0 8px -6px rgba(0,0,0,.6); }
+    thead .sticky-col { background: #0b111c; z-index: 6; }
+    tr:hover > .sticky-col { background: #172033; }
     .sidebar-item-active { background: rgba(37, 99, 235, 0.16); color: #60a5fa; border-left: 3px solid #3b82f6; }
     .sidebar-item-inactive { color: #94a3b8; border-left: 3px solid transparent; }
     .sidebar-item-inactive:hover { background: rgba(30, 41, 59, 0.5); color: #f8fafc; }
@@ -45,8 +48,8 @@
 
   <!-- LEFT SIDEBAR -->
   <aside id="left-sidebar" class="fixed lg:sticky top-0 left-0 z-40 h-screen w-64 bg-terminal-panel border-r border-terminal-border flex flex-col justify-between transform -translate-x-full lg:translate-x-0 transition-transform duration-200 shrink-0">
-    <div>
-      <div class="px-5 py-5 border-b border-terminal-border flex items-center justify-between">
+    <div class="flex-1 min-h-0 flex flex-col">
+      <div class="px-5 py-5 border-b border-terminal-border flex items-center justify-between shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">α</div>
           <div>
@@ -57,15 +60,7 @@
         <button onclick="toggleMobileSidebar()" class="lg:hidden text-slate-400 hover:text-white text-sm">✕</button>
       </div>
 
-      <nav class="py-4 space-y-1">
-        <button onclick="switchTab('tabH')" id="nav-tabH" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-active transition-all"><span class="font-mono text-[11px] opacity-80">00</span><span>S&P 500 히트맵</span></button>
-        <button onclick="switchTab('tab0')" id="nav-tab0" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">01</span><span>시장 펄스 & 주요 지수</span></button>
-        <button onclick="switchTab('tab1')" id="nav-tab1" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">02</span><span>Russell 1000 스크리너</span></button>
-        <button onclick="switchTab('tab2')" id="nav-tab2" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">03</span><span>수익률 vs 리스크·밸류</span></button>
-        <button onclick="switchTab('tab3')" id="nav-tab3" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">04</span><span>모델 포트폴리오</span></button>
-        <button onclick="switchTab('tab4')" id="nav-tab4" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">05</span><span>종목 딥다이브 & 실적</span></button>
-        <button onclick="switchTab('tab5')" id="nav-tab5" class="w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 sidebar-item-inactive transition-all"><span class="font-mono text-[11px] opacity-80">06</span><span>기술적 분석 & 캔들차트</span></button>
-      </nav>
+      <nav id="main-nav" class="py-3 space-y-0.5 overflow-y-auto flex-1 min-h-0"></nav>
     </div>
 
     <div class="p-4 border-t border-terminal-border space-y-2.5 bg-slate-950/40">
@@ -102,9 +97,35 @@
 
     <!-- TAB H: S&P 500 HEATMAP -->
     <section id="tabH" class="space-y-5">
+      <div id="page-head-tabH"></div>
+      <div data-sub="overview" class="space-y-5">
+        <div id="spec-kpis" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3"></div>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+          <div class="xl:col-span-8 bg-terminal-panel border border-terminal-border rounded-2xl overflow-hidden shadow-xl">
+            <div class="px-5 py-3 border-b border-terminal-border flex items-center justify-between bg-slate-900/50">
+              <span class="text-xs font-bold text-white">S&P 500 구성종목 히트맵 · 1D</span>
+              <button onclick="switchTab('tabH','heatmap')" class="text-[11px] text-blue-400 hover:text-blue-300">전체 화면 →</button>
+            </div>
+            <div id="heatmap-mini" class="w-full h-[520px]"></div>
+          </div>
+          <div class="xl:col-span-4 space-y-5">
+            <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-4">
+              <div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-white">S&P 500 전일 수익률 분포</span><span id="spec-dist-sub" class="text-[10px] text-slate-500 font-mono"></span></div>
+              <svg id="spec-dist" viewBox="0 0 360 170" class="w-full"></svg>
+              <div class="text-[10px] text-slate-500 mt-1">가로축: 1일 수익률 구간(%) · 세로축: 종목 수</div>
+            </div>
+            <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-4">
+              <div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-white">공포 &amp; 탐욕 지수 · 최근 1년</span><button onclick="switchTab('tabH','fg')" class="text-[11px] text-blue-400 hover:text-blue-300">자세히 →</button></div>
+              <svg id="spec-fg-line" viewBox="0 0 360 150" preserveAspectRatio="none" class="w-full h-[150px]"></svg>
+            </div>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500">시장 폭·신고가/신저가·이동평균 비율: AlphaDesk 유니버스(Russell 1000 근사) 종가 기준 · 상승/하락 종목 수·분포: S&P 500 구성종목 · VIX: Yahoo Finance</p>
+      </div>
+      <div data-sub="heatmap" class="space-y-5">
       <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">S&P 500 구성종목 히트맵</h1>
+          <h2 class="text-lg font-bold text-white tracking-tight">S&P 500 구성종목 히트맵</h2>
           <p class="text-xs sm:text-sm text-slate-400 mt-1">박스 크기 = 시가총액 · 색 = 선택 기간 등락률 · 섹터별 묶음 · TradingView 실시간(장중 지연 가능) · 박스를 누르면 확대, 마우스를 올리면 상세</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
@@ -132,6 +153,8 @@
         <div id="heatmap-container" class="w-full h-[78vh] min-h-[560px]"></div>
       </div>
       <p class="text-[11px] text-slate-500">데이터·화면: TradingView Stock Heatmap 위젯(공식 임베드). Finviz는 이용약관상 자동 수집이 금지되어 같은 형태의 공식 위젯을 사용합니다.</p>
+      </div>
+      <div data-sub="fg" class="space-y-5">
 
       <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-5 shadow-xl">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
@@ -157,13 +180,35 @@
         </div>
         <p id="fg-method" class="text-[11px] text-slate-500"></p>
       </div>
+    
+      </div>
     </section>
 
     <!-- TAB 0 -->
     <section id="tab0" class="hidden space-y-5">
+      <div id="page-head-tab0"></div>
+      <div data-sub="overview" class="space-y-5">
+        <div id="sum-brief" class="bg-gradient-to-br from-blue-950/40 to-terminal-panel border border-blue-500/25 rounded-2xl p-5"></div>
+        <div id="sum-index-cards" class="grid grid-cols-2 lg:grid-cols-4 gap-3.5"></div>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+          <div class="xl:col-span-5 bg-terminal-panel border border-terminal-border rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-white">섹터별 수익률 · 1D</span><button onclick="switchTab('tab0','sector')" class="text-[11px] text-blue-400 hover:text-blue-300">자세히 →</button></div>
+            <div id="sum-sector"></div>
+          </div>
+          <div class="xl:col-span-7 bg-terminal-panel border border-terminal-border rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-white">S&P 500 전일 수익률 상위 5 · 하위 5</span><button onclick="switchTab('tab0','movers')" class="text-[11px] text-blue-400 hover:text-blue-300">상·하위 10 보기 →</button></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="sum-movers"></div>
+          </div>
+        </div>
+        <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-4">
+          <div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-white">시장 주요 뉴스 헤드라인 · 최신 6건</span><button onclick="switchTab('tab0','news')" class="text-[11px] text-blue-400 hover:text-blue-300">전체 보기 →</button></div>
+          <div id="sum-news" class="grid grid-cols-1 lg:grid-cols-2 gap-3 text-xs"></div>
+        </div>
+      </div>
+      <div data-sub="index" class="space-y-5">
       <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">미국 증시 시장 펄스 & 4대 주요 지수 흐름</h1>
+          <h2 class="text-lg font-bold text-white tracking-tight">미국 증시 시장 펄스 & 4대 주요 지수 흐름</h2>
           <p class="text-xs sm:text-sm text-slate-400 mt-1">지수 카드: 실제 지수 종가(Yahoo) · 차트: TradingView 실시간, 지수 추종 ETF(SPY·QQQ·DIA·IWM)</p>
         </div>
         <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-terminal-border">
@@ -187,7 +232,8 @@
         <div id="market_index_tv_container" class="w-full h-[540px]"></div>
       </div>
 
-      <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-4">
+      </div>
+      <div data-sub="sector" class="space-y-5"><div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-4">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
             <div class="flex items-center gap-2">
@@ -214,7 +260,8 @@
         <div id="sector-chart" class="w-full"></div>
       </div>
 
-      <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-4">
+      </div>
+      <div data-sub="news" class="space-y-5"><div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
             <h2 class="text-base font-bold text-white">시장 주요 뉴스 헤드라인</h2>
@@ -225,7 +272,8 @@
         <div id="market-news-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-3 text-xs"></div>
       </div>
 
-      <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-4">
+      </div>
+      <div data-sub="movers" class="space-y-5"><div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div>
             <div class="flex items-center gap-2">
@@ -256,6 +304,7 @@
           </div>
         </div>
       </div>
+    </div>
     </section>
 
     <!-- TAB 1 -->
@@ -311,7 +360,7 @@
             <table class="w-full text-left border-collapse whitespace-nowrap text-xs">
               <thead>
                 <tr class="bg-slate-900/90 border-b border-terminal-border text-[11px] text-slate-400 uppercase select-none">
-                  <th onclick="sortOverview('ticker')" class="py-3.5 px-4 cursor-pointer hover:text-white">티커 / 기업명 ↕</th>
+                  <th onclick="sortOverview('ticker')" class="sticky-col py-3.5 px-4 cursor-pointer hover:text-white">티커 / 기업명 ↕</th>
                   <th onclick="sortOverview('gicsSector')" class="py-3.5 px-3 cursor-pointer hover:text-white">GICS 섹터 ↕</th>
                   <th onclick="sortOverview('theme')" class="py-3.5 px-3 cursor-pointer hover:text-white" title="투자 테마 (대분류 · 세부)">테마 ↕</th>
                   <th onclick="sortOverview('price')" class="py-3.5 px-3 text-right cursor-pointer hover:text-white">종가 ↕</th>
@@ -410,9 +459,35 @@
 
     <!-- TAB 3 -->
     <section id="tab3" class="hidden space-y-5">
+      <div id="page-head-tab3"></div>
+      <div data-sub="overview" class="space-y-5">
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+          <div class="xl:col-span-5 bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between"><h3 class="text-sm font-bold text-white">내 커스텀 포트폴리오 · 최근 1년</h3><button onclick="switchTab('tab3','custom')" class="text-[11px] text-blue-400 hover:text-blue-300">시뮬레이터 →</button></div>
+            <div id="pov-custom" class="text-xs"></div>
+          </div>
+          <div class="xl:col-span-7 bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between"><h3 class="text-sm font-bold text-white">최적 포트폴리오 기간별 요약</h3><button onclick="switchTab('tab3','optimal')" class="text-[11px] text-blue-400 hover:text-blue-300">자세히 →</button></div>
+            <div id="pov-opt" class="overflow-x-auto text-xs"></div>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-5">
+          <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-2">
+            <h3 class="text-sm font-bold text-white">여러 기간에 반복 선정된 종목</h3>
+            <p class="text-[11px] text-slate-400">1W·1M·3M·6M 최적 포트폴리오 중 3개 이상 기간에 들어간 종목 (단기·중기 모두 위험조정 수익률이 좋았던 종목)</p>
+            <div id="pov-persist" class="flex flex-wrap gap-2 text-xs"></div>
+          </div>
+          <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-2">
+            <h3 class="text-sm font-bold text-white">내 포트폴리오 vs 최적 포트폴리오(3M) 테마 노출</h3>
+            <p class="text-[11px] text-slate-400">비중 합계 기준 투자 테마 대분류 비중 비교</p>
+            <div id="pov-theme" class="text-xs"></div>
+          </div>
+        </div>
+      </div>
+      <div data-sub="custom" class="space-y-5">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">커스텀 모델 포트폴리오 시뮬레이터</h1>
+          <h2 class="text-lg font-bold text-white tracking-tight">커스텀 모델 포트폴리오 시뮬레이터</h2>
           <p class="text-xs sm:text-sm text-slate-400 mt-1">기간 시작일에 비중대로 매수 후 보유(리밸런싱 없음) 가정 · 실제 일별 종가로 누적 수익률 계산 · 배당 미반영</p>
         </div>
         <div class="flex flex-wrap items-center gap-2.5">
@@ -453,13 +528,46 @@
           </div>
         </div>
       </div>
+    </div>
+      <div data-sub="optimal" class="space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-bold text-white">최적 포트폴리오 탐색</h2>
+            <p class="text-xs text-slate-400 mt-1">Russell 1000 종목 중 기간별 수익률·변동성·거래량을 반영해 15~40종목으로 구성했을 때 위험조정 성과가 가장 좋았던 조합 (사후적 백테스트)</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-terminal-border" id="opt-win-group"></div>
+            <button onclick="loadOptimalToCustom()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-semibold text-white">이 구성을 시뮬레이터로 불러오기</button>
+          </div>
+        </div>
+        <div id="opt-kpis" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3"></div>
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-5">
+          <div class="xl:col-span-7 bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between"><h3 class="text-sm font-bold text-white">누적 수익률 (시작일 = 100)</h3>
+              <div class="flex items-center gap-4 text-xs"><span class="flex items-center gap-1.5 text-blue-400"><span class="w-3 h-1 bg-blue-500 rounded"></span> 최적 포트폴리오</span><span class="flex items-center gap-1.5 text-slate-400"><span class="w-3 h-1 bg-slate-500 rounded"></span> S&P 500</span></div></div>
+            <svg id="opt-chart" viewBox="0 0 640 260" preserveAspectRatio="none" class="w-full h-[260px]"></svg>
+          </div>
+          <div class="xl:col-span-5 bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-3">
+            <h3 class="text-sm font-bold text-white">사후 검증 (Out-of-sample)</h3>
+            <div id="opt-oos" class="text-xs space-y-2"></div>
+          </div>
+        </div>
+        <div class="bg-terminal-panel border border-terminal-border rounded-2xl overflow-hidden">
+          <div class="px-5 py-3 border-b border-terminal-border text-xs font-bold text-white flex items-center justify-between"><span>편입 종목 · 비중</span><span id="opt-count" class="font-mono text-slate-400"></span></div>
+          <div class="overflow-x-auto"><table class="w-full text-left text-xs whitespace-nowrap">
+            <thead><tr class="bg-slate-900/80 border-b border-slate-800 text-[10px] text-slate-400 uppercase"><th class="py-2.5 px-4">#</th><th class="py-2.5 px-3">티커 / 기업명</th><th class="py-2.5 px-3">테마</th><th class="py-2.5 px-3">GICS 섹터</th><th class="py-2.5 px-3 text-right">비중</th><th class="py-2.5 px-3 text-right">기간 수익률</th><th class="py-2.5 px-3 text-right">연율 변동성</th><th class="py-2.5 px-4 text-right" title="기간 평균 거래량 ÷ 직전 60거래일 평균 거래량">거래량 증가율</th></tr></thead>
+            <tbody id="opt-tbody" class="divide-y divide-slate-800/70"></tbody>
+          </table></div>
+        </div>
+        <p id="opt-method" class="text-[11px] text-slate-500 leading-relaxed"></p>
+      </div>
     </section>
 
     <!-- TAB 4 -->
     <section id="tab4" class="hidden space-y-5">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">종목별 실적 딥다이브 & 최근 공시</h1>
+          <h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight">종목별 재무제표 및 뉴스</h1>
           <p class="text-xs sm:text-sm text-slate-400 mt-1">SEC 10-Q/10-K XBRL 원본 기반 회계연도 분기 재무제표 (GAAP) · 분기 라벨은 각 사 결산월 기준</p>
         </div>
         <div class="flex flex-wrap items-center gap-2.5">
@@ -840,19 +948,49 @@
   }
 
   // ---------------------------------------------------------------- navigation
-  function switchTab(tabId) {
+  const NAV = [
+    { id: 'tabH', no: '00', title: 'Market Spectrum', desc: '시장 체온·폭·심리를 한눈에', subs: [['overview', '통합'], ['heatmap', 'S&P 500 구성종목 히트맵'], ['fg', '공포 & 탐욕 지수']] },
+    { id: 'tab0', no: '01', title: 'Market Summary', desc: '지수·섹터·뉴스·등락 상위 요약', subs: [['overview', '통합'], ['index', '미국 증시 시장 펄스 & 4대 주요 지수 흐름'], ['sector', '섹터별 수익률'], ['news', '시장 주요 뉴스 헤드라인'], ['movers', 'S&P 500 전일 수익률 상위 10 · 하위 10']] },
+    { id: 'tab1', no: '02', title: 'Russell 1000 스크리너' },
+    { id: 'tab2', no: '03', title: '수익률 vs 리스크·밸류' },
+    { id: 'tab3', no: '04', title: '모델 포트폴리오', desc: '내 포트폴리오와 최적 조합 비교', subs: [['overview', '통합'], ['custom', '커스텀 모델 포트폴리오 시뮬레이터'], ['optimal', '최적 포트폴리오 탐색']] },
+    { id: 'tab4', no: '05', title: '종목별 재무제표 및 뉴스' },
+    { id: 'tab5', no: '06', title: '기술적 분석 & 캔들차트' },
+  ];
+  const currentSub = { tabH: 'overview', tab0: 'overview', tab3: 'overview' };
+  function renderNav() {
+    $('main-nav').innerHTML = NAV.map(n => {
+      const act = n.id === currentTab;
+      const subs = (n.subs || []).map(([k, l], i) => {
+        const sa = act && currentSub[n.id] === k;
+        return `<button onclick="switchTab('${n.id}','${k}')" class="w-full text-left pl-12 pr-4 py-1.5 text-[11px] leading-snug flex gap-2 ${sa ? 'text-blue-300 font-semibold' : 'text-slate-500 hover:text-slate-200'}"><span class="font-mono opacity-70 shrink-0">${n.no}-${i}</span><span>${esc(l)}</span></button>`;
+      }).join('');
+      return `<div><button onclick="switchTab('${n.id}')" id="nav-${n.id}" class="w-full text-left px-5 py-2.5 text-xs font-medium flex items-center gap-3 transition-all ${act ? 'sidebar-item-active' : 'sidebar-item-inactive'}"><span class="font-mono text-[11px] opacity-80">${n.no}</span><span>${esc(n.title)}</span></button>${subs ? `<div class="pb-1">${subs}</div>` : ''}</div>`;
+    }).join('');
+  }
+  function renderPageHead(tabId) {
+    const n = NAV.find(x => x.id === tabId); const box = $('page-head-' + tabId);
+    if (!n || !box) return;
+    box.innerHTML = `<div class="flex flex-col gap-3 pb-1">
+      <div><h1 class="text-xl sm:text-2xl font-bold text-white tracking-tight"><span class="font-mono text-blue-400 mr-2">${n.no}</span>${esc(n.title)}</h1>${n.desc ? `<p class="text-xs sm:text-sm text-slate-400 mt-1">${esc(n.desc)}</p>` : ''}</div>
+      <div class="flex flex-wrap gap-1.5">${n.subs.map(([k, l], i) => `<button onclick="switchTab('${tabId}','${k}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold border ${currentSub[tabId] === k ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-400 hover:text-white'}"><span class="font-mono opacity-70 mr-1">${n.no}-${i}</span>${esc(l)}</button>`).join('')}</div></div>`;
+  }
+  function switchTab(tabId, sub) {
     currentTab = tabId;
-    ['tabH', 'tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5'].forEach(id => {
-      $(id).classList.toggle('hidden', id !== tabId);
-      $('nav-' + id).className = `w-full text-left px-5 py-3 text-xs font-medium flex items-center gap-3 transition-all ${id === tabId ? 'sidebar-item-active' : 'sidebar-item-inactive'}`;
-    });
+    if (sub && currentSub[tabId] !== undefined) currentSub[tabId] = sub;
+    ['tabH', 'tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5'].forEach(id => $(id).classList.toggle('hidden', id !== tabId));
+    const cs = currentSub[tabId];
+    if (cs) { $(tabId).querySelectorAll(':scope > [data-sub]').forEach(el => el.classList.toggle('hidden', el.dataset.sub !== cs)); renderPageHead(tabId); }
+    renderNav();
+    try { history.replaceState(null, '', '#' + tabId + (cs ? '/' + cs : '')); } catch (e) {}
     const sb = $('left-sidebar');
     if (!sb.classList.contains('-translate-x-full') && window.innerWidth < 1024) toggleMobileSidebar();
-    if (tabId === 'tabH') renderHeatmap();
-    if (tabId === 'tab0') renderMarketIndexChart();
+    window.scrollTo({ top: 0 });
+    if (tabId === 'tabH') { if (cs === 'heatmap') renderHeatmap(); if (cs === 'overview') renderSpectrumOverview(); if (cs === 'fg') renderFearGreed(); }
+    if (tabId === 'tab0') { if (cs === 'index') renderMarketIndexChart(); if (cs === 'overview') renderSummaryOverview(); if (cs === 'sector') renderSectorChart(); }
     if (tabId === 'tab1') renderOverviewTable();
     if (tabId === 'tab2') updateScatterView();
-    if (tabId === 'tab3') renderPortfolioSection();
+    if (tabId === 'tab3') { if (cs === 'custom') renderPortfolioSection(); if (cs === 'overview') renderPortfolioOverview(); if (cs === 'optimal') renderOptimal(); }
     if (tabId === 'tab4') renderDeepDiveSection();
     if (tabId === 'tab5') renderTechnicalTab();
   }
@@ -944,6 +1082,143 @@
     const cal = f.calibration ? ` · CNN 눈금 보정 적용(보정 전 원점수 ${Math.round(f.rawScore)}): 점수 = ${f.calibration.a} + ${f.calibration.b} × 원점수 — ${f.calibration.note || ''}` : '';
     $('fg-method').textContent = `산출 방식: ${f.method || ''}${cal} · 구성 지표 점수는 보정 전 백분위 · 데이터: Yahoo Finance(S&P 500·VIX·HYG·IEF) + AlphaDesk 유니버스 종가. CNN 공식 수치와 다를 수 있습니다.`;
   }
+  // ---------------------------------------------------------------- 00 통합: Market Spectrum
+  const kpiCard = (label, val, sub, color, onclick) => `<button ${onclick ? `onclick="${onclick}"` : ''} class="text-left bg-terminal-panel border border-terminal-border hover:border-slate-600 rounded-2xl p-4 transition-all">
+      <div class="text-[11px] text-slate-400">${label}</div><div class="font-num text-xl font-bold mt-1" style="color:${color || '#f8fafc'}">${val}</div><div class="text-[10px] text-slate-500 mt-0.5 leading-snug">${sub || ''}</div></button>`;
+  function renderSpectrumOverview() {
+    mountHeatmapMini();
+    const f = DATA?.fearGreed, sn = f?.snapshot || {}, br = DATA?.movers?.breadth;
+    const pc = v => isNum(v) ? (v >= 60 ? '#34d399' : v <= 40 ? '#fb7185' : '#e2e8f0') : '#64748b';
+    $('spec-kpis').innerHTML = [
+      kpiCard('공포 & 탐욕', isNum(f?.score) ? `${Math.round(f.score)} <span class="text-xs">${esc(f.label)}</span>` : '-', isNum(f?.prev?.['1W']) ? `1주 전 ${Math.round(f.prev['1W'])}` : '', isNum(f?.score) ? fgColor(f.score) : null, "switchTab('tabH','fg')"),
+      kpiCard('VIX 변동성 지수', isNum(sn.vix) ? sn.vix.toFixed(2) : '-', isNum(sn.vixChg) ? `전일 대비 ${sn.vixChg >= 0 ? '+' : ''}${sn.vixChg.toFixed(2)} · 50일 평균 ${sn.vixMa50}` : '', isNum(sn.vix) ? (sn.vix >= 25 ? '#fb7185' : sn.vix <= 15 ? '#34d399' : '#fbbf24') : null),
+      kpiCard('S&P 500 상승 / 하락', br ? `<span class="text-emerald-400">${br.adv}</span> / <span class="text-rose-400">${br.dec}</span>` : '-', br ? `수익률 중앙값 ${fmtPct(br.median, 2)}` : ''),
+      kpiCard('50일선 위 종목 비율', isNum(sn.above50) ? sn.above50.toFixed(0) + '%' : '-', 'Russell 1000 유니버스', pc(sn.above50)),
+      kpiCard('200일선 위 종목 비율', isNum(sn.above200) ? sn.above200.toFixed(0) + '%' : '-', `S&P 500은 125일선 대비 ${fmtPct(sn.spxVsMa125, 1)}`, pc(sn.above200)),
+      kpiCard('52주 신고가 / 신저가', isNum(sn.newHigh) ? `<span class="text-emerald-400">${sn.newHigh}</span> / <span class="text-rose-400">${sn.newLow}</span>` : '-', `유니버스 ${sn.n || '-'}종목 중`),
+    ].join('');
+    // 분포 히스토그램
+    const svg = $('spec-dist');
+    if (br?.hist) {
+      const H = br.hist, E = br.edges, W = 360, Ht = 170, pb = 18, mx = Math.max(...H, 1), bw = (W - 10) / H.length;
+      $('spec-dist-sub').textContent = `${DATA.movers.asOf} · ${DATA.movers.universeCount}종목`;
+      svg.innerHTML = H.map((v, i) => { const h = (Ht - pb - 14) * v / mx, x = 5 + i * bw, col = E[i] >= 0 ? '#10b981' : '#f43f5e';
+        return `<rect x="${x + 1}" y="${Ht - pb - h}" width="${bw - 2}" height="${h}" fill="${col}" opacity="0.8"><title>${E[i]}% ~ ${E[i + 1]}%: ${v}종목</title></rect>${v ? `<text x="${x + bw / 2}" y="${Ht - pb - h - 3}" text-anchor="middle" fill="#94a3b8" font-size="8">${v}</text>` : ''}`; }).join('')
+        + E.filter((_, i) => i % 2 === 0).map(e => `<text x="${5 + (e - E[0]) * bw}" y="${Ht - 4}" text-anchor="middle" fill="#64748b" font-size="9">${e}</text>`).join('')
+        + `<line x1="${5 + (0 - E[0]) * bw}" x2="${5 + (0 - E[0]) * bw}" y1="4" y2="${Ht - pb}" stroke="#475569" stroke-dasharray="3 3"/>`;
+    } else svg.innerHTML = '<text x="180" y="85" text-anchor="middle" fill="#64748b" font-size="11">다음 자동 갱신 후 표시됩니다</text>';
+    // 공포탐욕 1년 미니 라인
+    const h = f?.history, L = $('spec-fg-line');
+    if (h?.v?.length) {
+      const W = 360, Ht = 150, n = h.v.length, X = i => 4 + (W - 8) * i / (n - 1), Y = v => 4 + (Ht - 8) * (1 - v / 100);
+      L.innerHTML = [[0, 25, '#e11d48'], [25, 45, '#f97316'], [45, 55, '#64748b'], [55, 75, '#4ade80'], [75, 100, '#10b981']].map(([a, b, c]) => `<rect x="0" y="${Y(b)}" width="${W}" height="${Y(a) - Y(b)}" fill="${c}" opacity="0.08"/>`).join('')
+        + `<path d="${h.v.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('')}" fill="none" stroke="#e2e8f0" stroke-width="1.5"/><circle cx="${X(n - 1)}" cy="${Y(h.v[n - 1])}" r="3.5" fill="${fgColor(h.v[n - 1])}"/>`;
+    }
+  }
+
+  // ---------------------------------------------------------------- 01 통합: Market Summary
+  function renderSummaryOverview() {
+    const b = DATA?.brief, sec = (DATA?.sectors || []).filter(x => x.key !== 'SPY' && isNum(x.r1D)).sort((a, c) => c.r1D - a.r1D), br = DATA?.movers?.breadth;
+    const sp = benchmarkData.SP500 || {};
+    let head, bullets, tag;
+    if (b?.headline) { head = b.headline; bullets = b.bullets || []; tag = 'AI 요약(Gemini) · 수집 데이터만 근거로 작성 · 원인 해석은 참고용'; }
+    else {
+      head = `S&P 500 ${fmtPct(sp.r1D, 2)} · 상승 ${br?.adv ?? '-'} / 하락 ${br?.dec ?? '-'}`;
+      bullets = [sec.length ? `가장 강한 섹터: ${sec[0].name}(${fmtPct(sec[0].r1D, 2)}) · 가장 약한 섹터: ${sec[sec.length - 1].name}(${fmtPct(sec[sec.length - 1].r1D, 2)})` : '',
+        DATA?.movers?.gainers?.[0] ? `S&P 500 상승 1위 ${DATA.movers.gainers[0].ticker} ${fmtPct(DATA.movers.gainers[0].r1D, 2)} · 하락 1위 ${DATA.movers.losers[0].ticker} ${fmtPct(DATA.movers.losers[0].r1D, 2)}` : ''].filter(Boolean);
+      tag = '데이터 자동 요약';
+    }
+    $('sum-brief').innerHTML = `<div class="flex items-center justify-between gap-2"><span class="text-[11px] font-bold text-blue-300">오늘의 시장 한 장 요약</span><span class="text-[10px] text-slate-500">${esc(DATA?.meta?.priceAsOf || '')} 종가 · ${esc(tag)}</span></div>
+      <div class="text-base sm:text-lg font-bold text-white mt-1.5">${esc(head)}</div>
+      <ul class="mt-2 space-y-1 text-xs text-slate-300 list-disc pl-4">${bullets.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+    $('sum-index-cards').innerHTML = INDEX_CARDS.map(([k, label]) => { const x = benchmarkData[k] || {};
+      return `<button onclick="marketIndexKey='${k}'; renderIndexCards(); switchTab('tab0','index')" class="text-left bg-terminal-panel border border-terminal-border hover:border-slate-600 rounded-2xl p-4">
+        <div class="text-xs font-bold text-white">${label}</div><div class="font-num text-lg font-bold text-white mt-1">${isNum(x.level) ? x.level.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '-'}</div>
+        <div class="flex gap-3 text-[11px] mt-0.5"><span>1D ${fmtPctHtml(x.r1D)}</span><span>1W ${fmtPctHtml(x.r1W)}</span><span>YTD ${fmtPctHtml(x.rYTD)}</span></div></button>`; }).join('');
+    const mx = Math.max(...sec.map(x => Math.abs(x.r1D)), 0.01);
+    $('sum-sector').innerHTML = sec.map(x => `<div class="flex items-center gap-2 text-[11px] py-0.5"><span class="w-20 shrink-0 text-slate-300">${esc(x.name)}</span>
+      <div class="flex-1 flex items-center h-3"><div class="w-1/2 flex justify-end">${x.r1D < 0 ? `<div class="h-3 rounded-l bg-rose-500/80" style="width:${Math.abs(x.r1D) / mx * 100}%"></div>` : ''}</div><div class="w-px h-4 bg-slate-600"></div><div class="w-1/2">${x.r1D >= 0 ? `<div class="h-3 rounded-r bg-emerald-500/80" style="width:${x.r1D / mx * 100}%"></div>` : ''}</div></div>
+      <span class="w-14 text-right font-mono font-bold ${x.r1D >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${fmtPct(x.r1D, 2)}</span></div>`).join('') || '<div class="text-slate-500 text-xs">데이터 없음</div>';
+    const mrow = (m, up) => `<button onclick="openAdhocChart('${esc(m.ticker)}')" class="w-full flex items-center justify-between py-1.5 border-b border-slate-800/70 text-left hover:bg-slate-800/40"><span><span class="font-mono font-bold text-white">${esc(m.ticker)}</span> <span class="text-[10px] text-slate-500">${esc((m.name || '').slice(0, 22))}</span></span><span class="font-mono font-bold ${up ? 'text-emerald-400' : 'text-rose-400'}">${fmtPct(m.r1D, 2)}</span></button>`;
+    const mv = DATA?.movers;
+    $('sum-movers').innerHTML = mv ? `<div><div class="text-[11px] font-bold text-emerald-300 mb-1">▲ 상위 5</div>${mv.gainers.slice(0, 5).map(m => mrow(m, true)).join('')}</div><div><div class="text-[11px] font-bold text-rose-300 mb-1">▼ 하위 5</div>${mv.losers.slice(0, 5).map(m => mrow(m, false)).join('')}</div>` : '<div class="text-slate-500 text-xs">데이터 없음</div>';
+    $('sum-news').innerHTML = (DATA?.news?.market || []).slice(0, 6).map(n => newsCard(n, true)).join('') || '<div class="text-slate-500">뉴스 없음</div>';
+  }
+
+  // ---------------------------------------------------------------- 04 통합 + 최적 포트폴리오
+  let optWin = '3M';
+  const OPT_KEYS = [['1W', '1주'], ['1M', '1개월'], ['3M', '3개월'], ['6M', '6개월']];
+  function renderOptimal() {
+    const O = DATA?.optimal?.windows || {};
+    $('opt-win-group').innerHTML = OPT_KEYS.map(([k, l]) => `<button onclick="optWin='${k}'; renderOptimal()" class="px-3 py-1 rounded-lg text-xs font-semibold ${k === optWin ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}">${l}</button>`).join('');
+    const w = O[optWin];
+    if (!w) { $('opt-kpis').innerHTML = '<div class="col-span-full text-xs text-slate-500">다음 자동 갱신 후 표시됩니다</div>'; $('opt-tbody').innerHTML = ''; $('opt-chart').innerHTML = ''; $('opt-oos').innerHTML = ''; return; }
+    const ex = w.ret - w.benchRet;
+    $('opt-kpis').innerHTML = [
+      kpiCard('기간 수익률', fmtPct(w.ret, 2), `${w.start} ~ ${w.end}`, w.ret >= 0 ? '#34d399' : '#fb7185'),
+      kpiCard('S&P 500 대비', `${ex >= 0 ? '+' : ''}${ex.toFixed(2)}%p`, `S&P 500 ${fmtPct(w.benchRet, 2)}`, ex >= 0 ? '#60a5fa' : '#fb7185'),
+      kpiCard('연율 변동성', w.vol.toFixed(1) + '%', '일별 수익률 표준편차 × √252'),
+      kpiCard('Sharpe (연율)', isNum(w.sharpe) ? w.sharpe.toFixed(2) : '-', '무위험수익률 0 가정'),
+      kpiCard('최대 낙폭', fmtPct(w.mdd, 2), '기간 중 고점 대비', '#fbbf24'),
+      kpiCard('편입 종목 수', w.n + '종목', '15~40종목 중 Sharpe 최대'),
+    ].join('');
+    $('opt-count').textContent = `${w.n}종목 · 비중 합계 100%`;
+    $('opt-tbody').innerHTML = w.holdings.map((h, i) => { const s = findStock(h.ticker) || {};
+      return `<tr onclick="openCompanyDrawer('${esc(h.ticker)}')" class="hover:bg-slate-800/60 cursor-pointer"><td class="py-2 px-4 font-mono text-slate-500">${i + 1}</td>
+        <td class="py-2 px-3"><span class="font-mono font-bold text-white">${esc(h.ticker)}</span> <span class="text-[11px] text-slate-400">${esc((h.name || '').slice(0, 28))}</span></td>
+        <td class="py-2 px-3 text-[11px] text-indigo-200">${esc(s.theme || '-')}</td><td class="py-2 px-3">${getGicsBadge(h.sector)}</td>
+        <td class="py-2 px-3 text-right font-mono font-bold text-white">${h.weight.toFixed(1)}%</td><td class="py-2 px-3 text-right">${fmtPctHtml(h.ret)}</td>
+        <td class="py-2 px-3 text-right font-mono text-slate-300">${h.vol.toFixed(1)}%</td><td class="py-2 px-4 text-right font-mono ${h.volRatio >= 1.2 ? 'text-amber-300' : 'text-slate-400'}">${h.volRatio.toFixed(2)}×</td></tr>`; }).join('');
+    const c = w.curve, W = 640, H = 260, pl = 36, pb = 20, n = c.p.length, all = c.p.concat(c.b), mn = Math.min(...all), mx = Math.max(...all), pad = (mx - mn) * 0.08 || 1;
+    const X = i => pl + (W - pl - 6) * (n > 1 ? i / (n - 1) : 0), Y = v => 6 + (H - pb - 6) * (1 - (v - mn + pad) / (mx - mn + 2 * pad));
+    const line = (arr, col, wd) => `<path d="${arr.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('')}" fill="none" stroke="${col}" stroke-width="${wd}"/>`;
+    const ticks = [mn, (mn + mx) / 2, mx].map(v => `<line x1="${pl}" x2="${W - 6}" y1="${Y(v)}" y2="${Y(v)}" stroke="#1e293b"/><text x="${pl - 4}" y="${Y(v) + 3}" text-anchor="end" fill="#64748b" font-size="10">${v.toFixed(1)}</text>`).join('');
+    const xl = [0, Math.floor((n - 1) / 2), n - 1].map(i => `<text x="${X(i)}" y="${H - 4}" text-anchor="middle" fill="#64748b" font-size="10">${c.d[i].slice(5)}</text>`).join('');
+    $('opt-chart').innerHTML = ticks + xl + `<line x1="${pl}" x2="${W - 6}" y1="${Y(100)}" y2="${Y(100)}" stroke="#475569" stroke-dasharray="3 3"/>` + line(c.b, '#64748b', 1.6) + line(c.p, '#3b82f6', 2.2);
+    const o = w.oos;
+    $('opt-oos').innerHTML = o ? `<p class="text-slate-400 leading-relaxed">같은 방법을 <b class="text-slate-200">직전 ${w.label.replace('최근 ', '')}(${o.formStart} ~ ${o.formEnd})</b> 데이터로 적용해 ${o.n}종목을 고른 뒤, 이후 같은 기간(~${o.holdEnd}) 그대로 보유했다면:</p>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-slate-900/70 border border-slate-800 rounded-lg py-2"><div class="text-[10px] text-slate-500">선정 기간 성과</div><div class="font-mono font-bold">${fmtPctHtml(o.inSampleRet)}</div></div>
+        <div class="bg-slate-900/70 border border-slate-800 rounded-lg py-2"><div class="text-[10px] text-slate-500">이후 보유 성과</div><div class="font-mono font-bold">${fmtPctHtml(o.ret)}</div></div>
+        <div class="bg-slate-900/70 border border-slate-800 rounded-lg py-2"><div class="text-[10px] text-slate-500">같은 기간 S&P 500</div><div class="font-mono font-bold">${fmtPctHtml(o.benchRet)}</div></div></div>
+      <p class="text-[11px] ${o.ret >= o.benchRet ? 'text-emerald-300' : 'text-amber-300'}">→ 이후 보유 시 S&P 500 대비 ${(o.ret - o.benchRet >= 0 ? '+' : '') + (o.ret - o.benchRet).toFixed(2)}%p. 과거에 좋았던 조합이 다음 기간에도 좋다는 보장은 없습니다.</p>`
+      : '<p class="text-slate-500">검증할 직전 기간 데이터가 부족합니다.</p>';
+    $('opt-method').textContent = `산출 방식: ${DATA.optimal.method}. 사후적(hindsight) 백테스트이므로 이미 지난 기간에 가장 좋았던 조합을 찾은 것이며 미래 수익을 의미하지 않습니다. 배당·거래비용·세금 미반영. 투자 권유가 아닙니다.`;
+  }
+  function loadOptimalToCustom() {
+    const w = DATA?.optimal?.windows?.[optWin]; if (!w) return;
+    modelPortfolio = w.holdings.filter(h => findStock(h.ticker)).map(h => ({ ticker: h.ticker, weight: +h.weight.toFixed(1) }));
+    showToast(`${w.label} 최적 포트폴리오 ${modelPortfolio.length}종목을 시뮬레이터로 불러왔습니다`);
+    switchTab('tab3', 'custom');
+  }
+  function renderPortfolioOverview() {
+    const O = DATA?.optimal?.windows || {};
+    const need = modelPortfolio.map(h => h.ticker).filter(t => HIST[t] === undefined && findStock(t));
+    if (need.length) { $('pov-custom').innerHTML = '<div class="text-slate-500">일별 종가 불러오는 중…</div>'; Promise.all(need.map(loadHist)).then(() => { if (currentTab === 'tab3' && currentSub.tab3 === 'overview') renderPortfolioOverview(); }); }
+    else {
+      const res = DATA ? computePortfolioPath('SP500', 'r1Y') : null;
+      const pr = res?.portPath ? res.portPath[res.portPath.length - 1] - 100 : null, bm = res ? res.bmPath[res.bmPath.length - 1] - 100 : null;
+      const top = [...modelPortfolio].sort((a, b) => b.weight - a.weight).slice(0, 6);
+      $('pov-custom').innerHTML = `<div class="grid grid-cols-3 gap-2 text-center mb-3">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-lg py-2"><div class="text-[10px] text-slate-500">1년 수익률</div><div class="font-mono font-bold text-base">${fmtPctHtml(pr)}</div></div>
+          <div class="bg-slate-900/70 border border-slate-800 rounded-lg py-2"><div class="text-[10px] text-slate-500">S&P 500</div><div class="font-mono font-bold text-base">${fmtPctHtml(bm)}</div></div>
+          <div class="bg-slate-900/70 border border-slate-800 rounded-lg py-2"><div class="text-[10px] text-slate-500">편입 종목</div><div class="font-mono font-bold text-base text-white">${modelPortfolio.length}</div></div></div>
+        <div class="text-[11px] text-slate-400 mb-1">비중 상위</div>${top.map(h => `<div class="flex items-center gap-2 py-0.5"><span class="w-14 font-mono font-bold text-white">${esc(h.ticker)}</span><div class="flex-1 h-2 bg-slate-800 rounded"><div class="h-2 bg-blue-500 rounded" style="width:${Math.min(100, h.weight * 2)}%"></div></div><span class="w-12 text-right font-mono text-slate-300">${h.weight.toFixed(1)}%</span></div>`).join('')}`;
+    }
+    const rows = OPT_KEYS.filter(([k]) => O[k]).map(([k, l]) => { const w = O[k], o = w.oos;
+      return `<tr onclick="optWin='${k}'; switchTab('tab3','optimal')" class="hover:bg-slate-800/60 cursor-pointer border-b border-slate-800/70"><td class="py-2 px-2 font-semibold text-white">${l}</td><td class="py-2 px-2 text-right font-mono">${w.n}</td><td class="py-2 px-2 text-right">${fmtPctHtml(w.ret)}</td><td class="py-2 px-2 text-right">${fmtPctHtml(w.benchRet)}</td><td class="py-2 px-2 text-right font-mono text-slate-300">${w.vol.toFixed(1)}%</td><td class="py-2 px-2 text-right font-mono text-slate-300">${isNum(w.sharpe) ? w.sharpe.toFixed(2) : '-'}</td><td class="py-2 px-2 text-right">${o ? fmtPctHtml(o.ret) : '-'}</td><td class="py-2 px-2 text-right">${o ? fmtPctHtml(o.benchRet) : '-'}</td></tr>`; }).join('');
+    $('pov-opt').innerHTML = rows ? `<table class="w-full whitespace-nowrap"><thead><tr class="text-[10px] text-slate-400 border-b border-slate-800"><th class="py-1.5 px-2 text-left">기간</th><th class="py-1.5 px-2 text-right">종목</th><th class="py-1.5 px-2 text-right">수익률</th><th class="py-1.5 px-2 text-right">S&P 500</th><th class="py-1.5 px-2 text-right">변동성</th><th class="py-1.5 px-2 text-right">Sharpe</th><th class="py-1.5 px-2 text-right" title="직전 기간으로 고른 조합을 이후 보유">사후검증</th><th class="py-1.5 px-2 text-right">S&P(검증)</th></tr></thead><tbody>${rows}</tbody></table><p class="text-[10px] text-slate-500 mt-2">사후검증 = 같은 방법을 직전 기간에 적용해 고른 종목을 이후 같은 기간 보유한 결과 · 행을 누르면 상세로 이동</p>` : '<div class="text-slate-500">다음 자동 갱신 후 표시됩니다</div>';
+    const cnt = {}; Object.values(O).forEach(w => w.holdings.forEach(h => { cnt[h.ticker] = (cnt[h.ticker] || 0) + 1; }));
+    const pers = Object.entries(cnt).filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]);
+    $('pov-persist').innerHTML = pers.map(([t, c]) => `<button onclick="openCompanyDrawer('${esc(t)}')" class="px-2.5 py-1 rounded-lg bg-slate-900 border ${c === 4 ? 'border-emerald-500/50 text-emerald-300' : 'border-slate-700 text-slate-200'} font-mono">${esc(t)} <span class="text-[10px] opacity-70">${c}/4</span></button>`).join('') || '<span class="text-slate-500">3개 이상 기간에 겹친 종목이 없습니다</span>';
+    const exp = list => { const g = {}; let t = 0; list.forEach(h => { const s = findStock(h.ticker); const k = s?.themeGroup || '미분류'; g[k] = (g[k] || 0) + h.weight; t += h.weight; }); Object.keys(g).forEach(k => g[k] = t ? g[k] / t * 100 : 0); return g; };
+    const a = exp(modelPortfolio), b = exp(O['3M']?.holdings || []);
+    const keys = [...new Set([...Object.keys(a), ...Object.keys(b)])].sort((x, y) => (b[y] || 0) + (a[y] || 0) - (b[x] || 0) - (a[x] || 0)).slice(0, 10);
+    $('pov-theme').innerHTML = keys.map(k => `<div class="py-1"><div class="flex justify-between text-[11px]"><span class="text-slate-300">${esc(k)}</span><span class="font-mono"><span class="text-blue-300">${(a[k] || 0).toFixed(0)}%</span> · <span class="text-amber-300">${(b[k] || 0).toFixed(0)}%</span></span></div>
+      <div class="h-1.5 bg-slate-800 rounded mt-0.5"><div class="h-1.5 bg-blue-500 rounded" style="width:${a[k] || 0}%"></div></div><div class="h-1.5 bg-slate-800 rounded mt-0.5"><div class="h-1.5 bg-amber-400 rounded" style="width:${b[k] || 0}%"></div></div></div>`).join('')
+      + '<div class="text-[10px] text-slate-500 mt-1"><span class="text-blue-300">■</span> 내 포트폴리오 <span class="text-amber-300 ml-2">■</span> 최적 포트폴리오(3M)</div>';
+  }
+
   // 파이프라인에서 번역되지 않은 헤드라인은 브라우저에서 MyMemory로 번역 (결과는 이 브라우저에 저장)
   const TR_KEY = 'alphadesk_tr_ko_v1';
   function trCache() { try { return JSON.parse(localStorage.getItem(TR_KEY) || '{}'); } catch (e) { return {}; } }
@@ -1232,7 +1507,7 @@
     const start = (currentPage - 1) * pageSize;
     tbody.innerHTML = filtered.slice(start, start + pageSize).map(s => `
       <tr onclick="openCompanyDrawer('${esc(s.ticker)}')" class="hover:bg-slate-800/60 cursor-pointer transition-colors">
-        <td class="py-3 px-4"><div class="font-mono font-bold text-white">${esc(s.ticker)}</div><div class="text-[11px] text-slate-400 truncate max-w-[170px]">${esc(s.name)}</div></td>
+        <td class="sticky-col py-3 px-4"><div class="font-mono font-bold text-white">${esc(s.ticker)}</div><div class="text-[11px] text-slate-400 truncate max-w-[170px]">${esc(s.name)}</div></td>
         <td class="py-3 px-3">${getGicsBadge(s.gicsSector)}</td>
         <td class="py-3 px-3" title="${esc([s.themeBasis, s.themeTags.length ? '보조: ' + s.themeTags.join(', ') : ''].filter(Boolean).join(' · '))}"><div class="text-[11px] text-indigo-200 font-semibold">${esc(s.theme || '-')}</div><div class="text-[10px] text-slate-500">${esc(s.themeGroup || '')}${s.themeTags.length ? ' · +' + s.themeTags.length : ''}</div></td>
         <td class="py-3 px-3 text-right font-num font-semibold text-white">${isNum(s.price) ? '$' + s.price.toFixed(2) : '-'}</td>
@@ -1744,6 +2019,18 @@
       isMonoSize: false, width: '100%', height: '100%' });
     wrap.appendChild(inner); wrap.appendChild(sc); c.appendChild(wrap);
   }
+  function mountHeatmapMini() {
+    const c = $('heatmap-mini'); if (!c || c.dataset.key === 'mini') return;
+    c.dataset.key = 'mini'; c.innerHTML = '';
+    const wrap = document.createElement('div'); wrap.className = 'tradingview-widget-container'; wrap.style.height = '100%'; wrap.style.width = '100%';
+    const inner = document.createElement('div'); inner.className = 'tradingview-widget-container__widget'; inner.style.height = '100%';
+    const sc = document.createElement('script');
+    sc.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js'; sc.async = true;
+    sc.text = JSON.stringify({ exchanges: [], dataSource: 'SPX500', grouping: 'sector', blockSize: 'market_cap_basic', blockColor: 'change',
+      locale: 'kr', symbolUrl: '', colorTheme: 'dark', hasTopBar: false, isDataSetEnabled: false, isZoomEnabled: true, hasSymbolTooltip: true,
+      isMonoSize: false, width: '100%', height: '100%' });
+    wrap.appendChild(inner); wrap.appendChild(sc); c.appendChild(wrap);
+  }
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-hp],[data-hg],[data-hs]');
     if (!b) return;
@@ -1754,8 +2041,8 @@
   });
 
   function initAlphaDesk() {
-    const h = (location.hash || '').slice(1);
-    if (['tabH', 'tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5'].includes(h)) currentTab = h;
+    const [h, hs] = (location.hash || '').slice(1).split('/');
+    if (['tabH', 'tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5'].includes(h)) { currentTab = h; if (hs && currentSub[h] !== undefined) currentSub[h] = hs; }
     renderIndexCards(); switchTab(currentTab); loadDataJson(false);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAlphaDesk); else initAlphaDesk();

@@ -902,7 +902,13 @@ def sp500_movers(prices: dict, n: int = 10) -> dict | None:
     if not rows:
         return None
     rows.sort(key=lambda x: x["r1D"], reverse=True)
-    return {"asOf": ref.strftime("%Y-%m-%d") if ref is not None else None, "universeCount": len(rows),
+    r1 = np.array([x["r1D"] for x in rows])
+    edges = list(range(-10, 11))
+    hist = [int(((r1 >= a) & (r1 < b)).sum()) for a, b in zip(edges[:-1], edges[1:])]
+    breadth = {"adv": int((r1 > 0).sum()), "dec": int((r1 < 0).sum()), "unch": int((r1 == 0).sum()),
+               "median": round(float(np.median(r1)), 2), "below": int((r1 < -10).sum()), "above": int((r1 >= 10).sum()),
+               "edges": edges, "hist": hist}
+    return {"asOf": ref.strftime("%Y-%m-%d") if ref is not None else None, "universeCount": len(rows), "breadth": breadth,
             "gainers": rows[:n], "losers": rows[::-1][:n],
             "source": "S&P 500 구성종목(Wikipedia 목록) · Yahoo Finance 전 거래일 종가 등락률"}
 
@@ -1042,6 +1048,15 @@ def fear_greed(prices: dict, uni_syms: list[str], calib: dict | None = None) -> 
             return round(float(t.iloc[-1]), 1) if len(t) else None
         now = round(float(total.iloc[-1]), 1)
         raw_now = round(float(raw_total.loc[last]), 1)
+        ma200 = closes.rolling(200, min_periods=180).mean()
+        lr = closes.iloc[-1]
+        snap = {"vix": round(float(vix.iloc[-1]), 2), "vixChg": round(float(vix.iloc[-1] - vix.iloc[-2]), 2),
+                "vixMa50": round(float(vix.rolling(50).mean().iloc[-1]), 2),
+                "above50": round(float((lr > ma50.iloc[-1]).sum() / max(1, ma50.iloc[-1].notna().sum()) * 100), 1),
+                "above200": round(float((lr > ma200.iloc[-1]).sum() / max(1, ma200.iloc[-1].notna().sum()) * 100), 1),
+                "newHigh": int((lr >= hi52.iloc[-1] * 0.999).sum()), "newLow": int((lr <= lo52.iloc[-1] * 1.001).sum()),
+                "n": int(lr.notna().sum()),
+                "spxVsMa125": round(float((s.iloc[-1] / s.rolling(125).mean().iloc[-1] - 1) * 100), 2)}
         comps = []
         for k, (name, desc, ser, up) in comp.items():
             v = sc[k].dropna()
@@ -1049,7 +1064,7 @@ def fear_greed(prices: dict, uni_syms: list[str], calib: dict | None = None) -> 
             comps.append({"key": k, "name": name, "desc": desc, "score": round(float(v.iloc[-1]), 1) if len(v) else None,
                           "label": fg_label(float(v.iloc[-1])) if len(v) else None,
                           "value": round(float(raw.iloc[-1]) * 100, 2) if len(raw) else None})
-        return {"asOf": last.strftime("%Y-%m-%d"), "score": now, "label": fg_label(now), "rawScore": raw_now,
+        return {"asOf": last.strftime("%Y-%m-%d"), "score": now, "label": fg_label(now), "rawScore": raw_now, "snapshot": snap,
                 "calibration": {"a": ca, "b": cb, "note": (calib or {}).get("note")} if calib else None,
                 "prev": {"1D": ago(1), "1W": ago(7), "1M": ago(30), "1Y": ago(365)},
                 "components": comps,
@@ -1058,6 +1073,149 @@ def fear_greed(prices: dict, uni_syms: list[str], calib: dict | None = None) -> 
     except Exception as ex:  # noqa: BLE001
         warn(f"공포·탐욕 지수 계산 실패: {ex}")
         return None
+
+
+# ---------------------------------------------------------------------------
+# 최적 포트폴리오 탐색 (사후적 백테스트 · 15~40종목)
+# ---------------------------------------------------------------------------
+OPT_WINDOWS = [("1W", "최근 1주", 5), ("1M", "최근 1개월", 21), ("3M", "최근 3개월", 63), ("6M", "최근 6개월", 126)]
+
+
+def _select_portfolio(C: pd.DataFrame, V: pd.DataFrame, end: int, L: int, sectors: dict, nmin=15, nmax=40, wmin=0.02, wmax=0.10):
+    """C, V: 종가·거래량(행=날짜) · end: 마지막 행 위치(포함) · L: 보유 거래일 수.
+    선정: 유동성 필터 → 위험조정 수익률 + 거래량 확인 점수 → 섹터 40% 한도 → N=15..40 중 기간 Sharpe 최대."""
+    win = C.iloc[end - L:end + 1]
+    if len(win) < L + 1:
+        return None
+    vol_win = C.iloc[max(0, end - max(L, 21)):end + 1].pct_change().iloc[1:]
+    ok = win.notna().all() & vol_win.notna().all()
+    dv = (C.iloc[end - L:end + 1] * V.iloc[end - L:end + 1]).mean()
+    ok &= (dv >= 2e7) & (win.iloc[-1] >= 5)
+    cols = ok[ok].index
+    if len(cols) < nmin:
+        return None
+    ret = win[cols].iloc[-1] / win[cols].iloc[0] - 1
+    vol = vol_win[cols].std() * np.sqrt(252)
+    vprev = V[cols].iloc[max(0, end - L - 60):end - L].mean()
+    vnow = V[cols].iloc[end - L + 1:end + 1].mean()
+    vratio = (vnow / vprev).replace([np.inf, -np.inf], np.nan).fillna(1).clip(0.2, 5)
+    rv = ret / vol.replace(0, np.nan)
+    z = lambda x: (x - x.mean()) / (x.std() or 1)  # noqa: E731
+    score = (z(rv) + 0.25 * z(np.log(vratio))).where(ret > 0)
+    cand = score.dropna().sort_values(ascending=False)
+    picked, cnt = [], defaultdict(int)
+    for t in cand.index:
+        sec = sectors.get(t, "기타")
+        if cnt[sec] + 1 > 0.4 * nmax and len(picked) < nmax:   # 섹터 집중 한도(최대 40%)
+            continue
+        picked.append(t)
+        cnt[sec] += 1
+        if len(picked) >= nmax:
+            break
+    if len(picked) < nmin:
+        return None
+    daily = win[picked].pct_change().iloc[1:]
+    best = None
+    for n in range(nmin, min(nmax, len(picked)) + 1, 5):
+        names = picked[:n]
+        w = (score[names].clip(lower=0.01) / vol[names]).astype(float)
+        w = w / w.sum()
+        for _ in range(20):
+            w = w.clip(wmin, wmax)
+            w = w / w.sum()
+        path = (1 + daily[names]).cumprod() @ w          # 매수 후 보유
+        pr = path.pct_change().fillna(path.iloc[0] - 1)
+        tot = float(path.iloc[-1] - 1)
+        pvol = float(pr.std() * np.sqrt(252)) if len(pr) > 2 else float((vol[names] * w).sum())
+        sharpe = (tot * 252 / L) / pvol if pvol > 0 else None
+        if best is None or (sharpe or -9) > (best["sharpe"] or -9):
+            best = {"n": n, "names": names, "w": w, "ret": tot, "vol": pvol, "sharpe": sharpe,
+                    "path": [1.0] + [float(x) for x in path]}
+    best.update({"rets": ret, "vols": vol, "vratio": vratio, "start": win.index[0], "end": win.index[-1]})
+    return best
+
+
+def optimal_portfolios(prices: dict, stocks: list, bench: pd.Series) -> dict | None:
+    try:
+        syms = {yahoo_symbol(s_["ticker"]): s_ for s_ in stocks}
+        C = pd.DataFrame({y: prices[y]["Close"] for y in syms if y in prices})
+        V = pd.DataFrame({y: prices[y]["Volume"] for y in syms if y in prices})
+        C = C.iloc[-400:]
+        V = V.reindex(C.index).iloc[-400:]
+        b = bench.reindex(C.index).ffill()
+        sectors = {y: s_.get("gicsSector") or "기타" for y, s_ in syms.items()}
+        E = len(C) - 1
+        out = {}
+        for key, label, L in OPT_WINDOWS:
+            r = _select_portfolio(C, V, E, L, sectors)
+            if not r:
+                continue
+            bpath = (b.iloc[E - L:E + 1] / b.iloc[E - L]).tolist()
+            dd = np.array(r["path"])
+            mdd = float((dd / np.maximum.accumulate(dd) - 1).min())
+            hold = [{"ticker": syms[t]["ticker"], "name": syms[t].get("name"), "sector": sectors.get(t),
+                     "weight": round(float(r["w"][t]) * 100, 2), "ret": round(float(r["rets"][t]) * 100, 2),
+                     "vol": round(float(r["vols"][t]) * 100, 1), "volRatio": round(float(r["vratio"][t]), 2)}
+                    for t in r["names"]]
+            hold.sort(key=lambda x: -x["weight"])
+            # 사후 검증: 직전 동일 기간으로 같은 방법을 적용해 고른 뒤, 이후 L일 보유
+            oos = None
+            r0 = _select_portfolio(C, V, E - L, L, sectors)
+            if r0:
+                fwd = C.iloc[E - L:E + 1][r0["names"]]
+                fwd = fwd.ffill()
+                fr = float(((fwd.iloc[-1] / fwd.iloc[0]) @ r0["w"]) - 1)
+                oos = {"formStart": r0["start"].strftime("%Y-%m-%d"), "formEnd": r0["end"].strftime("%Y-%m-%d"),
+                       "holdEnd": C.index[E].strftime("%Y-%m-%d"), "n": r0["n"], "inSampleRet": round(r0["ret"] * 100, 2),
+                       "ret": round(fr * 100, 2), "benchRet": round((b.iloc[E] / b.iloc[E - L] - 1) * 100, 2),
+                       "tickers": [syms[t]["ticker"] for t in r0["names"]]}
+            out[key] = {"label": label, "days": L, "start": r["start"].strftime("%Y-%m-%d"), "end": r["end"].strftime("%Y-%m-%d"),
+                        "n": r["n"], "ret": round(r["ret"] * 100, 2), "vol": round(r["vol"] * 100, 1),
+                        "sharpe": round(r["sharpe"], 2) if r["sharpe"] is not None else None, "mdd": round(mdd * 100, 2),
+                        "benchRet": round((bpath[-1] - 1) * 100, 2),
+                        "curve": {"d": [d.strftime("%Y-%m-%d") for d in C.index[E - L:E + 1]],
+                                  "p": [round(x * 100, 2) for x in r["path"]], "b": [round(x * 100, 2) for x in bpath]},
+                        "holdings": hold, "oos": oos}
+        return {"windows": out, "benchmark": "S&P 500",
+                "method": "유동성 필터(기간 평균 거래대금 2천만 달러 이상·주가 5달러 이상) → 점수 = 위험조정 수익률(기간 수익률÷연율 변동성) 표준점수 + 0.25×거래량 증가율(직전 60일 대비) 표준점수, 수익률 양(+) 종목만 → GICS 섹터당 최대 40% → 상위 N종목(N=15·20·…·40)을 점수÷변동성 비례 비중(종목당 2~10%)으로 매수 후 보유 → 기간 Sharpe가 가장 높은 N 선택"}
+    except Exception as ex:  # noqa: BLE001
+        warn(f"최적 포트폴리오 계산 실패: {ex}")
+        return None
+
+
+# ---------------------------------------------------------------------------
+# 시장 요약 브리핑 (Gemini · 수집 데이터에만 근거)
+# ---------------------------------------------------------------------------
+def market_brief(gkey: str | None, benchmarks: dict, sectors: list, movers: dict | None, news: list, fg: dict | None) -> dict | None:
+    if not gkey:
+        return None
+    facts = {
+        "지수_1일수익률": {v.get("name"): v.get("r1D") for v in benchmarks.values() if v.get("level")},
+        "지수_1주수익률": {v.get("name"): v.get("r1W") for v in benchmarks.values() if v.get("level")},
+        "섹터ETF_1일수익률": {x["name"]: x.get("r1D") for x in sectors},
+        "S&P500_상승종목수": (movers or {}).get("breadth", {}).get("adv"), "S&P500_하락종목수": (movers or {}).get("breadth", {}).get("dec"),
+        "상승상위": [(x["ticker"], x["r1D"], (x.get("news") or {}).get("headline")) for x in (movers or {}).get("gainers", [])[:5]],
+        "하락상위": [(x["ticker"], x["r1D"], (x.get("news") or {}).get("headline")) for x in (movers or {}).get("losers", [])[:5]],
+        "공포탐욕": (fg or {}).get("score"), "VIX": (fg or {}).get("snapshot", {}).get("vix"),
+        "주요헤드라인": [n.get("headline") for n in news[:12]],
+    }
+    prompt = ("당신은 증권사 시황 담당자입니다. 아래 JSON 데이터에 있는 사실만 사용해 미국 증시 전일 시황을 한국어로 정리하세요. "
+              "데이터에 없는 수치·원인·전망은 절대 만들지 마세요. 원인은 헤드라인에 근거가 있을 때만 '~로 보도됨' 형태로 쓰세요. "
+              "출력은 JSON 객체 하나: {\"headline\": 한 줄 요약(40자 이내), \"bullets\": [3~4개 문장, 각 80자 이내]}.\n"
+              + json.dumps(facts, ensure_ascii=False))
+    model = os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")
+    try:
+        r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+                          params={"key": gkey}, timeout=90,
+                          json={"contents": [{"parts": [{"text": prompt}]}],
+                                "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2}})
+        r.raise_for_status()
+        j = json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
+        if isinstance(j, dict) and j.get("headline"):
+            return {"headline": str(j["headline"]), "bullets": [str(x) for x in (j.get("bullets") or [])][:4], "model": "Gemini"}
+    except Exception as ex:  # noqa: BLE001
+        warn(f"시장 요약(Gemini) 실패: {str(ex)[:120]}")
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -1326,6 +1484,11 @@ def main() -> None:
     if fg:
         print(f"   {fg['asOf']}: {fg['score']} ({fg['label']})")
 
+    print("⑥-2 최적 포트폴리오")
+    opt = optimal_portfolios(prices, stocks, prices["^GSPC"]["Close"]) if "^GSPC" in prices else None
+    if opt:
+        print("   " + ", ".join(f"{k}: {v['n']}종목 {v['ret']}%" for k, v in opt["windows"].items()))
+
     print("⑦ 뉴스 한국어 번역")
     import re as _re
     em = _re.search(r"[\w.+-]+@[\w-]+\.[\w.]+", ua or "")
@@ -1359,6 +1522,7 @@ def main() -> None:
             except Exception:  # noqa: BLE001
                 pass
     tr.save()
+    brief = market_brief(tr.gkey, benchmarks, sectors, movers, market_news, fg)
     n_ok = sum(1 for n_ in market_news + mover_news if n_.get("headlineKo"))
     print(f"   번역: {tr.provider or '없음'} · 메인 헤드라인 {n_ok}/{len(market_news) + len(mover_news)} · MyMemory {tr.chars}자")
 
@@ -1376,7 +1540,7 @@ def main() -> None:
         },
         "defaultPortfolio": cfg.get("default_portfolio", []),
         "benchmarks": benchmarks, "stocks": stocks, "movers": movers,
-        "news": {"market": market_news}, "fearGreed": fg, "sectors": sectors,
+        "news": {"market": market_news}, "fearGreed": fg, "sectors": sectors, "optimal": opt, "brief": brief,
     })
     print(f"완료 → {out} ({len(stocks)}종목, 경고 {len(WARNINGS)}건)")
 
