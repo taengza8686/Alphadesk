@@ -53,6 +53,7 @@ jobs:
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PF_PASSWORD: ${{ secrets.PF_PASSWORD }}
         run: |
           export CLOUDFLARE_API_TOKEN="$(printf '%s' "$CF_TOKEN" | tr -d '[:space:]')"
           export CLOUDFLARE_ACCOUNT_ID="$(printf '%s' "$CF_ACCOUNT" | tr -d '[:space:]')"
@@ -62,6 +63,29 @@ jobs:
           echo "Cloudflare 비밀값: 설정됨"
           npx --yes wrangler@4 pages project create alphadesk --production-branch main \
             || echo "프로젝트가 이미 있거나 생성 실패(아래 배포에서 확인)"
+          # 포트폴리오 서버 저장: KV 저장소 찾기/만들기 → 연결 (토큰에 KV 권한이 없으면 건너뜀)
+          rm -f wrangler.toml
+          KV_ID=""
+          if npx --yes wrangler@4 kv namespace list > ns.json 2>/dev/null; then
+            KV_ID=$(jq -r '.[] | select(.title=="alphadesk-pf") | .id' ns.json | head -1)
+            if [ -z "$KV_ID" ]; then
+              npx --yes wrangler@4 kv namespace create alphadesk-pf > kvc.txt 2>&1 || true
+              npx --yes wrangler@4 kv namespace list > ns.json 2>/dev/null || true
+              KV_ID=$(jq -r '.[] | select(.title=="alphadesk-pf") | .id' ns.json | head -1)
+            fi
+          else
+            echo "포트폴리오 서버 저장: 토큰에 Workers KV 권한 없음 → 건너뜀"
+          fi
+          if [ -n "$KV_ID" ]; then
+            printf 'name = "alphadesk"\npages_build_output_dir = "site"\ncompatibility_date = "2026-11-01"\n\n[[kv_namespaces]]\nbinding = "PF_KV"\nid = "%s"\n' "$KV_ID" > wrangler.toml
+            echo "포트폴리오 서버 저장: KV 연결됨"
+          fi
+          if [ -n "$PF_PASSWORD" ]; then
+            printf '%s' "$PF_PASSWORD" | npx --yes wrangler@4 pages secret put PF_PASSWORD --project-name alphadesk > /dev/null 2>&1 \
+              && echo "포트폴리오 서버 저장: 비밀번호 설정됨" || echo "포트폴리오 서버 저장: 비밀번호 설정 실패"
+          else
+            echo "포트폴리오 서버 저장: GitHub 비밀값 PF_PASSWORD 없음"
+          fi
           npx --yes wrangler@4 pages deploy site --project-name alphadesk --branch main --commit-dirty=true
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

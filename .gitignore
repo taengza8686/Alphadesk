@@ -1,3 +1,7 @@
 .cache/
 site/data/
 __pycache__/
+
+wrangler.toml
+ns.json
+kvc.txt

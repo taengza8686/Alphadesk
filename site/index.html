@@ -506,6 +506,16 @@
           <button onclick="revertPortfolio()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200" title="마지막으로 저장한 구성으로 되돌리기">↺ 저장본으로 되돌리기</button>
           <button onclick="copyPortfolioLink()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200" title="이 구성이 담긴 주소를 복사 → 다른 PC·휴대폰에서 열면 같은 포트폴리오가 뜹니다">🔗 다른 기기용 링크 복사</button>
           <button onclick="resetPortfolioDefault()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-400" title="사이트 기본 포트폴리오로 되돌리기(저장은 별도)">기본 구성</button>
+          <button onclick="toggleServerBox()" id="pf-server-btn" class="px-3.5 py-2 rounded-xl bg-indigo-700/60 hover:bg-indigo-600 border border-indigo-500/40 text-xs font-semibold text-indigo-100">☁️ 서버 저장 연결</button>
+        </div>
+      </div>
+      <div id="pf-server-box" class="hidden bg-indigo-950/30 border border-indigo-500/30 rounded-2xl px-4 py-3 text-xs space-y-2">
+        <div class="text-indigo-200">서버 저장을 켜면 회사 PC·집 PC·휴대폰 어디서 열어도 같은 포트폴리오가 뜹니다. GitHub 비밀값 <span class="font-mono">PF_PASSWORD</span>에 넣은 비밀번호를 한 번만 입력하세요(이 브라우저에 기억).</div>
+        <div class="flex flex-wrap items-center gap-2">
+          <input id="pf-server-key" type="password" autocomplete="off" placeholder="서버 저장 비밀번호" class="w-56 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-indigo-400" onkeydown="if(event.key==='Enter') connectServer()">
+          <button onclick="connectServer()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">연결</button>
+          <button onclick="disconnectServer()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300">연결 해제</button>
+          <span id="pf-server-msg" class="text-slate-400"></span>
         </div>
       </div>
 
@@ -907,7 +917,11 @@
     DATA = d;
     stocksData = d.stocks;
     benchmarkData = d.benchmarks || {};
-    if (!modelPortfolio.length) initPortfolioFromStore(d);
+    if (!modelPortfolio.length) {
+      const viaLink = !!pfFromParam();
+      initPortfolioFromStore(d);
+      if (pfKey()) pfServerLoad(!viaLink).then(() => { if (viaLink && pfServer.state === 'ok') savePortfolio(); updateSaveStatus(); if (currentTab === 'tab3') switchTab('tab3'); });
+    }
     $('no-data-banner').classList.add('hidden');
     const badge = $('data-source-badge');
     badge.textContent = d.meta?.priceAsOf || '-';
@@ -1671,7 +1685,61 @@
     const miss = (link || saved?.holdings || []).filter(h => !findStock(h.ticker)).map(h => h.ticker);
     if (miss.length) setTimeout(() => showToast(`유니버스에 없어 제외된 종목: ${miss.join(', ')}`, 'error'), 900);
   }
+  // ---- 서버 저장 (Cloudflare Pages Functions + KV) ----
+  const PF_SKEY = 'alphadesk_pf_key';
+  const PF_API = /\.pages\.dev$/.test(location.hostname) ? '/api/portfolio' : 'https://alphadesk-6cv.pages.dev/api/portfolio';
+  let pfServer = { state: 'off', savedAt: null, sig: null };   // off | ok | unauth | unavailable
+  const pfKey = () => { try { return localStorage.getItem(PF_SKEY) || ''; } catch (e) { return ''; } };
+  async function pfApi(method, body, key = pfKey()) {
+    const r = await fetch(PF_API, { method, headers: { 'Content-Type': 'application/json', 'X-PF-Key': key }, body: body ? JSON.stringify(body) : undefined, cache: 'no-store' });
+    let j = null; try { j = await r.json(); } catch (e) {}
+    return { status: r.status, j };
+  }
+  async function pfServerLoad(applyIt) {
+    if (!pfKey()) { pfServer.state = 'off'; return null; }
+    try {
+      const { status, j } = await pfApi('GET');
+      if (status === 200) {
+        pfServer.state = 'ok';
+        if (j?.holdings) { pfServer.savedAt = j.savedAt; pfServer.sig = pfSig(j.holdings);
+          if (applyIt) { modelPortfolio = j.holdings.filter(h => findStock(h.ticker)).map(h => ({ ticker: h.ticker, weight: +h.weight })); try { localStorage.setItem(PF_KEY, JSON.stringify({ holdings: modelPortfolio, savedAt: j.savedAt, from: 'server' })); } catch (e) {} } }
+        return j;
+      }
+      pfServer.state = status === 401 ? 'unauth' : 'unavailable';
+    } catch (e) { pfServer.state = 'unavailable'; }
+    return null;
+  }
+  function toggleServerBox() { $('pf-server-box').classList.toggle('hidden'); }
+  async function connectServer() {
+    const k = ($('pf-server-key').value || '').trim(); if (!k) return;
+    $('pf-server-msg').textContent = '확인 중…';
+    try {
+      const { status, j } = await pfApi('GET', null, k);
+      if (status === 200) {
+        try { localStorage.setItem(PF_SKEY, k); } catch (e) {}
+        $('pf-server-key').value = '';
+        pfServer.state = 'ok';
+        if (j?.holdings?.length) { pfServer.savedAt = j.savedAt; pfServer.sig = pfSig(j.holdings);
+          modelPortfolio = j.holdings.filter(h => findStock(h.ticker)).map(h => ({ ticker: h.ticker, weight: +h.weight }));
+          $('pf-server-msg').textContent = '연결됨 · 서버 저장본을 불러왔습니다'; }
+        else { $('pf-server-msg').textContent = '연결됨 · 서버에 저장본이 없어 지금 구성을 서버에 저장합니다'; await savePortfolio(); }
+        $('pf-server-box').classList.add('hidden'); renderPortfolioSection();
+      } else $('pf-server-msg').textContent = status === 401 ? '비밀번호가 맞지 않습니다' : status === 503 ? '서버 저장이 아직 준비되지 않았습니다(Cloudflare 설정 필요)' : `오류 (${status})`;
+    } catch (e) { $('pf-server-msg').textContent = '서버에 접속하지 못했습니다(네트워크·회사 보안 정책 확인)'; }
+  }
+  function disconnectServer() { try { localStorage.removeItem(PF_SKEY); } catch (e) {} pfServer = { state: 'off', savedAt: null, sig: null }; $('pf-server-msg').textContent = '이 브라우저에서 서버 연결을 해제했습니다'; updateSaveStatus(); }
+
   function updateSaveStatus() {
+    const sb = $('pf-server-btn');
+    if (sb) sb.textContent = pfServer.state === 'ok' ? '☁️ 서버 연결됨' : '☁️ 서버 저장 연결';
+    if (pfServer.state === 'ok' && $('port-save-status')) {
+      const dirty = pfServer.sig !== pfSig(modelPortfolio);
+      const when = pfServer.savedAt ? new Date(pfServer.savedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-';
+      $('port-save-status').innerHTML = dirty ? `<b class="text-amber-300">저장하지 않은 변경 있음</b> · ☁️ 서버 마지막 저장 ${when} KST`
+        : `<b class="text-emerald-300">☁️ 서버에 저장됨</b> · ${when} KST · 모든 기기에서 이 구성이 표시됩니다`;
+      $('port-save-dot').className = 'w-2 h-2 rounded-full ' + (dirty ? 'bg-amber-400' : 'bg-emerald-400');
+      return;
+    }
     const el = $('port-save-status'); if (!el) return;
     const saved = pfLoadSaved(), dirty = !saved || pfSig(saved.holdings) !== pfSig(modelPortfolio);
     const when = saved ? new Date(saved.savedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
@@ -1679,13 +1747,25 @@
       : dirty ? `<b class="text-amber-300">저장하지 않은 변경 있음</b> · 마지막 저장 ${when} KST`
       : `<b class="text-emerald-300">저장됨</b> · ${when} KST · 이 브라우저에서 다음에 열어도 이 구성이 표시됩니다`;
     $('port-save-dot').className = 'w-2 h-2 rounded-full ' + (!saved ? 'bg-slate-500' : dirty ? 'bg-amber-400' : 'bg-emerald-400');
+    if (pfServer.state === 'unauth') el.innerHTML += ' <span class="text-rose-300">· ☁️ 서버 비밀번호가 바뀌었습니다(다시 연결)</span>';
+    if (pfServer.state === 'unavailable' && pfKey()) el.innerHTML += ' <span class="text-rose-300">· ☁️ 서버 접속 실패 — 이 브라우저에만 저장됨</span>';
   }
-  function savePortfolio() {
-    try { localStorage.setItem(PF_KEY, JSON.stringify({ holdings: modelPortfolio.map(h => ({ ticker: h.ticker, weight: +h.weight })), savedAt: new Date().toISOString() })); showToast(`포트폴리오 ${modelPortfolio.length}종목을 저장했습니다`); }
-    catch (e) { showToast('이 브라우저에서는 저장할 수 없습니다(시크릿 모드·저장공간 차단). 링크 복사를 이용하세요.', 'error'); }
+  async function savePortfolio() {
+    const holdings = modelPortfolio.map(h => ({ ticker: h.ticker, weight: +h.weight }));
+    let local = true;
+    try { localStorage.setItem(PF_KEY, JSON.stringify({ holdings, savedAt: new Date().toISOString() })); } catch (e) { local = false; }
+    if (pfKey()) {
+      try {
+        const { status, j } = await pfApi('PUT', { holdings });
+        if (status === 200) { pfServer = { state: 'ok', savedAt: j.savedAt, sig: pfSig(j.holdings) }; showToast(`☁️ 서버에 ${holdings.length}종목 저장 완료 (모든 기기 공통)`); updateSaveStatus(); return; }
+        pfServer.state = status === 401 ? 'unauth' : 'unavailable';
+      } catch (e) { pfServer.state = 'unavailable'; }
+      showToast(local ? '서버 저장 실패 → 이 브라우저에만 저장했습니다' : '저장하지 못했습니다', 'error');
+    } else showToast(local ? `포트폴리오 ${holdings.length}종목을 이 브라우저에 저장했습니다` : '이 브라우저에서는 저장할 수 없습니다(시크릿 모드·저장공간 차단). 링크 복사를 이용하세요.', local ? 'success' : 'error');
     updateSaveStatus();
   }
-  function revertPortfolio() {
+  async function revertPortfolio() {
+    if (pfServer.state === 'ok') { const j = await pfServerLoad(true); if (j?.holdings) { renderPortfolioSection(); showToast('서버 저장본으로 되돌렸습니다'); return; } }
     const saved = pfLoadSaved(); if (!saved) { showToast('저장된 포트폴리오가 없습니다', 'error'); return; }
     modelPortfolio = saved.holdings.filter(h => findStock(h.ticker)).map(h => ({ ticker: h.ticker, weight: +h.weight }));
     renderPortfolioSection(); showToast('마지막 저장본으로 되돌렸습니다');
@@ -1699,7 +1779,7 @@
     try { await navigator.clipboard.writeText(url); showToast('링크를 복사했습니다. 다른 기기에서 열면 이 포트폴리오가 저장됩니다'); }
     catch (e) { prompt('아래 주소를 복사하세요', url); }
   }
-  window.addEventListener('beforeunload', e => { const s = pfLoadSaved(); if (DATA && s && pfSig(s.holdings) !== pfSig(modelPortfolio)) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', e => { const s = pfLoadSaved(); const ref = pfServer.state === 'ok' ? pfServer.sig : (s && pfSig(s.holdings)); if (DATA && ref && ref !== pfSig(modelPortfolio)) { e.preventDefault(); e.returnValue = ''; } });
 
   // ---------------------------------------------------------------- TAB 3
   function updatePortfolioHoldingWeight(t, v) { const h = modelPortfolio.find(x => x.ticker === t); if (h) { h.weight = Math.max(0, Math.min(100, parseFloat(v) || 0)); renderPortfolioSection(); } }
