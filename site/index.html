@@ -958,14 +958,22 @@
     { id: 'tab5', no: '06', title: '기술적 분석 & 캔들차트' },
   ];
   const currentSub = { tabH: 'overview', tab0: 'overview', tab3: 'overview' };
+  const navOpen = new Set();   // 기본값: 하위 화면 목록 접힘
+  function onNavMain(id) {
+    const n = NAV.find(x => x.id === id);
+    if (n?.subs) { if (currentTab === id) { navOpen.has(id) ? navOpen.delete(id) : navOpen.add(id); renderNav(); return; } navOpen.add(id); }
+    switchTab(id);
+  }
   function renderNav() {
     $('main-nav').innerHTML = NAV.map(n => {
       const act = n.id === currentTab;
-      const subs = (n.subs || []).map(([k, l], i) => {
+      const open = navOpen.has(n.id);
+      const subs = !open ? '' : (n.subs || []).map(([k, l], i) => {
         const sa = act && currentSub[n.id] === k;
         return `<button onclick="switchTab('${n.id}','${k}')" class="w-full text-left pl-12 pr-4 py-1.5 text-[11px] leading-snug flex gap-2 ${sa ? 'text-blue-300 font-semibold' : 'text-slate-500 hover:text-slate-200'}"><span class="font-mono opacity-70 shrink-0">${n.no}-${i}</span><span>${esc(l)}</span></button>`;
       }).join('');
-      return `<div><button onclick="switchTab('${n.id}')" id="nav-${n.id}" class="w-full text-left px-5 py-2.5 text-xs font-medium flex items-center gap-3 transition-all ${act ? 'sidebar-item-active' : 'sidebar-item-inactive'}"><span class="font-mono text-[11px] opacity-80">${n.no}</span><span>${esc(n.title)}</span></button>${subs ? `<div class="pb-1">${subs}</div>` : ''}</div>`;
+      const caret = n.subs ? `<span class="ml-auto text-[10px] opacity-60 transition-transform ${open ? 'rotate-90' : ''}">▶</span>` : '';
+      return `<div><button onclick="onNavMain('${n.id}')" id="nav-${n.id}" title="${n.subs ? (open ? '하위 화면 접기' : '하위 화면 펼치기') : ''}" class="w-full text-left px-5 py-2.5 text-xs font-medium flex items-center gap-3 transition-all ${act ? 'sidebar-item-active' : 'sidebar-item-inactive'}"><span class="font-mono text-[11px] opacity-80">${n.no}</span><span>${esc(n.title)}</span>${caret}</button>${subs ? `<div class="pb-1">${subs}</div>` : ''}</div>`;
     }).join('');
   }
   function renderPageHead(tabId) {
@@ -1128,9 +1136,20 @@
         DATA?.movers?.gainers?.[0] ? `S&P 500 상승 1위 ${DATA.movers.gainers[0].ticker} ${fmtPct(DATA.movers.gainers[0].r1D, 2)} · 하락 1위 ${DATA.movers.losers[0].ticker} ${fmtPct(DATA.movers.losers[0].r1D, 2)}` : ''].filter(Boolean);
       tag = '데이터 자동 요약';
     }
+    if (b?.sections?.length) {
+      const icon = { '지수·시장 폭': '📊', '섹터·테마': '🧭', '급등·급락 종목': '⚡', '주요 뉴스·이슈': '📰', '심리·변동성': '🌡️' };
+      const inp = b.inputs || {};
+      $('sum-brief').innerHTML = `<div class="flex flex-wrap items-center justify-between gap-2"><span class="text-[11px] font-bold text-blue-300">오늘의 시장 한 장 요약</span><span class="text-[10px] text-slate-500">${esc(DATA?.meta?.priceAsOf || '')} 종가 · ${esc(b.model || 'AI')} · 입력: 시장뉴스 ${inp['시장뉴스'] ?? '-'}건·기업뉴스 ${inp['기업뉴스'] ?? '-'}개사·섹터 ${inp['섹터'] ?? '-'}·테마 ${inp['테마'] ?? '-'}·종목 ${inp['종목'] ?? '-'}</span></div>
+        <div class="text-base sm:text-xl font-bold text-white mt-1.5">${esc(b.headline)}</div>
+        ${b.summary ? `<p class="text-xs sm:text-sm text-slate-300 leading-relaxed mt-2">${esc(b.summary)}</p>` : ''}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-4">${b.sections.map(x => `<div class="bg-slate-950/40 border border-slate-800 rounded-xl p-3"><div class="text-xs font-bold text-white mb-1.5">${icon[x.title] || '•'} ${esc(x.title)}</div><ul class="space-y-1 text-xs text-slate-300 leading-relaxed list-disc pl-4">${x.bullets.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>`).join('')}
+          ${b.watch?.length ? `<div class="bg-amber-950/20 border border-amber-500/25 rounded-xl p-3"><div class="text-xs font-bold text-amber-300 mb-1.5">👀 데이터상 주목할 점</div><ul class="space-y-1 text-xs text-slate-300 leading-relaxed list-disc pl-4">${b.watch.map(t => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}</div>
+        <p class="text-[10px] text-slate-500 mt-3">AI(Gemini)가 이 사이트에 수집된 지수·섹터·테마 수익률, S&P 500 등락 상하위, 공포·탐욕, 뉴스 헤드라인만을 근거로 작성 · 원인 해석은 보도 기반 참고용이며 투자 권유가 아닙니다</p>`;
+    } else {
     $('sum-brief').innerHTML = `<div class="flex items-center justify-between gap-2"><span class="text-[11px] font-bold text-blue-300">오늘의 시장 한 장 요약</span><span class="text-[10px] text-slate-500">${esc(DATA?.meta?.priceAsOf || '')} 종가 · ${esc(tag)}</span></div>
       <div class="text-base sm:text-lg font-bold text-white mt-1.5">${esc(head)}</div>
       <ul class="mt-2 space-y-1 text-xs text-slate-300 list-disc pl-4">${bullets.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+    }
     $('sum-index-cards').innerHTML = INDEX_CARDS.map(([k, label]) => { const x = benchmarkData[k] || {};
       return `<button onclick="marketIndexKey='${k}'; renderIndexCards(); switchTab('tab0','index')" class="text-left bg-terminal-panel border border-terminal-border hover:border-slate-600 rounded-2xl p-4">
         <div class="text-xs font-bold text-white">${label}</div><div class="font-num text-lg font-bold text-white mt-1">${isNum(x.level) ? x.level.toLocaleString('en-US', { maximumFractionDigits: 2 }) : '-'}</div>

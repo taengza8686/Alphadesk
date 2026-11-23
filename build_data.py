@@ -1191,35 +1191,78 @@ def optimal_portfolios(prices: dict, stocks: list, bench: pd.Series) -> dict | N
 # ---------------------------------------------------------------------------
 # 시장 요약 브리핑 (Gemini · 수집 데이터에만 근거)
 # ---------------------------------------------------------------------------
-def market_brief(gkey: str | None, benchmarks: dict, sectors: list, movers: dict | None, news: list, fg: dict | None) -> dict | None:
+def _theme_returns(stocks: list) -> dict:
+    """site/themes.csv의 대분류별 시가총액 가중 수익률 (1D·1W·1M·YTD)."""
+    import csv
+    p = ROOT / "site" / "themes.csv"
+    if not p.exists():
+        return {}
+    grp = {r["ticker"].upper(): r["group"] for r in csv.DictReader(open(p, encoding="utf-8-sig"))}
+    acc = defaultdict(lambda: defaultdict(float))
+    for s_ in stocks:
+        g, mc = grp.get(s_["ticker"]), s_.get("mktCap")
+        if not g or not mc:
+            continue
+        for k in ("r1D", "r1W", "r1M", "rYTD"):
+            v = s_.get(k)
+            if v is not None and not (isinstance(v, float) and math.isnan(v)):
+                acc[g][k] += mc * v
+                acc[g][k + "_w"] += mc
+    return {g: {k: round(a[k] / a[k + "_w"], 2) for k in ("r1D", "r1W", "r1M", "rYTD") if a.get(k + "_w")} for g, a in acc.items()}
+
+
+def market_brief(gkey: str | None, benchmarks: dict, sectors: list, movers: dict | None, news: list, fg: dict | None,
+                 stocks: list | None = None, big_news: list | None = None) -> dict | None:
     if not gkey:
         return None
+    r2 = lambda v: None if v is None else round(v, 2)  # noqa: E731
+    pick = lambda d, ks: {k: r2(d.get(k)) for k in ks}  # noqa: E731
+    mv = movers or {}
     facts = {
-        "지수_1일수익률": {v.get("name"): v.get("r1D") for v in benchmarks.values() if v.get("level")},
-        "지수_1주수익률": {v.get("name"): v.get("r1W") for v in benchmarks.values() if v.get("level")},
-        "섹터ETF_1일수익률": {x["name"]: x.get("r1D") for x in sectors},
-        "S&P500_상승종목수": (movers or {}).get("breadth", {}).get("adv"), "S&P500_하락종목수": (movers or {}).get("breadth", {}).get("dec"),
-        "상승상위": [(x["ticker"], x["r1D"], (x.get("news") or {}).get("headline")) for x in (movers or {}).get("gainers", [])[:5]],
-        "하락상위": [(x["ticker"], x["r1D"], (x.get("news") or {}).get("headline")) for x in (movers or {}).get("losers", [])[:5]],
-        "공포탐욕": (fg or {}).get("score"), "VIX": (fg or {}).get("snapshot", {}).get("vix"),
-        "주요헤드라인": [n.get("headline") for n in news[:12]],
+        "기준일": (mv.get("asOf") or ""),
+        "지수": {v.get("name"): {**pick(v, ("r1D", "r1W", "r1M", "rYTD", "r1Y")), "종가": v.get("level")} for v in benchmarks.values() if v.get("level")},
+        "섹터ETF": {x["name"]: pick(x, ("r1D", "r1W", "r1M", "rYTD")) for x in sectors},
+        "투자테마_대분류_시총가중": _theme_returns(stocks or []),
+        "S&P500_시장폭": mv.get("breadth", {}) and {k: mv["breadth"].get(k) for k in ("adv", "dec", "unch", "median")},
+        "S&P500_상승상위10": [{"티커": x["ticker"], "기업": x.get("name"), "섹터": x.get("sector"), "1D": x["r1D"], "뉴스": (x.get("news") or {}).get("headline")} for x in mv.get("gainers", [])],
+        "S&P500_하락상위10": [{"티커": x["ticker"], "기업": x.get("name"), "섹터": x.get("sector"), "1D": x["r1D"], "뉴스": (x.get("news") or {}).get("headline")} for x in mv.get("losers", [])],
+        "공포탐욕": fg and {"점수": fg.get("score"), "구간": fg.get("label"), "1주전": (fg.get("prev") or {}).get("1W"), "1개월전": (fg.get("prev") or {}).get("1M"),
+                         "구성지표": {c["name"]: c.get("score") for c in fg.get("components", [])}, **(fg.get("snapshot") or {})},
+        "시장뉴스": [{"제목": n.get("headline"), "요약": (n.get("summary") or "")[:220], "출처": n.get("source")} for n in news[:30]],
+        "시총상위기업_최근뉴스": big_news or [],
     }
-    prompt = ("당신은 증권사 시황 담당자입니다. 아래 JSON 데이터에 있는 사실만 사용해 미국 증시 전일 시황을 한국어로 정리하세요. "
-              "데이터에 없는 수치·원인·전망은 절대 만들지 마세요. 원인은 헤드라인에 근거가 있을 때만 '~로 보도됨' 형태로 쓰세요. "
-              "출력은 JSON 객체 하나: {\"headline\": 한 줄 요약(40자 이내), \"bullets\": [3~4개 문장, 각 80자 이내]}.\n"
-              + json.dumps(facts, ensure_ascii=False))
-    model = os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")
-    try:
-        r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-                          params={"key": gkey}, timeout=90,
-                          json={"contents": [{"parts": [{"text": prompt}]}],
-                                "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2}})
-        r.raise_for_status()
-        j = json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
-        if isinstance(j, dict) and j.get("headline"):
-            return {"headline": str(j["headline"]), "bullets": [str(x) for x in (j.get("bullets") or [])][:4], "model": "Gemini"}
-    except Exception as ex:  # noqa: BLE001
-        warn(f"시장 요약(Gemini) 실패: {str(ex)[:120]}")
+    prompt = ("당신은 국내 증권사 리서치센터의 미국 증시 시황 담당 애널리스트입니다. 아래 JSON 데이터에 있는 사실만 사용해 "
+              "미국 증시 전일 시황 리포트를 한국어로 작성하세요.\n규칙:\n"
+              "1) 수치는 데이터에 있는 값만 그대로 쓰고(소수 둘째 자리까지), 계산이 필요하면 단순 비교만 하세요.\n"
+              "2) 데이터에 없는 수치·사건·전망·목표가는 절대 만들지 마세요.\n"
+              "3) 등락의 원인은 뉴스 제목·요약에 근거가 있을 때만 쓰고 '~로 보도됨', '~가 영향을 준 것으로 보임'처럼 단정하지 마세요. 근거가 없으면 원인을 쓰지 마세요.\n"
+              "4) 개별 종목은 티커를 괄호로 표기하세요. 투자 권유 표현은 쓰지 마세요.\n"
+              "출력은 JSON 객체 하나:\n"
+              "{\"headline\": 핵심 한 줄(45자 이내), \"summary\": 전체 흐름 요약 2~3문장(250자 이내),"
+              " \"sections\": [{\"title\": 소제목, \"bullets\": [문장 2~4개, 각 120자 이내]}],"
+              " \"watch\": [데이터상 주목할 점 2~3개, 각 100자 이내]}\n"
+              "sections는 다음 5개를 이 순서로: '지수·시장 폭', '섹터·테마', '급등·급락 종목', '주요 뉴스·이슈', '심리·변동성'.\n데이터:\n"
+              + json.dumps(facts, ensure_ascii=False, default=str))
+    models = [os.environ.get("GEMINI_BRIEF_MODEL", "gemini-flash-latest"), os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")]
+    for model in models:
+        try:
+            r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+                              params={"key": gkey}, timeout=180,
+                              json={"contents": [{"parts": [{"text": prompt}]}],
+                                    "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2}})
+            r.raise_for_status()
+            j = json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
+            if isinstance(j, dict) and j.get("headline"):
+                secs = [{"title": str(x.get("title", "")), "bullets": [str(b) for b in (x.get("bullets") or [])][:5]}
+                        for x in (j.get("sections") or []) if isinstance(x, dict)][:6]
+                return {"headline": str(j["headline"]), "summary": str(j.get("summary") or ""), "sections": secs,
+                        "watch": [str(x) for x in (j.get("watch") or [])][:3],
+                        "bullets": [b for x in secs[:1] for b in x["bullets"]][:4], "model": f"Gemini ({model})",
+                        "inputs": {"시장뉴스": len(facts["시장뉴스"]), "기업뉴스": len(facts["시총상위기업_최근뉴스"]),
+                                   "섹터": len(facts["섹터ETF"]), "테마": len(facts["투자테마_대분류_시총가중"]),
+                                   "종목": len(facts["S&P500_상승상위10"]) + len(facts["S&P500_하락상위10"])}}
+        except Exception as ex:  # noqa: BLE001
+            warn(f"시장 요약(Gemini {model}) 실패: {str(ex)[:120]}")
     return None
 
 
@@ -1463,12 +1506,13 @@ def main() -> None:
                 nn = company_news(row["ticker"], fh_key, days=3, n=1)
                 row["news"] = nn[0] if nn else None
 
-    market_news = []
+    market_news, market_news_all = [], []
     if fh_key:
         rows = finnhub_get("news", fh_key, category="general") or []
         if not rows:
             warn("Finnhub 시장 뉴스가 비어 있습니다(키 오류·호출 한도 가능성)")
-        market_news = [news_item(x) for x in rows[:12]] if isinstance(rows, list) else []
+        market_news_all = [news_item(x) for x in rows[:30]] if isinstance(rows, list) else []
+        market_news = market_news_all[:12]
 
     print("⑤-2 섹터 ETF 수익률")
     sectors = []
@@ -1527,7 +1571,16 @@ def main() -> None:
             except Exception:  # noqa: BLE001
                 pass
     tr.save()
-    brief = market_brief(tr.gkey, benchmarks, sectors, movers, market_news, fg)
+    big_news = []
+    for s_ in stocks[:15]:
+        fp = out / "fin" / f"{s_['file']}.json"
+        try:
+            nn = json.loads(fp.read_text()).get("news") or []
+            if nn:
+                big_news.append({"티커": s_["ticker"], "1D": s_.get("r1D"), "뉴스": [n_["headline"] for n_ in nn[:2]]})
+        except Exception:  # noqa: BLE001
+            pass
+    brief = market_brief(tr.gkey, benchmarks, sectors, movers, market_news_all or market_news, fg, stocks, big_news)
     n_ok = sum(1 for n_ in market_news + mover_news if n_.get("headlineKo"))
     print(f"   번역: {tr.provider or '없음'} · 메인 헤드라인 {n_ok}/{len(market_news) + len(mover_news)} · MyMemory {tr.chars}자")
 
