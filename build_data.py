@@ -1247,7 +1247,7 @@ def market_brief(gkey: str | None, benchmarks: dict, sectors: list, movers: dict
     for model in models:
         try:
             r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-                              params={"key": gkey}, timeout=180,
+                              params={"key": gkey}, timeout=(20, 420 if model == models[0] else 180),
                               json={"contents": [{"parts": [{"text": prompt}]}],
                                     "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2}})
             r.raise_for_status()
