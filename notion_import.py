@@ -194,7 +194,7 @@ def file_url(b: dict, key: str, image: bool):
 
 def ia(ind: int) -> str:
     ind = min(int(ind or 0), 8)
-    return f' data-indent="{ind}" style="margin-left: {ind * 1.6}em"' if ind > 0 else ""
+    return f' data-indent="{ind}" style="--ind: {ind}"' if ind > 0 else ""
 
 
 CHILD_PAGES: list[tuple[str, str]] = []  # (page_id, title) 현재 페이지의 하위 페이지 (본문 순서)

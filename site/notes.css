@@ -106,3 +106,14 @@
 .ne-doc li.ProseMirror-selectednode::after { display: none; }
 .ne-doc .ProseMirror-dropcursor, .ProseMirror-dropcursor { background: #3b82f6 !important; }
 .ne-doc ul[data-type="taskList"] ul[data-type="taskList"] { padding-left: 1.4em; }
+
+/* 들여쓰기: 줄(블록) 틀은 왼쪽 정렬을 유지하고, 줄 안쪽 내용만 들여쓴다 */
+.ne-doc [data-indent] { padding-left: calc(var(--ind, 0) * 1.6em); margin-left: 0 !important; }
+.ne-doc ul[data-indent], .ne-doc ol[data-indent] { padding-left: calc(1.6em + var(--ind, 0) * 1.6em); }
+.ne-doc ul[data-type="taskList"][data-indent] { padding-left: calc(.2em + var(--ind, 0) * 1.6em); }
+.ne-doc [data-callout][data-indent] { padding-left: calc(42px + var(--ind, 0) * 1.6em); }
+.ne-doc [data-callout][data-indent]::before { left: calc(13px + var(--ind, 0) * 1.6em); }
+.ne-doc blockquote[data-indent] { padding-left: calc(14px + var(--ind, 0) * 1.6em); }
+.ne-doc pre[data-indent] { padding-left: calc(14px + var(--ind, 0) * 1.6em); }
+.ne-doc table[data-indent] { margin-left: calc(var(--ind, 0) * 1.6em) !important; padding-left: 0; }
+.ne-doc details[data-indent], .ne-doc [data-type="details"][data-indent] { padding-left: calc(var(--ind, 0) * 1.6em); }

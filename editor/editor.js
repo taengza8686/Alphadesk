@@ -303,7 +303,7 @@ const Indent = Extension.create({
     return [{ types: INDENT_ATTR_TYPES, attributes: { indent: {
       default: 0, keepOnSplit: true,
       parseHTML: el => { const v = parseInt(el.getAttribute('data-indent') || '0', 10); return v > 0 ? Math.min(MAX_INDENT, v) : 0; },
-      renderHTML: a => a.indent ? { 'data-indent': a.indent, style: `margin-left: ${a.indent * 1.6}em` } : {},
+      renderHTML: a => a.indent ? { 'data-indent': a.indent, style: `--ind: ${a.indent}` } : {},   // 줄(블록) 틀은 그대로, 안쪽 글자만 들여쓰기
     } } }];
   },
   addKeyboardShortcuts() {
@@ -348,7 +348,7 @@ function makeHandle(editor, host) {
     const lineH = Math.min(r.height, 28);
     h.style.display = 'flex';
     h.style.top = (r.top - hr.top + Math.max(0, (Math.min(lineH, 26) - 24) / 2) + (blk.node.type.name === 'heading' ? 4 : 0)) + 'px';
-    h.style.left = (r.left - hr.left - (isLi ? 70 : 50)) + 'px';
+    h.style.left = (view.dom.getBoundingClientRect().left - hr.left - 50) + 'px';   // 모든 줄의 손잡이를 같은 세로선에 정렬
   };
   const onMove = e => {
     if (!editor.isEditable || menu) return;
