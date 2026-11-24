@@ -496,7 +496,7 @@
             <option value="r1D">비교 기간: 1D</option><option value="r1W">비교 기간: 1W</option><option value="r1M">비교 기간: 1M</option><option value="r3M">비교 기간: 3M</option><option value="r6M">비교 기간: 6M</option><option value="r1Y" selected>비교 기간: 1Y</option><option value="rYTD">비교 기간: YTD</option><option value="r3Y">비교 기간: 3Y</option>
           </select>
           <select id="pf-opt-cash" onchange="setPfOpt()" title="비중 합계가 100% 미만일 때 나머지 비중을 어떻게 볼지" class="bg-terminal-card border border-terminal-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
-            <option value="scale">미투자 비중: 투자 종목만으로 환산</option><option value="cash">미투자 비중: 현금(0%)으로 간주</option>
+            <option value="cash">합산: SUMPRODUCT(비중, 수익률) · 나머지 비중 = 현금 0%</option><option value="scale">합산: SUMPRODUCT ÷ 비중 합계 (투자 종목만으로 환산)</option>
           </select>
           <select id="pf-opt-missing" onchange="setPfOpt()" title="기간 시작 후 상장 등으로 가격이 없는 종목 처리" class="bg-terminal-card border border-terminal-border rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
             <option value="zero">데이터 없는 종목: 0%로 간주 (Bloomberg 시트 방식)</option><option value="drop">데이터 없는 종목: 제외 후 재배분</option>
@@ -1822,8 +1822,8 @@
     $('port-modal-list').innerHTML = avail.map(s => `<button onclick="addPortfolioHolding('${esc(s.ticker)}')" class="w-full px-3.5 py-2.5 text-left hover:bg-slate-800 flex items-center justify-between text-xs"><div><span class="font-mono font-bold text-white mr-2">${esc(s.ticker)}</span><span class="text-slate-400">${esc(s.name)}</span></div><span class="text-blue-400 font-semibold">+ 편입</span></button>`).join('')
       || '<div class="p-4 text-center text-xs text-slate-500">추가 가능한 종목이 없습니다 (유니버스는 config.json에서 관리)</div>';
   }
-  const PF_OPT_KEY = 'alphadesk_pf_opts';
-  let pfOpt = (() => { try { return { cash: 'scale', missing: 'zero', ...JSON.parse(localStorage.getItem(PF_OPT_KEY) || '{}') }; } catch (e) { return { cash: 'scale', missing: 'zero' }; } })();
+  const PF_OPT_KEY = 'alphadesk_pf_opts_v2';   // v2: 기본값 = SUMPRODUCT(비중, 수익률)
+  let pfOpt = (() => { try { return { cash: 'cash', missing: 'zero', ...JSON.parse(localStorage.getItem(PF_OPT_KEY) || '{}') }; } catch (e) { return { cash: 'cash', missing: 'zero' }; } })();
   function syncPfOptUI() { if ($('pf-opt-cash')) { $('pf-opt-cash').value = pfOpt.cash; $('pf-opt-missing').value = pfOpt.missing; } }
   function setPfOpt() {
     pfOpt = { cash: $('pf-opt-cash').value, missing: $('pf-opt-missing').value };
