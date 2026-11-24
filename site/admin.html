@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>AlphaDesk — 관리자</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #070b14; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .card { background: #0f1623; border: 1px solid #1e293b; }
+    .inp { background: #0b111c; border: 1px solid #334155; }
+    .inp:focus { outline: none; border-color: #3b82f6; }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8 text-slate-200">
+  <div class="max-w-4xl mx-auto space-y-5">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold">α</div>
+        <div><div class="text-white font-bold">AlphaDesk 관리자</div><div class="text-[11px] text-slate-400">가입 신청 승인 · 사용자 관리</div></div>
+      </div>
+      <a href="/" class="text-xs text-blue-400 hover:text-blue-300">대시보드로 →</a>
+    </div>
+
+    <div id="gate" class="card rounded-2xl p-5 space-y-3">
+      <div class="text-sm text-slate-300">관리자 비밀번호(GitHub 비밀값 <span class="font-mono">PF_PASSWORD</span>)를 입력하세요. 이 탭을 닫으면 다시 입력해야 합니다.</div>
+      <div class="flex gap-2">
+        <input id="key" type="password" autocomplete="off" class="inp flex-1 rounded-xl px-3.5 py-2.5 text-sm text-white" placeholder="관리자 비밀번호" onkeydown="if(event.key==='Enter') load()">
+        <button onclick="load()" class="px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold text-white">확인</button>
+      </div>
+      <div id="gmsg" class="text-xs text-rose-300"></div>
+    </div>
+
+    <div id="panel" class="hidden space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="inline-flex rounded-xl bg-slate-900 p-1 border border-slate-800" id="filters"></div>
+        <button onclick="load()" class="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs">새로고침</button>
+      </div>
+      <div class="card rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto"><table class="w-full text-left text-xs whitespace-nowrap">
+          <thead><tr class="bg-slate-900/90 border-b border-slate-800 text-[10px] text-slate-400 uppercase"><th class="py-3 px-4">ID</th><th class="py-3 px-3">이메일</th><th class="py-3 px-3">상태</th><th class="py-3 px-3">신청일</th><th class="py-3 px-3">포트폴리오</th><th class="py-3 px-4 text-right">관리</th></tr></thead>
+          <tbody id="tbody" class="divide-y divide-slate-800/70"></tbody>
+        </table></div>
+      </div>
+      <div id="legacy" class="hidden card rounded-2xl p-4 text-xs space-y-2">
+        <div class="text-slate-300">이전에 비밀번호 하나로 공유 저장하던 <b>기존 포트폴리오 저장본</b>이 있습니다. 내 계정으로 옮기려면 아래에서 계정을 고르세요.</div>
+        <div class="flex gap-2"><select id="mig" class="inp rounded-lg px-3 py-1.5 text-white"></select><button onclick="act('migrate', document.getElementById('mig').value)" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">이 계정으로 옮기기</button></div>
+      </div>
+      <div id="msg" class="text-xs text-slate-400"></div>
+    </div>
+  </div>
+<script>
+  const $ = id => document.getElementById(id);
+  let USERS = [], FILTER = 'pending';
+  const ST = { pending: ['대기', 'bg-amber-500/15 text-amber-300 border-amber-500/30'], approved: ['승인', 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'],
+    rejected: ['거절', 'bg-slate-500/15 text-slate-400 border-slate-500/30'], blocked: ['차단', 'bg-rose-500/15 text-rose-300 border-rose-500/30'] };
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const key = () => sessionStorage.getItem('ad_admin') || $('key').value;
+  async function api(method, body) {
+    const r = await fetch('/api/admin/users', { method, headers: { 'Content-Type': 'application/json', 'X-Admin-Key': key() }, body: body ? JSON.stringify(body) : undefined });
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    return { ok: r.ok, status: r.status, j };
+  }
+  async function load() {
+    if ($('key').value) sessionStorage.setItem('ad_admin', $('key').value);
+    const { ok, j } = await api('GET');
+    if (!ok) { sessionStorage.removeItem('ad_admin'); $('gmsg').textContent = j.error || '확인하지 못했습니다'; $('gate').classList.remove('hidden'); $('panel').classList.add('hidden'); return; }
+    $('gate').classList.add('hidden'); $('panel').classList.remove('hidden');
+    USERS = j.users || [];
+    $('legacy').classList.toggle('hidden', !j.legacyPortfolio);
+    $('mig').innerHTML = USERS.filter(u => u.status === 'approved').map(u => `<option value="${esc(u.id)}">${esc(u.id)}</option>`).join('');
+    render();
+  }
+  function render() {
+    const cnt = s => USERS.filter(u => s === 'all' || u.status === s).length;
+    $('filters').innerHTML = [['pending', '승인 대기'], ['approved', '승인됨'], ['blocked', '차단'], ['rejected', '거절'], ['all', '전체']].map(([k, l]) =>
+      `<button onclick="FILTER='${k}'; render()" class="px-3 py-1 rounded-lg text-xs font-semibold ${k === FILTER ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}">${l} ${cnt(k)}</button>`).join('');
+    const list = USERS.filter(u => FILTER === 'all' || u.status === FILTER);
+    const btn = (a, id, label, cls) => `<button onclick="act('${a}','${esc(id)}')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${cls}">${label}</button>`;
+    $('tbody').innerHTML = list.map(u => `<tr>
+      <td class="py-2.5 px-4 font-mono font-bold text-white">${esc(u.id)}${u.role === 'admin' ? ' <span class="text-[10px] text-indigo-300">관리자</span>' : ''}</td>
+      <td class="py-2.5 px-3 text-slate-300">${esc(u.email)}</td>
+      <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded border text-[10px] font-bold ${ST[u.status]?.[1] || ''}">${ST[u.status]?.[0] || esc(u.status)}</span></td>
+      <td class="py-2.5 px-3 font-mono text-[11px] text-slate-400">${esc((u.createdAt || '').slice(0, 16).replace('T', ' '))}</td>
+      <td class="py-2.5 px-3 text-slate-400">${u.hasPortfolio ? '저장됨' : '-'}</td>
+      <td class="py-2.5 px-4 text-right space-x-1">${u.status !== 'approved' ? btn('approve', u.id, '승인', 'bg-emerald-600 hover:bg-emerald-500 text-white') : ''}${u.status === 'pending' ? btn('reject', u.id, '거절', 'bg-slate-700 hover:bg-slate-600 text-slate-200') : ''}${u.status === 'approved' ? btn('block', u.id, '차단', 'bg-rose-700/70 hover:bg-rose-600 text-white') : ''}${btn('delete', u.id, '삭제', 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700')}</td></tr>`).join('')
+      || '<tr><td colspan="6" class="py-8 text-center text-slate-500">해당하는 사용자가 없습니다</td></tr>';
+  }
+  async function act(action, id) {
+    if (!id) return;
+    if (action === 'delete' && !confirm(`${id} 계정을 삭제할까요? 저장된 포트폴리오도 함께 삭제되며 되돌릴 수 없습니다.`)) return;
+    const { ok, j } = await api('POST', { action, id });
+    $('msg').textContent = ok ? `${id}: ${{ approve: '승인했습니다', reject: '거절했습니다', block: '차단했습니다(약 1분 내 접속 해제)', delete: '삭제했습니다', migrate: '기존 저장본을 옮겼습니다', admin: '권한을 바꿨습니다' }[action]}` : (j.error || '실패했습니다');
+    load();
+  }
+  if (sessionStorage.getItem('ad_admin')) load();
+</script>
+</body>
+</html>

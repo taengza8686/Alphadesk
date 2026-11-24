@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>AlphaDesk — 로그인</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #070b14; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .card { background: #0f1623; border: 1px solid #1e293b; }
+    .inp { background: #0b111c; border: 1px solid #334155; }
+    .inp:focus { outline: none; border-color: #3b82f6; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-slate-200">
+  <div class="w-full max-w-sm">
+    <div class="flex items-center gap-3 mb-6 justify-center">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">α</div>
+      <div><div class="text-white font-bold text-lg leading-tight">AlphaDesk</div><div class="text-[11px] text-slate-400">Russell 1000 Research Terminal</div></div>
+    </div>
+    <div class="card rounded-2xl p-6 shadow-2xl">
+      <div class="flex rounded-xl bg-slate-900 p-1 border border-slate-800 mb-5">
+        <button id="tab-login" onclick="tab('login')" class="flex-1 py-2 rounded-lg text-sm font-semibold">로그인</button>
+        <button id="tab-signup" onclick="tab('signup')" class="flex-1 py-2 rounded-lg text-sm font-semibold">가입 신청</button>
+      </div>
+
+      <form id="f-login" onsubmit="return doLogin(event)" class="space-y-3">
+        <input id="l-id" class="inp w-full rounded-xl px-3.5 py-2.5 text-sm text-white" placeholder="ID" autocomplete="username" required>
+        <input id="l-pw" type="password" class="inp w-full rounded-xl px-3.5 py-2.5 text-sm text-white" placeholder="비밀번호" autocomplete="current-password" required>
+        <button class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold text-white">로그인</button>
+        <p class="text-[11px] text-slate-500 text-center">로그인 상태는 이 브라우저에서 30일간 유지됩니다</p>
+      </form>
+
+      <form id="f-signup" onsubmit="return doSignup(event)" class="space-y-3 hidden">
+        <input id="s-id" class="inp w-full rounded-xl px-3.5 py-2.5 text-sm text-white" placeholder="ID (영문 소문자·숫자 3~20자)" autocomplete="username" required>
+        <input id="s-email" type="email" class="inp w-full rounded-xl px-3.5 py-2.5 text-sm text-white" placeholder="이메일" autocomplete="email" required>
+        <input id="s-pw" type="password" class="inp w-full rounded-xl px-3.5 py-2.5 text-sm text-white" placeholder="비밀번호 (8자 이상)" autocomplete="new-password" required>
+        <input id="s-pw2" type="password" class="inp w-full rounded-xl px-3.5 py-2.5 text-sm text-white" placeholder="비밀번호 확인" autocomplete="new-password" required>
+        <button class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-sm font-semibold text-white">가입 신청</button>
+        <p class="text-[11px] text-slate-500 text-center">관리자 승인 후 로그인할 수 있습니다</p>
+      </form>
+
+      <div id="msg" class="hidden mt-4 text-xs rounded-xl px-3 py-2.5"></div>
+    </div>
+  </div>
+<script>
+  const $ = id => document.getElementById(id);
+  function tab(t) {
+    $('f-login').classList.toggle('hidden', t !== 'login'); $('f-signup').classList.toggle('hidden', t !== 'signup');
+    $('tab-login').className = 'flex-1 py-2 rounded-lg text-sm font-semibold ' + (t === 'login' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white');
+    $('tab-signup').className = 'flex-1 py-2 rounded-lg text-sm font-semibold ' + (t === 'signup' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white');
+    $('msg').classList.add('hidden');
+  }
+  function msg(t, ok) {
+    const m = $('msg'); m.textContent = t; m.classList.remove('hidden');
+    m.className = 'mt-4 text-xs rounded-xl px-3 py-2.5 ' + (ok ? 'bg-emerald-950/50 border border-emerald-600/40 text-emerald-200' : 'bg-rose-950/50 border border-rose-600/40 text-rose-200');
+  }
+  async function post(url, body) {
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'same-origin' });
+    let j = {}; try { j = await r.json(); } catch (e) {}
+    return { ok: r.ok, j };
+  }
+  async function doLogin(e) {
+    e.preventDefault();
+    const { ok, j } = await post('/api/auth/login', { id: $('l-id').value, password: $('l-pw').value });
+    if (!ok) { msg(j.error || '로그인하지 못했습니다'); return false; }
+    const next = new URLSearchParams(location.search).get('next') || '/';
+    location.replace(next.startsWith('/') && !next.startsWith('//') ? next : '/');
+    return false;
+  }
+  async function doSignup(e) {
+    e.preventDefault();
+    if ($('s-pw').value !== $('s-pw2').value) { msg('비밀번호 확인이 일치하지 않습니다'); return false; }
+    const { ok, j } = await post('/api/auth/signup', { id: $('s-id').value, email: $('s-email').value, password: $('s-pw').value });
+    if (!ok) { msg(j.error || '가입 신청에 실패했습니다'); return false; }
+    $('f-signup').reset(); tab('login');
+    msg('가입 신청이 접수되었습니다. 관리자 승인 후 로그인할 수 있습니다.', true);
+    return false;
+  }
+  tab('login');
+</script>
+</body>
+</html>

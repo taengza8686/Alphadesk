@@ -89,9 +89,19 @@ jobs:
           fi
           npx --yes wrangler@4 pages deploy site --project-name alphadesk --branch main --commit-dirty=true
       - uses: actions/configure-pages@v5
+      - name: GitHub Pages = pages.dev로 자동 이동(데이터 미포함)
+        run: |
+          mkdir -p gh-redirect
+          cat > gh-redirect/index.html <<'HTML'
+          <!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="robots" content="noindex">
+          <title>AlphaDesk</title><script>location.replace('https://alphadesk-6cv.pages.dev/' + location.hash);</script>
+          <meta http-equiv="refresh" content="0; url=https://alphadesk-6cv.pages.dev/"></head>
+          <body style="background:#070b14;color:#cbd5e1;font-family:sans-serif;padding:40px">AlphaDesk는 <a style="color:#60a5fa" href="https://alphadesk-6cv.pages.dev/">alphadesk-6cv.pages.dev</a>로 이동했습니다 (로그인 필요).</body></html>
+          HTML
+          cp gh-redirect/index.html gh-redirect/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: gh-redirect
 
   deploy:
     needs: build
