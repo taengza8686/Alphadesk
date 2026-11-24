@@ -1098,22 +1098,54 @@ FRED_FALLBACK = {"DGS10": "^TNX", "DGS2": "2YY=F"}
 
 
 def fred_series(ids: list[str]) -> dict[str, pd.Series]:
+    """FRED(무키 CSV) → 실패 시 미국 재무부 공식 일별 국채 수익률 CSV로 대체."""
     out = {}
-    try:
-        r = requests.get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": ",".join(ids)}, timeout=40,
-                         headers={"User-Agent": "AlphaDesk/1.0 (personal dashboard)"})
-        r.raise_for_status()
-        df = pd.read_csv(io.StringIO(r.text))
-        dcol = df.columns[0]
-        df[dcol] = pd.to_datetime(df[dcol])
-        df = df.set_index(dcol)
+    for attempt in range(3):
+        try:
+            r = requests.get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": ",".join(ids)}, timeout=(15, 90),
+                             headers={"User-Agent": "AlphaDesk/1.0 (personal dashboard)"})
+            r.raise_for_status()
+            df = pd.read_csv(io.StringIO(r.text))
+            dcol = df.columns[0]
+            df[dcol] = pd.to_datetime(df[dcol])
+            df = df.set_index(dcol)
+            for i in ids:
+                if i in df.columns:
+                    v = pd.to_numeric(df[i], errors="coerce").dropna()
+                    if len(v):
+                        out[i] = v
+            if out:
+                return out
+        except Exception as ex:  # noqa: BLE001
+            warn(f"FRED 금리 조회 실패({attempt + 1}/3): {str(ex)[:100]}")
+            time.sleep(5)
+    # 미국 재무부 Daily Treasury Par Yield Curve Rates
+    col = {"DGS2": "2 Yr", "DGS10": "10 Yr", "DGS3MO": "3 Mo", "DGS30": "30 Yr"}
+    frames = []
+    y_now = dt.date.today().year
+    for y in range(y_now - 5, y_now + 1):
+        try:
+            u = (f"https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rates.csv/{y}/all"
+                 f"?type=daily_treasury_yield_curve&field_tdr_date_value={y}&page&_format=csv")
+            r = requests.get(u, timeout=(15, 60), headers={"User-Agent": "AlphaDesk/1.0 (personal dashboard)"})
+            r.raise_for_status()
+            frames.append(pd.read_csv(io.StringIO(r.text)))
+        except Exception as ex:  # noqa: BLE001
+            warn(f"미국 재무부 금리 CSV {y} 실패: {str(ex)[:80]}")
+    if frames:
+        df = pd.concat(frames)
+        df["Date"] = pd.to_datetime(df["Date"])
+        df = df.set_index("Date").sort_index()
         for i in ids:
-            if i in df.columns:
-                v = pd.to_numeric(df[i], errors="coerce").dropna()
+            c = col.get(i)
+            if c and c in df.columns:
+                v = pd.to_numeric(df[c], errors="coerce").dropna()
                 if len(v):
                     out[i] = v
-    except Exception as ex:  # noqa: BLE001
-        warn(f"FRED 금리 조회 실패: {ex}")
+        for v in out.values():
+            v.attrs["src"] = "미국 재무부 Daily Par Yield"
+        if out:
+            print("   금리: 미국 재무부 공식 CSV 사용(FRED 대체)")
     return out
 
 
@@ -1142,7 +1174,7 @@ def macro_block(years: int = 5) -> dict | None:
         ser, used_src = None, None
         if src == "fred":
             ser = fr.get(sym)
-            used_src = f"FRED {sym}"
+            used_src = getattr(ser, "attrs", {}).get("src") or f"FRED {sym}"
             if ser is None or len(ser) < 30:
                 fb = px.get(FRED_FALLBACK[sym])
                 if fb is not None and len(fb):
