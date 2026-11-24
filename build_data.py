@@ -1085,21 +1085,44 @@ MACRO = [
     ("NG", "천연가스 (Henry Hub)", "에너지·원자재", "yahoo", "NG=F", "$/MMBtu", "price", 3),
     ("COPPER", "구리", "에너지·원자재", "yahoo", "HG=F", "$/lb", "price", 3),
     ("IRON", "철광석 (62% CFR 중국)", "에너지·원자재", "yahoo", "TIO=F", "$/t", "price", 2),
+    ("GOLD", "금", "귀금속", "yahoo", "GC=F", "$/oz", "price", 1),
+    ("SILVER", "은", "귀금속", "yahoo", "SI=F", "$/oz", "price", 2),
     ("VIX", "VIX 변동성 지수", "금리·변동성", "yahoo", "^VIX", "pt", "price", 2),
     ("UST2Y", "미국 2년물 국채금리", "금리·변동성", "fred", "DGS2", "%", "yield", 2),
     ("UST10Y", "미국 10년물 국채금리", "금리·변동성", "fred", "DGS10", "%", "yield", 2),
+    ("UST30Y", "미국 30년물 국채금리", "금리·변동성", "fred", "DGS30", "%", "yield", 2),
+    ("SPR2S10S", "미국 2-10년 금리차 (10Y−2Y)", "금리·변동성", "calc", "UST10Y-UST2Y", "bp", "spread", 0),
+    ("HYOAS", "하이일드 스프레드 (ICE BofA US HY OAS)", "금리·변동성", "fred", "BAMLH0A0HYM2", "bp", "spread", 0),
     ("DXY", "달러인덱스 (DXY)", "통화", "yahoo", "DX-Y.NYB", "pt", "price", 2),
     ("EURUSD", "유로 (EUR/USD)", "통화", "yahoo", "EURUSD=X", "$", "price", 4),
     ("USDJPY", "엔달러 (USD/JPY)", "통화", "yahoo", "JPY=X", "¥", "price", 2),
     ("USDKRW", "원달러 (USD/KRW)", "통화", "yahoo", "KRW=X", "₩", "price", 1),
     ("BTC", "비트코인 (BTC/USD)", "가상자산", "yahoo", "BTC-USD", "$", "price", 0),
 ]
-FRED_FALLBACK = {"DGS10": "^TNX", "DGS2": "2YY=F"}
+FRED_FALLBACK = {"DGS10": "^TNX", "DGS2": "2YY=F", "DGS30": "^TYX"}
 
 
 def fred_series(ids: list[str]) -> dict[str, pd.Series]:
-    """FRED(무키 CSV) → 실패 시 미국 재무부 공식 일별 국채 수익률 CSV로 대체."""
+    """FRED 공식 API(키 있을 때) → FRED CSV → 미국 재무부 공식 일별 국채 수익률 CSV 순으로 대체."""
     out = {}
+    fkey = (os.environ.get("FRED_API_KEY") or "").strip()
+    if fkey:
+        start = (dt.date.today() - dt.timedelta(days=365 * 5 + 30)).isoformat()
+        for i in ids:
+            try:
+                r = requests.get("https://api.stlouisfed.org/fred/series/observations", timeout=(10, 60),
+                                 params={"series_id": i, "api_key": fkey, "file_type": "json", "observation_start": start})
+                r.raise_for_status()
+                obs = r.json().get("observations", [])
+                v = pd.Series({pd.Timestamp(o["date"]): pd.to_numeric(o["value"], errors="coerce") for o in obs}).dropna().sort_index()
+                if len(v):
+                    v.attrs["src"] = f"FRED {i}"
+                    out[i] = v
+            except Exception as ex:  # noqa: BLE001
+                warn(f"FRED API {i} 실패: {str(ex)[:80]}")
+        if len(out) == len(ids):
+            return out
+        ids = [i for i in ids if i not in out]
     for attempt in range(1):   # GitHub Actions에서 FRED가 자주 응답하지 않아 1회만 짧게 시도
         try:
             r = requests.get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": ",".join(ids)}, timeout=(10, 25),
@@ -1114,7 +1137,7 @@ def fred_series(ids: list[str]) -> dict[str, pd.Series]:
                     v = pd.to_numeric(df[i], errors="coerce").dropna()
                     if len(v):
                         out[i] = v
-            if out:
+            if all(i in out for i in ids):
                 return out
         except Exception as ex:  # noqa: BLE001
             print(f"   FRED 응답 없음 → 미국 재무부 공식 CSV 사용 ({str(ex)[:60]})")
@@ -1137,12 +1160,11 @@ def fred_series(ids: list[str]) -> dict[str, pd.Series]:
         df = df.set_index("Date").sort_index()
         for i in ids:
             c = col.get(i)
-            if c and c in df.columns:
+            if c and c in df.columns and i not in out:
                 v = pd.to_numeric(df[c], errors="coerce").dropna()
                 if len(v):
+                    v.attrs["src"] = "미국 재무부 Daily Par Yield"
                     out[i] = v
-        for v in out.values():
-            v.attrs["src"] = "미국 재무부 Daily Par Yield"
         if out:
             print("   금리: 미국 재무부 공식 CSV 사용(FRED 대체)")
     return out
@@ -1168,13 +1190,19 @@ def macro_block(years: int = 5) -> dict | None:
     px = download_prices(ysyms + list(FRED_FALLBACK.values()), years)
     fr = fred_series(fids)
     cut = pd.Timestamp.today() - pd.DateOffset(years=years)
-    items = []
+    items, calc_src = [], {}
     for key, name, grp, src, sym, unit, kind, dec in MACRO:
         ser, used_src = None, None
-        if src == "fred":
+        if src == "calc":
+            a_, b_ = sym.split("-")
+            sa, sb = calc_src.get(a_), calc_src.get(b_)
+            if sa is not None and sb is not None:
+                j_ = pd.concat([sa, sb], axis=1, join="inner").dropna()
+                ser, used_src = (j_.iloc[:, 0] - j_.iloc[:, 1]), "10Y − 2Y (같은 출처 금리로 계산)"
+        elif src == "fred":
             ser = fr.get(sym)
             used_src = getattr(ser, "attrs", {}).get("src") or f"FRED {sym}"
-            if ser is None or len(ser) < 30:
+            if (ser is None or len(ser) < 30) and FRED_FALLBACK.get(sym):
                 fb = px.get(FRED_FALLBACK[sym])
                 if fb is not None and len(fb):
                     ser, used_src = fb["Close"].dropna(), f"Yahoo {FRED_FALLBACK[sym]} (FRED 대체)"
@@ -1183,12 +1211,16 @@ def macro_block(years: int = 5) -> dict | None:
             if df is not None and len(df):
                 ser, used_src = df["Close"].dropna(), f"Yahoo {sym}"
         if ser is None or len(ser) < 5:
-            warn(f"Macro 지표 데이터 없음: {name} ({sym})")
+            if key == "HYOAS" and not os.environ.get("FRED_API_KEY"):
+                used_src = "FRED API 키 필요 (GitHub 비밀값 FRED_API_KEY)"
+            else:
+                warn(f"Macro 지표 데이터 없음: {name} ({sym})")
             items.append({"key": key, "name": name, "group": grp, "unit": unit, "kind": kind, "dec": dec, "source": used_src or sym, "last": None})
             continue
         ser = ser[ser.index >= cut]
         ser = ser[~ser.index.duplicated(keep="last")]
-        chg = diff_block(ser) if kind == "yield" else returns_block(ser)
+        calc_src[key] = ser
+        chg = diff_block(ser) if kind in ("yield", "spread") else returns_block(ser)
         items.append({"key": key, "name": name, "group": grp, "unit": unit, "kind": kind, "dec": dec, "source": used_src,
                       "asOf": ser.index[-1].strftime("%Y-%m-%d"), "last": round(float(ser.iloc[-1]), max(dec, 2)), "chg": chg,
                       "hist": {"d": [d.strftime("%Y-%m-%d") for d in ser.index], "c": [round(float(x), max(dec, 2) + 1) for x in ser]}})

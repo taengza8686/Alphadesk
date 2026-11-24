@@ -309,7 +309,7 @@
           <div data-sub="macro" class="space-y-5">
         <div>
           <h2 class="text-lg font-bold text-white tracking-tight">Macro Market</h2>
-          <p class="text-xs text-slate-400 mt-1">원자재 · 금리 · 변동성 · 환율 · 가상자산 · 표의 지표를 누르면 위 차트가 바뀝니다 · 금리는 변화폭(bp), 나머지는 등락률(%)</p>
+          <p class="text-xs text-slate-400 mt-1">원자재 · 금리 · 변동성 · 환율 · 가상자산 · 표의 지표를 누르면 위 차트가 바뀝니다 · 금리·스프레드는 변화폭(bp), 나머지는 등락률(%)</p>
         </div>
         <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-3">
           <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
@@ -1242,14 +1242,16 @@
       catch (e) { $('mac-tbody').innerHTML = '<tr><td colspan="11" class="py-8 text-center text-slate-500">다음 자동 갱신 후 표시됩니다</td></tr>'; return; }
     }
     const items = MACRO.items || [];
-    const fmtV = (x, v) => isNum(v) ? (x.kind === 'yield' ? v.toFixed(2) + '%' : v.toLocaleString('en-US', { minimumFractionDigits: x.dec, maximumFractionDigits: x.dec })) : '-';
+    const fmtV = (x, v) => isNum(v) ? (x.kind === 'yield' ? v.toFixed(2) + '%' : x.kind === 'spread' ? (v * 100).toFixed(0) + 'bp' : v.toLocaleString('en-US', { minimumFractionDigits: x.dec, maximumFractionDigits: x.dec })) : '-';
+    const isBp = x => x.kind === 'yield' || x.kind === 'spread';
     const fmtC = (x, v) => { if (!isNum(v)) return '<span class="text-slate-600">-</span>';
       const col = v > 0 ? 'text-emerald-400' : v < 0 ? 'text-rose-400' : 'text-slate-400';
-      return `<span class="font-mono ${col}">${v > 0 ? '+' : ''}${x.kind === 'yield' ? v.toFixed(0) + 'bp' : v.toFixed(2) + '%'}</span>`; };
+      return `<span class="font-mono ${col}">${v > 0 ? '+' : ''}${isBp(x) ? v.toFixed(0) + 'bp' : v.toFixed(2) + '%'}</span>`; };
     let lastGrp = '';
     $('mac-tbody').innerHTML = items.map(x => {
       const head = x.group !== lastGrp ? `<tr class="bg-slate-900/60"><td colspan="11" class="sticky-col py-1.5 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wide">${esc(x.group)}</td></tr>` : '';
       lastGrp = x.group; const act = x.key === macKey;
+      if (!isNum(x.last)) return head + `<tr><td class="sticky-col py-2.5 px-4 font-semibold text-slate-500">${esc(x.name)}</td><td colspan="10" class="py-2.5 px-3 text-[11px] text-amber-300/80">${esc(x.source || '데이터 없음')}</td></tr>`;
       return head + `<tr onclick="macKey='${x.key}'; renderMacro()" class="cursor-pointer hover:bg-slate-800/60 ${act ? 'bg-blue-950/40' : ''}">
         <td class="sticky-col py-2.5 px-4 font-semibold ${act ? 'text-blue-300' : 'text-white'}">${esc(x.name)} <span class="text-[10px] text-slate-500 font-normal">${esc(x.unit)}</span></td>
         <td class="py-2.5 px-3 text-right font-num font-bold text-white">${fmtV(x, x.last)}</td>
@@ -1259,7 +1261,7 @@
     const x = items.find(i => i.key === macKey && i.hist) || items.find(i => i.hist); if (!x) return;
     macKey = x.key;
     $('mac-name').textContent = x.name; $('mac-src').textContent = x.source || '';
-    $('mac-last').textContent = fmtV(x, x.last) + (x.kind === 'yield' ? '' : ' ' + x.unit);
+    $('mac-last').textContent = fmtV(x, x.last) + (isBp(x) ? '' : ' ' + x.unit);
     $('mac-chg').innerHTML = `1D ${fmtC(x, x.chg?.r1D)} · 1M ${fmtC(x, x.chg?.r1M)} · YTD ${fmtC(x, x.chg?.rYTD)}`;
     $('mac-asof').textContent = `${x.asOf} 기준`;
     $('mac-range').innerHTML = MAC_RANGES.map(([k]) => `<button onclick="macRange='${k}'; renderMacro()" class="px-3 py-1 rounded-lg text-xs font-semibold ${k === macRange ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}">${k}</button>`).join('');
@@ -1283,7 +1285,7 @@
       const k = Math.max(0, Math.min(n - 1, Math.round((fx - pl) / (W - pl - pr) * (n - 1))));
       $('mac-cross').setAttribute('x1', X(k)); $('mac-cross').setAttribute('x2', X(k)); $('mac-cross').setAttribute('visibility', 'visible');
       $('mac-dot').setAttribute('cx', X(k)); $('mac-dot').setAttribute('cy', Y(C[k])); $('mac-dot').setAttribute('visibility', 'visible');
-      const chg = x.kind === 'yield' ? `${((C[k] - C[0]) * 100 >= 0 ? '+' : '')}${((C[k] - C[0]) * 100).toFixed(0)}bp` : `${(C[k] / C[0] - 1) * 100 >= 0 ? '+' : ''}${((C[k] / C[0] - 1) * 100).toFixed(2)}%`;
+      const chg = isBp(x) ? `${((C[k] - C[0]) * 100 >= 0 ? '+' : '')}${((C[k] - C[0]) * 100).toFixed(0)}bp` : `${(C[k] / C[0] - 1) * 100 >= 0 ? '+' : ''}${((C[k] / C[0] - 1) * 100).toFixed(2)}%`;
       tip.innerHTML = `${D[k]} · <b>${fmtV(x, C[k])}</b> · 구간 ${chg}`; tip.classList.remove('hidden');
       tip.style.left = Math.min(r.width - 220, Math.max(0, X(k) / W * r.width + 10)) + 'px'; tip.style.top = '8px'; };
     svg.onmouseleave = () => { tip.classList.add('hidden'); $('mac-cross')?.setAttribute('visibility', 'hidden'); $('mac-dot')?.setAttribute('visibility', 'hidden'); };
