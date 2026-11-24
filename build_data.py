@@ -1102,48 +1102,12 @@ MACRO = [
 FRED_FALLBACK = {"DGS10": "^TNX", "DGS2": "2YY=F", "DGS30": "^TYX"}
 
 
-def fred_series(ids: list[str]) -> dict[str, pd.Series]:
-    """FRED 공식 API(키 있을 때) → FRED CSV → 미국 재무부 공식 일별 국채 수익률 CSV 순으로 대체."""
-    out = {}
-    fkey = (os.environ.get("FRED_API_KEY") or "").strip()
-    if fkey:
-        start = (dt.date.today() - dt.timedelta(days=365 * 5 + 30)).isoformat()
-        for i in ids:
-            try:
-                r = requests.get("https://api.stlouisfed.org/fred/series/observations", timeout=(10, 60),
-                                 params={"series_id": i, "api_key": fkey, "file_type": "json", "observation_start": start})
-                r.raise_for_status()
-                obs = r.json().get("observations", [])
-                v = pd.Series({pd.Timestamp(o["date"]): pd.to_numeric(o["value"], errors="coerce") for o in obs}).dropna().sort_index()
-                if len(v):
-                    v.attrs["src"] = f"FRED {i}"
-                    out[i] = v
-            except Exception as ex:  # noqa: BLE001
-                warn(f"FRED API {i} 실패: {str(ex)[:80]}")
-        if len(out) == len(ids):
-            return out
-        ids = [i for i in ids if i not in out]
-    for attempt in range(1):   # GitHub Actions에서 FRED가 자주 응답하지 않아 1회만 짧게 시도
-        try:
-            r = requests.get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": ",".join(ids)}, timeout=(10, 25),
-                             headers={"User-Agent": "AlphaDesk/1.0 (personal dashboard)"})
-            r.raise_for_status()
-            df = pd.read_csv(io.StringIO(r.text))
-            dcol = df.columns[0]
-            df[dcol] = pd.to_datetime(df[dcol])
-            df = df.set_index(dcol)
-            for i in ids:
-                if i in df.columns:
-                    v = pd.to_numeric(df[i], errors="coerce").dropna()
-                    if len(v):
-                        out[i] = v
-            if all(i in out for i in ids):
-                return out
-        except Exception as ex:  # noqa: BLE001
-            print(f"   FRED 응답 없음 → 미국 재무부 공식 CSV 사용 ({str(ex)[:60]})")
-    # 미국 재무부 Daily Treasury Par Yield Curve Rates
-    col = {"DGS2": "2 Yr", "DGS10": "10 Yr", "DGS3MO": "3 Mo", "DGS30": "30 Yr"}
-    frames = []
+TSY_COL = {"DGS2": "2 Yr", "DGS10": "10 Yr", "DGS3MO": "3 Mo", "DGS30": "30 Yr"}
+
+
+def _treasury_yields(ids: list[str]) -> dict[str, pd.Series]:
+    """미국 재무부 Daily Treasury Par Yield Curve Rates (공식·당일 저녁 게시)."""
+    out, frames = {}, []
     y_now = dt.date.today().year
     for y in range(y_now - 5, y_now + 1):
         try:
@@ -1159,14 +1123,69 @@ def fred_series(ids: list[str]) -> dict[str, pd.Series]:
         df["Date"] = pd.to_datetime(df["Date"])
         df = df.set_index("Date").sort_index()
         for i in ids:
-            c = col.get(i)
-            if c and c in df.columns and i not in out:
+            c = TSY_COL.get(i)
+            if c and c in df.columns:
                 v = pd.to_numeric(df[c], errors="coerce").dropna()
+                v = v[~v.index.duplicated(keep="last")]
                 if len(v):
                     v.attrs["src"] = "미국 재무부 Daily Par Yield"
                     out[i] = v
-        if out:
-            print("   금리: 미국 재무부 공식 CSV 사용(FRED 대체)")
+    return out
+
+
+def _fred_api(ids: list[str]) -> dict[str, pd.Series]:
+    out = {}
+    fkey = (os.environ.get("FRED_API_KEY") or "").strip()
+    if not fkey:
+        return out
+    start = (dt.date.today() - dt.timedelta(days=365 * 5 + 30)).isoformat()
+    for i in ids:
+        try:
+            r = requests.get("https://api.stlouisfed.org/fred/series/observations", timeout=(10, 60),
+                             params={"series_id": i, "api_key": fkey, "file_type": "json", "observation_start": start})
+            r.raise_for_status()
+            obs = r.json().get("observations", [])
+            v = pd.Series({pd.Timestamp(o["date"]): pd.to_numeric(o["value"], errors="coerce") for o in obs}).dropna().sort_index()
+            if len(v):
+                v.attrs["src"] = f"FRED {i}"
+                out[i] = v
+        except Exception as ex:  # noqa: BLE001
+            warn(f"FRED API {i} 실패: {str(ex)[:80]}")
+    return out
+
+
+def _fred_csv(ids: list[str]) -> dict[str, pd.Series]:
+    out = {}
+    try:   # GitHub Actions에서는 대부분 차단됨 → 1회만 짧게
+        r = requests.get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": ",".join(ids)}, timeout=(10, 25),
+                         headers={"User-Agent": "AlphaDesk/1.0 (personal dashboard)"})
+        r.raise_for_status()
+        df = pd.read_csv(io.StringIO(r.text))
+        dcol = df.columns[0]
+        df[dcol] = pd.to_datetime(df[dcol])
+        df = df.set_index(dcol)
+        for i in ids:
+            if i in df.columns:
+                v = pd.to_numeric(df[i], errors="coerce").dropna()
+                if len(v):
+                    v.attrs["src"] = f"FRED {i}"
+                    out[i] = v
+    except Exception as ex:  # noqa: BLE001
+        print(f"   FRED CSV 응답 없음 ({str(ex)[:60]})")
+    return out
+
+
+def fred_series(ids: list[str]) -> dict[str, pd.Series]:
+    """국채금리(DGS*): 재무부 공식 → FRED API → FRED CSV · 그 외(FRED 전용): FRED API → FRED CSV."""
+    tsy = [i for i in ids if i in TSY_COL]
+    out = _treasury_yields(tsy) if tsy else {}
+    rest = [i for i in ids if i not in out]
+    if rest:
+        out.update(_fred_api(rest))
+    rest = [i for i in ids if i not in out]
+    if rest:
+        out.update(_fred_csv(rest))
+    print("   금리·스프레드 출처: " + ", ".join(f"{k}={v.attrs.get('src', '?')}" for k, v in out.items()))
     return out
 
 
