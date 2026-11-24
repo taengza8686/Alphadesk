@@ -5,3 +5,6 @@ __pycache__/
 wrangler.toml
 ns.json
 kvc.txt
+d1.json
+d1c.txt
+editor/node_modules/

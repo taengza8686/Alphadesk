@@ -79,12 +79,12 @@
     const list = USERS.filter(u => FILTER === 'all' || u.status === FILTER);
     const btn = (a, id, label, cls) => `<button onclick="act('${a}','${esc(id)}')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold ${cls}">${label}</button>`;
     $('tbody').innerHTML = list.map(u => `<tr>
-      <td class="py-2.5 px-4 font-mono font-bold text-white">${esc(u.id)}${u.role === 'admin' ? ' <span class="text-[10px] text-indigo-300">관리자</span>' : ''}</td>
+      <td class="py-2.5 px-4 font-mono font-bold text-white">${esc(u.id)}${u.role === 'admin' ? ' <span class="text-[10px] text-indigo-300">편집 가능</span>' : ''}</td>
       <td class="py-2.5 px-3 text-slate-300">${esc(u.email)}</td>
       <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded border text-[10px] font-bold ${ST[u.status]?.[1] || ''}">${ST[u.status]?.[0] || esc(u.status)}</span></td>
       <td class="py-2.5 px-3 font-mono text-[11px] text-slate-400">${esc((u.createdAt || '').slice(0, 16).replace('T', ' '))}</td>
       <td class="py-2.5 px-3 text-slate-400">${u.hasPortfolio ? '저장됨' : '-'}</td>
-      <td class="py-2.5 px-4 text-right space-x-1">${u.status !== 'approved' ? btn('approve', u.id, '승인', 'bg-emerald-600 hover:bg-emerald-500 text-white') : ''}${u.status === 'pending' ? btn('reject', u.id, '거절', 'bg-slate-700 hover:bg-slate-600 text-slate-200') : ''}${u.status === 'approved' ? btn('block', u.id, '차단', 'bg-rose-700/70 hover:bg-rose-600 text-white') : ''}${btn('delete', u.id, '삭제', 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700')}</td></tr>`).join('')
+      <td class="py-2.5 px-4 text-right space-x-1">${u.status !== 'approved' ? btn('approve', u.id, '승인', 'bg-emerald-600 hover:bg-emerald-500 text-white') : ''}${u.status === 'pending' ? btn('reject', u.id, '거절', 'bg-slate-700 hover:bg-slate-600 text-slate-200') : ''}${u.status === 'approved' ? btn('admin', u.id, u.role === 'admin' ? '편집 권한 해제' : '편집 권한 부여', 'bg-indigo-700/70 hover:bg-indigo-600 text-white') : ''}${u.status === 'approved' ? btn('block', u.id, '차단', 'bg-rose-700/70 hover:bg-rose-600 text-white') : ''}${btn('delete', u.id, '삭제', 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700')}</td></tr>`).join('')
       || '<tr><td colspan="6" class="py-8 text-center text-slate-500">해당하는 사용자가 없습니다</td></tr>';
   }
   async function act(action, id) {

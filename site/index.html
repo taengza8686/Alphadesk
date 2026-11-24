@@ -6,6 +6,8 @@
   <title>AlphaDesk — Russell 1000 Research Terminal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <link rel="stylesheet" href="notes.css">
+  <script src="vendor/note-editor.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
@@ -790,6 +792,13 @@
         <div id="tech_relative_tv_container" class="w-full h-[420px] bg-slate-950/70 rounded-xl border border-slate-800/80 overflow-hidden"></div>
       </div>
     </section>
+    <section id="tab6" class="hidden space-y-5">
+      <div id="page-head-tab6"></div>
+      <div data-sub="overview" id="nt-overview"></div>
+      <div data-sub="market" id="nt-market" class="hidden"></div>
+      <div data-sub="company" id="nt-company" class="hidden"></div>
+      <div data-sub="table" id="nt-table" class="hidden"></div>
+    </section>
   </main>
 
   <!-- DRAWER -->
@@ -1028,8 +1037,9 @@
     { id: 'tab3', no: '04', title: '모델 포트폴리오', desc: '내 포트폴리오와 최적 조합 비교', subs: [['overview', '통합'], ['custom', '커스텀 모델 포트폴리오 시뮬레이터'], ['optimal', '최적 포트폴리오 탐색']] },
     { id: 'tab4', no: '05', title: '종목별 재무제표 및 뉴스' },
     { id: 'tab5', no: '06', title: '기술적 분석 & 캔들차트' },
+    { id: 'tab6', no: '07', title: '시황 및 기업펀더멘털 분석', desc: '매일 시황 기록과 기업별 개요·분기 실적 노트 (Notion에서 옮긴 내용 포함)', subs: [['overview', '통합'], ['market', 'Market Review'], ['company', '기업 분석'], ['table', '섹터별 실적 요약표']] },
   ];
-  const currentSub = { tabH: 'overview', tab0: 'overview', tab3: 'overview' };
+  const currentSub = { tabH: 'overview', tab0: 'overview', tab3: 'overview', tab6: 'overview' };
   const navOpen = new Set();   // 기본값: 하위 화면 목록 접힘
   function onNavMain(id) {
     const n = NAV.find(x => x.id === id);
@@ -1058,7 +1068,8 @@
   function switchTab(tabId, sub) {
     currentTab = tabId;
     if (sub && currentSub[tabId] !== undefined) currentSub[tabId] = sub;
-    ['tabH', 'tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5'].forEach(id => $(id).classList.toggle('hidden', id !== tabId));
+    if (currentTab !== 'tab6' || tabId !== 'tab6') { try { ntFlush(); } catch (e) {} }
+    ['tabH', 'tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5', 'tab6'].forEach(id => $(id).classList.toggle('hidden', id !== tabId));
     const cs = currentSub[tabId];
     if (cs) { $(tabId).querySelectorAll(':scope > [data-sub]').forEach(el => el.classList.toggle('hidden', el.dataset.sub !== cs)); renderPageHead(tabId); }
     renderNav();
@@ -1073,6 +1084,7 @@
     if (tabId === 'tab3') { if (cs === 'custom') renderPortfolioSection(); if (cs === 'overview') renderPortfolioOverview(); if (cs === 'optimal') renderOptimal(); }
     if (tabId === 'tab4') renderDeepDiveSection();
     if (tabId === 'tab5') renderTechnicalTab();
+    if (tabId === 'tab6') renderNotes(cs);
   }
 
   // ---------------------------------------------------------------- TradingView
@@ -2375,11 +2387,13 @@
   });
 
   function initAlphaDesk() {
-    const [h, hs] = (location.hash || '').slice(1).split('/');
-    if (['tabH', 'tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5'].includes(h)) { currentTab = h; if (hs && currentSub[h] !== undefined) currentSub[h] = hs; }
+    const [h, hs, hid] = (location.hash || '').slice(1).split('/');
+    if (['tabH', 'tab0', 'tab1', 'tab2', 'tab3', 'tab4', 'tab5', 'tab6'].includes(h)) { currentTab = h; if (hs && currentSub[h] !== undefined) currentSub[h] = hs; }
+    if (h === 'tab6' && hid) NT.pending = { sub: hs, id: hid };
     renderIndexCards(); switchTab(currentTab); loadMe().then(() => loadDataJson(false));
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAlphaDesk); else initAlphaDesk();
   </script>
+  <script src="notes.js"></script>
 </body>
 </html>

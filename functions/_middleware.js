@@ -19,7 +19,7 @@ export async function onRequest(ctx) {
     data.user = u;
     const r = await next();
     const h = new Response(r.body, r);
-    h.headers.set('Cache-Control', url.pathname.startsWith('/data/') ? 'private, max-age=300' : 'private, no-cache');
+    if (!url.pathname.startsWith('/api/notes/file')) h.headers.set('Cache-Control', url.pathname.startsWith('/data/') ? 'private, max-age=300' : 'private, no-cache');
     h.headers.set('X-Robots-Tag', 'noindex, nofollow');
     return h;
   }

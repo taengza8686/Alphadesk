@@ -77,9 +77,26 @@ jobs:
           else
             echo "포트폴리오 서버 저장: 토큰에 Workers KV 권한 없음 → 건너뜀"
           fi
+          # 07 노트 저장소: D1 데이터베이스 찾기/만들기 (토큰에 D1 권한이 없으면 건너뜀)
+          D1_ID=""
+          if npx --yes wrangler@4 d1 list --json > d1.json 2>/dev/null; then
+            D1_ID=$(jq -r '.[] | select(.name=="alphadesk-notes") | .uuid' d1.json | head -1)
+            if [ -z "$D1_ID" ]; then
+              npx --yes wrangler@4 d1 create alphadesk-notes > d1c.txt 2>&1 || cat d1c.txt
+              npx --yes wrangler@4 d1 list --json > d1.json 2>/dev/null || true
+              D1_ID=$(jq -r '.[] | select(.name=="alphadesk-notes") | .uuid' d1.json | head -1)
+            fi
+          else
+            echo "노트 저장소: 토큰에 D1 권한 없음 → 건너뜀"
+          fi
           if [ -n "$KV_ID" ]; then
             printf 'name = "alphadesk"\npages_build_output_dir = "site"\ncompatibility_date = "2026-11-01"\n\n[[kv_namespaces]]\nbinding = "PF_KV"\nid = "%s"\n' "$KV_ID" > wrangler.toml
             echo "포트폴리오 서버 저장: KV 연결됨"
+          fi
+          if [ -n "$D1_ID" ] && [ -f wrangler.toml ]; then
+            printf '\n[[d1_databases]]\nbinding = "NOTES_DB"\ndatabase_name = "alphadesk-notes"\ndatabase_id = "%s"\n' "$D1_ID" >> wrangler.toml
+            npx --yes wrangler@4 d1 execute alphadesk-notes --remote --yes --file db/notes_schema.sql > /dev/null \
+              && echo "노트 저장소: D1 연결·스키마 적용됨" || echo "노트 저장소: 스키마 적용 실패"
           fi
           if [ -n "$PF_PASSWORD" ]; then
             printf '%s' "$PF_PASSWORD" | npx --yes wrangler@4 pages secret put PF_PASSWORD --project-name alphadesk > /dev/null 2>&1 \

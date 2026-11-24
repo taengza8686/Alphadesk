@@ -1,0 +1,12 @@
+{
+  "name": "alphadesk-note-editor",
+  "private": true,
+  "description": "07 노트 편집기 번들 (결과물: site/vendor/note-editor.js)",
+  "scripts": { "build": "esbuild editor.js --bundle --minify --format=iife --global-name=NoteEditor --target=es2019 --outfile=../site/vendor/note-editor.js" },
+  "devDependencies": {
+    "@tiptap/core": "3.35.0", "@tiptap/starter-kit": "3.35.0", "@tiptap/extension-text-style": "3.35.0",
+    "@tiptap/extension-list": "3.35.0", "@tiptap/extension-table": "3.35.0", "@tiptap/extension-details": "3.35.0",
+    "@tiptap/extension-image": "3.35.0", "@tiptap/extensions": "3.35.0", "@tiptap/suggestion": "3.35.0", "@tiptap/pm": "3.35.0",
+    "esbuild": "^0.25.0"
+  }
+}

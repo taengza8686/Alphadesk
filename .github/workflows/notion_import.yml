@@ -1,0 +1,45 @@
+name: Notion → AlphaDesk 노트 이관
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # 이관 기간 동안 매일 1회 변경분 반영 (한국시간 06:41)
+    - cron: "41 21 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: notion-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests pillow
+      - name: D1 연결 준비
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          export CLOUDFLARE_API_TOKEN="$(printf '%s' "$CF_TOKEN" | tr -d '[:space:]')"
+          export CLOUDFLARE_ACCOUNT_ID="$(printf '%s' "$CF_ACCOUNT" | tr -d '[:space:]')"
+          echo "CLOUDFLARE_API_TOKEN=$CLOUDFLARE_API_TOKEN" >> "$GITHUB_ENV"
+          echo "CLOUDFLARE_ACCOUNT_ID=$CLOUDFLARE_ACCOUNT_ID" >> "$GITHUB_ENV"
+          echo "::add-mask::$CLOUDFLARE_API_TOKEN"
+          npx --yes wrangler@4 d1 list --json > d1.json || { echo "토큰에 D1 권한이 없습니다(Cloudflare 토큰에 Account·D1·Edit 추가 필요)"; exit 1; }
+          D1_ID=$(jq -r '.[] | select(.name=="alphadesk-notes") | .uuid' d1.json | head -1)
+          if [ -z "$D1_ID" ]; then npx --yes wrangler@4 d1 create alphadesk-notes; npx --yes wrangler@4 d1 list --json > d1.json; D1_ID=$(jq -r '.[] | select(.name=="alphadesk-notes") | .uuid' d1.json | head -1); fi
+          printf 'name = "alphadesk"\ncompatibility_date = "2026-11-01"\n\n[[d1_databases]]\nbinding = "NOTES_DB"\ndatabase_name = "alphadesk-notes"\ndatabase_id = "%s"\n' "$D1_ID" > wrangler.toml
+          echo "D1: $D1_ID"
+      - name: 이관 실행 (중간에 끊겨도 다음 실행이 이어 받음)
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          IMPORT_BUDGET_MIN: "320"
+        run: python notion_import.py
