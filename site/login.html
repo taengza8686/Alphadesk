@@ -66,7 +66,7 @@
     const { ok, j } = await post('/api/auth/login', { id: $('l-id').value, password: $('l-pw').value });
     if (!ok) { msg(j.error || '로그인하지 못했습니다'); return false; }
     const next = new URLSearchParams(location.search).get('next') || '/';
-    location.replace(next.startsWith('/') && !next.startsWith('//') ? next : '/');
+    location.replace((next.startsWith('/') && !next.startsWith('//') ? next : '/') + location.hash);
     return false;
   }
   async function doSignup(e) {
