@@ -67,7 +67,7 @@
     const { ok, j } = await api('GET');
     if (!ok) { sessionStorage.removeItem('ad_admin'); $('gmsg').textContent = j.error || '확인하지 못했습니다'; $('gate').classList.remove('hidden'); $('panel').classList.add('hidden'); return; }
     $('gate').classList.add('hidden'); $('panel').classList.remove('hidden');
-    USERS = j.users || [];
+    USERS = j.users || []; if (!window._fset) { window._fset = 1; if (!USERS.some(u => u.status === 'pending')) FILTER = 'approved'; }
     $('legacy').classList.toggle('hidden', !j.legacyPortfolio);
     $('mig').innerHTML = USERS.filter(u => u.status === 'approved').map(u => `<option value="${esc(u.id)}">${esc(u.id)}</option>`).join('');
     render();
