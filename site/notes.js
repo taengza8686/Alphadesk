@@ -107,7 +107,7 @@ function ntRenderSplit(scope) {
         </div>
         <div id="nt-${scope}-tree" class="nt-tree"></div>
       </aside>
-      <div id="nt-${scope}-page" class="flex-1 min-w-0 w-full bg-terminal-panel border border-terminal-border rounded-2xl px-5 sm:px-10 py-6 min-h-[60vh]"></div></div>`;
+      <div id="nt-${scope}-page" class="flex-1 min-w-0 w-full bg-terminal-panel border border-terminal-border rounded-2xl px-5 sm:pl-16 sm:pr-10 py-6 min-h-[60vh]"></div></div>`;
     host.dataset.ready = '1';
   }
   if (!NT.sel[scope]) NT.sel[scope] = scope === 'market' ? ntLatestMr()?.id : (ntKids(ntCoRoot()?.id)[0]?.id || ntCoRoot()?.id);
@@ -182,7 +182,7 @@ async function ntShow(scope, id) {
   const co = scope === 'company' ? ntCompanyOf(id) : null;
   box.innerHTML = `${ntCrumbs(scope, id)}
     ${co ? ntCompanyStrip(co) : ''}
-    ${pg.cover ? `<div class="-mx-5 sm:-mx-10 -mt-2 mb-4 h-36 bg-cover bg-center rounded-t-xl" style="background-image:url('${esc(pg.cover)}')"></div>` : ''}
+    ${pg.cover ? `<div class="-ml-5 -mr-5 sm:-ml-16 sm:-mr-10 -mt-2 mb-4 h-36 bg-cover bg-center rounded-t-xl" style="background-image:url('${esc(pg.cover)}')"></div>` : ''}
     <div class="flex items-start gap-3 mt-2">
       ${pg.icon ? `<span class="text-3xl leading-none mt-1">${esc(pg.icon)}</span>` : ''}
       <input id="nt-title" class="nt-title" value="${esc(pg.title)}" placeholder="제목 없음" ${NT.canEdit ? '' : 'readonly'} oninput="ntTitleChanged(this.value)">
@@ -193,6 +193,7 @@ async function ntShow(scope, id) {
       <span id="nt-save" class="ml-auto"></span>
       ${ntActions(scope, id)}
     </div>
+    ${NT.canEdit ? `<div class="mt-2 text-[10.5px] text-slate-500 leading-relaxed">✏️ <b class="text-slate-400">/</b> 블록 추가 · <b class="text-slate-400">Enter</b> 새 줄 · <b class="text-slate-400">Tab / Shift+Tab</b> 들여쓰기·내어쓰기 · 줄 왼쪽 <b class="text-slate-400">＋</b> 아래에 줄 추가 · <b class="text-slate-400">⋮⋮</b> 끌어서 옮기기·클릭하면 삭제/복제/전환/색상 · <b class="text-slate-400">Ctrl+Shift+↑↓</b> 줄 이동 · <b class="text-slate-400">Ctrl+D</b> 복제 · <b class="text-slate-400">"- " "1. " "[] " "> " "# "</b> 자동 서식</div>` : ''}
     ${scope === 'market' ? '<div id="nt-days" class="flex flex-wrap gap-1.5 mt-3"></div>' : ''}
     ${ntChildChips(scope, id)}
     <div id="nt-ed" class="mt-4 ${NT.canEdit ? '' : 'ne-ro'}"></div>`;

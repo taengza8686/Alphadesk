@@ -85,3 +85,24 @@
 .nt-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 700; }
 .nt-tag.beat { background: rgba(52,211,153,.15); color: #34d399; } .nt-tag.miss { background: rgba(248,113,113,.15); color: #f87171; } .nt-tag.inline { background: rgba(148,163,184,.15); color: #cbd5e1; }
 .nt-day-target { scroll-margin-top: 80px; }
+
+/* Notion식 줄 손잡이(＋ / ⋮⋮)와 줄 메뉴 */
+.ne-handle { position: absolute; z-index: 30; display: flex; gap: 1px; align-items: center; height: 24px; }
+.ne-handle button { width: 22px; height: 24px; border-radius: 4px; color: #64748b; font-size: 14px; line-height: 1; display: flex; align-items: center; justify-content: center; user-select: none; }
+.ne-handle .ne-h-drag { cursor: grab; font-size: 13px; letter-spacing: -3px; padding-right: 3px; }
+.ne-handle button:hover { background: rgba(148,163,184,.18); color: #e2e8f0; }
+.ne-bmenu { width: 250px; max-height: 70vh; }
+.ne-bmenu .ne-mi { padding: 4px 8px; } .ne-bmenu .ne-ic { width: 24px; height: 24px; font-size: 12px; border: none; background: none; }
+.ne-bmenu .ne-mi small { display: inline; margin-left: 6px; }
+.ne-bmenu .ne-mi span:last-child { display: flex; align-items: baseline; justify-content: space-between; flex: 1; }
+.ne-turn { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px 4px; }
+.ne-turn button { font-size: 11.5px; color: #cbd5e1; padding: 5px 4px; border-radius: 5px; text-align: center; }
+.ne-turn button:hover { background: #1e293b; color: #fff; }
+.ne-cols { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; padding: 2px 4px 4px; }
+.ne-cols button { height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.ne-cols button:hover { background: #1e293b; }
+.ne-cols span { display: inline-block; width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 3px; font-weight: 700; font-size: 12px; }
+.ne-doc .ProseMirror-selectednode, .ne-doc li.ProseMirror-selectednode, .ne-doc > .ProseMirror-selectednode { background: rgba(59,130,246,.16); border-radius: 4px; outline: none; }
+.ne-doc li.ProseMirror-selectednode::after { display: none; }
+.ne-doc .ProseMirror-dropcursor, .ProseMirror-dropcursor { background: #3b82f6 !important; }
+.ne-doc ul[data-type="taskList"] ul[data-type="taskList"] { padding-left: 1.4em; }

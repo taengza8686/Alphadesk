@@ -1,5 +1,7 @@
 // AlphaDesk 노트 편집기 (Notion 스타일) — TipTap 기반, 빌드 결과: site/vendor/note-editor.js
-import { Editor, Extension, Node, mergeAttributes } from '@tiptap/core';
+import { Editor, Extension, Node, mergeAttributes, InputRule, wrappingInputRule } from '@tiptap/core';
+import Blockquote from '@tiptap/extension-blockquote';
+import { NodeSelection, TextSelection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyle, Color, BackgroundColor } from '@tiptap/extension-text-style';
 import { TaskList, TaskItem } from '@tiptap/extension-list';
@@ -182,6 +184,244 @@ const Keys = Extension.create({
   },
 });
 
+
+// ------------------------------------------------------------------ Notion식 블록 조작 (줄 추가·삭제·이동·복제·들여쓰기)
+const LIST_ITEMS = ['listItem', 'taskItem'];
+const INDENTABLE = ['paragraph', 'heading', 'details', 'callout', 'codeBlock', 'blockquote', 'image', 'table', 'horizontalRule'];
+const INDENT_ATTR_TYPES = [...INDENTABLE, 'bulletList', 'orderedList', 'taskList'];
+const MAX_INDENT = 8;
+
+// 위치(pos)가 속한 "한 줄(블록)" 찾기: 목록 줄 → 표 → 토글 → 문단·제목
+function blockAt(doc, pos) {
+  const $p = doc.resolve(Math.max(0, Math.min(pos, doc.content.size)));
+  for (let d = $p.depth; d > 0; d--) if ($p.node(d).type.name === 'table') return { pos: $p.before(d), node: $p.node(d) };
+  for (let d = $p.depth; d > 0; d--) if (LIST_ITEMS.includes($p.node(d).type.name)) return { pos: $p.before(d), node: $p.node(d) };
+  for (let d = $p.depth; d > 0; d--) {
+    const n = $p.node(d);
+    if (n.type.name === 'detailsSummary' || n.type.name === 'detailsContent') { if (n.type.name === 'detailsSummary') return { pos: $p.before(d - 1), node: $p.node(d - 1) }; continue; }
+    if (n.isTextblock || n.isAtom) return { pos: $p.before(d), node: n };
+  }
+  const after = $p.nodeAfter; if (after && after.isBlock) return { pos: $p.pos, node: after };
+  return null;
+}
+function curBlock(state) { const { selection } = state; if (selection instanceof NodeSelection) return { pos: selection.from, node: selection.node }; return blockAt(state.doc, selection.from); }
+function emptyLike(schema, node) {
+  if (node.type.name === 'taskItem') return schema.nodes.taskItem.create({ checked: false }, schema.nodes.paragraph.create());
+  if (node.type.name === 'listItem') return schema.nodes.listItem.create(null, schema.nodes.paragraph.create());
+  return schema.nodes.paragraph.create({ indent: node.attrs?.indent || 0 });
+}
+function addBelow(editor, blk, slash) {
+  const { state, view } = editor; const node = blk.node; const end = blk.pos + node.nodeSize;
+  const nn = emptyLike(state.schema, node);
+  const tr = state.tr.insert(end, nn);
+  tr.setSelection(TextSelection.near(tr.doc.resolve(end + (LIST_ITEMS.includes(node.type.name) ? 2 : 1))));
+  view.dispatch(tr.scrollIntoView()); view.focus();
+  if (slash) editor.commands.insertContent('/');
+}
+function deleteBlock(editor, blk) {
+  const { state, view } = editor; const $p = state.doc.resolve(blk.pos);
+  let from = blk.pos, to = blk.pos + blk.node.nodeSize;
+  if (LIST_ITEMS.includes(blk.node.type.name) && $p.parent.childCount === 1) { from = $p.before($p.depth); to = $p.after($p.depth); }
+  const tr = state.tr.delete(from, to);
+  if (tr.doc.content.size === 0 || tr.doc.childCount === 0) tr.insert(0, state.schema.nodes.paragraph.create());
+  tr.setSelection(TextSelection.near(tr.doc.resolve(Math.min(from, tr.doc.content.size)), -1));
+  view.dispatch(tr); view.focus();
+}
+function duplicateBlock(editor, blk) {
+  const { state, view } = editor; const end = blk.pos + blk.node.nodeSize;
+  const tr = state.tr.insert(end, blk.node);
+  tr.setSelection(TextSelection.near(tr.doc.resolve(end + 1))); view.dispatch(tr.scrollIntoView()); view.focus();
+}
+function moveBlock(editor, blk, dir) {
+  const { state, view } = editor; const $p = state.doc.resolve(blk.pos); const idx = $p.index(); const parent = $p.parent;
+  const sib = dir < 0 ? (idx > 0 ? parent.child(idx - 1) : null) : (idx < parent.childCount - 1 ? parent.child(idx + 1) : null);
+  if (!sib) return false;
+  const size = blk.node.nodeSize; const tr = state.tr;
+  const off = state.selection.from - blk.pos;
+  tr.delete(blk.pos, blk.pos + size);
+  const at = dir < 0 ? blk.pos - sib.nodeSize : blk.pos + sib.nodeSize;
+  tr.insert(at, blk.node);
+  const inside = off >= 0 && off < size;
+  tr.setSelection(inside ? TextSelection.near(tr.doc.resolve(at + off)) : NodeSelection.create(tr.doc, at));
+  view.dispatch(tr.scrollIntoView()); return true;
+}
+function setIndent(editor, delta) {
+  const { state, view } = editor; const { from, to } = state.selection; const tr = state.tr; let changed = false;
+  const seen = new Set();
+  const apply = (pos, node) => {
+    if (seen.has(pos) || !INDENTABLE.includes(node.type.name) || !('indent' in node.attrs)) return;
+    seen.add(pos);
+    const v = Math.max(0, Math.min(MAX_INDENT, (node.attrs.indent || 0) + delta));
+    if (v !== node.attrs.indent) { tr.setNodeMarkup(pos, null, { ...node.attrs, indent: v }); changed = true; }
+  };
+  if (state.selection instanceof NodeSelection) apply(from, state.selection.node);
+  else state.doc.nodesBetween(from, to, (node, pos, parent) => {
+    if (LIST_ITEMS.includes(node.type.name) || node.type.name === 'table') return false;
+    if (node.type.name === 'details') { apply(pos, node); return false; }
+    if (node.isTextblock) { const b = blockAt(state.doc, pos + 1); if (b) apply(b.pos, b.node); return false; }
+    if (node.isAtom) apply(pos, node);
+  });
+  if (changed) view.dispatch(tr);
+  return true;
+}
+function inListItem(state) { const $f = state.selection.$from; for (let d = $f.depth; d > 0; d--) if (LIST_ITEMS.includes($f.node(d).type.name)) return $f.node(d).type.name; return null; }
+function tabKey(editor, dir) {
+  const { state } = editor;
+  if (editor.isActive('table')) return false;                     // 표: 칸 이동은 표 기능에 맡김
+  if (editor.isActive('codeBlock') && dir > 0) { editor.commands.insertContent('  '); return true; }
+  const li = inListItem(state);
+  if (li) { if (dir > 0) editor.commands.sinkListItem(li); else editor.commands.liftListItem(li); return true; }
+  return setIndent(editor, dir);
+}
+function turnInto(editor, blk, kind) {
+  const { state, view } = editor;
+  const inner = blk.pos + 1 + (LIST_ITEMS.includes(blk.node.type.name) ? 1 : 0);
+  view.dispatch(state.tr.setSelection(TextSelection.near(state.doc.resolve(inner))));
+  const c = () => editor.chain().focus();
+  const li = inListItem(editor.state);
+  if (li && !['bullet', 'ordered', 'task'].includes(kind)) { let g = 0; while (inListItem(editor.state) && g++ < 6) editor.commands.liftListItem(inListItem(editor.state)); }
+  const map = {
+    text: () => c().setParagraph().run(), h1: () => c().setHeading({ level: 1 }).run(), h2: () => c().setHeading({ level: 2 }).run(), h3: () => c().setHeading({ level: 3 }).run(),
+    bullet: () => editor.isActive('bulletList') ? true : c().toggleBulletList().run(), ordered: () => editor.isActive('orderedList') ? true : c().toggleOrderedList().run(),
+    task: () => editor.isActive('taskList') ? true : c().toggleTaskList().run(), toggle: () => c().setDetails().run(), quote: () => c().setBlockquote().run(),
+    callout: () => c().wrapIn('callout').run(), code: () => c().setCodeBlock().run(),
+  };
+  (map[kind] || (() => {}))();
+}
+function colorBlock(editor, blk, attr, color) {
+  const { state, view } = editor;
+  const from = blk.pos + 1, to = blk.pos + blk.node.nodeSize - 1;
+  view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, from, to)));
+  const c = editor.chain().focus();
+  if (attr === 'color') (color ? c.setColor(color) : c.unsetColor()).run(); else (color ? c.setBackgroundColor(color) : c.unsetBackgroundColor()).run();
+  view.dispatch(editor.state.tr.setSelection(TextSelection.create(editor.state.doc, Math.min(to, editor.state.doc.content.size))));
+}
+
+const Indent = Extension.create({
+  name: 'adIndent', priority: 1000,
+  addGlobalAttributes() {
+    return [{ types: INDENT_ATTR_TYPES, attributes: { indent: {
+      default: 0, keepOnSplit: true,
+      parseHTML: el => { const v = parseInt(el.getAttribute('data-indent') || '0', 10); return v > 0 ? Math.min(MAX_INDENT, v) : 0; },
+      renderHTML: a => a.indent ? { 'data-indent': a.indent, style: `margin-left: ${a.indent * 1.6}em` } : {},
+    } } }];
+  },
+  addKeyboardShortcuts() {
+    const ed = this.editor;
+    return {
+      Tab: () => tabKey(ed, 1),
+      'Shift-Tab': () => tabKey(ed, -1),
+      Backspace: () => {
+        const { selection } = ed.state; if (!selection.empty || selection.$from.parentOffset > 0 || inListItem(ed.state)) return false;
+        const b = blockAt(ed.state.doc, selection.from); if (!b || !(b.node.attrs?.indent > 0)) return false;
+        return setIndent(ed, -1);
+      },
+      'Mod-Shift-ArrowUp': () => { const b = curBlock(ed.state); return b ? (moveBlock(ed, b, -1), true) : false; },
+      'Mod-Shift-ArrowDown': () => { const b = curBlock(ed.state); return b ? (moveBlock(ed, b, 1), true) : false; },
+      'Alt-Shift-ArrowUp': () => { const b = curBlock(ed.state); return b ? (moveBlock(ed, b, -1), true) : false; },
+      'Alt-Shift-ArrowDown': () => { const b = curBlock(ed.state); return b ? (moveBlock(ed, b, 1), true) : false; },
+      'Mod-d': () => { const b = curBlock(ed.state); if (b) duplicateBlock(ed, b); return true; },
+    };
+  },
+  addInputRules() {
+    const ed = this.editor;
+    return [
+      new InputRule({ find: /^>\s$/, handler: ({ range, chain }) => { chain().deleteRange(range).setDetails().run(); } }),   // Notion: "> " = 토글
+    ];
+  },
+});
+const Quote = Blockquote.extend({ addInputRules() { return [wrappingInputRule({ find: /^\s*["“]\s$/, type: this.type })]; } });  // Notion: '" ' = 인용
+
+// 줄 왼쪽에 나타나는 ＋(아래에 추가) · ⋮⋮(잡고 끌기 / 메뉴) 손잡이
+function makeHandle(editor, host) {
+  if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+  const h = document.createElement('div'); h.className = 'ne-handle'; h.style.display = 'none';
+  h.innerHTML = '<button type="button" class="ne-h-add" title="아래에 줄 추가 (Alt+클릭: 위에 추가)">＋</button><button type="button" class="ne-h-drag" draggable="true" title="끌어서 옮기기 · 클릭: 메뉴">⋮⋮</button>';
+  host.appendChild(h);
+  let cur = null, menu = null;
+  const view = editor.view;
+  const hide = () => { if (!menu) h.style.display = 'none'; };
+  const place = blk => {
+    const dom = view.nodeDOM(blk.pos); if (!dom || !dom.getBoundingClientRect) return hide();
+    const r = dom.getBoundingClientRect(), hr = host.getBoundingClientRect();
+    const isLi = LIST_ITEMS.includes(blk.node.type.name);
+    const lineH = Math.min(r.height, 28);
+    h.style.display = 'flex';
+    h.style.top = (r.top - hr.top + Math.max(0, (Math.min(lineH, 26) - 24) / 2) + (blk.node.type.name === 'heading' ? 4 : 0)) + 'px';
+    h.style.left = (r.left - hr.left - (isLi ? 70 : 50)) + 'px';
+  };
+  const onMove = e => {
+    if (!editor.isEditable || menu) return;
+    if (h.contains(e.target)) return;
+    const dr = view.dom.getBoundingClientRect();
+    if (e.clientY < dr.top || e.clientY > dr.bottom) return hide();
+    const x = Math.min(Math.max(e.clientX, dr.left + 40), dr.right - 10);
+    const p = view.posAtCoords({ left: x, top: e.clientY }); if (!p) return;
+    let blk = null;
+    if (p.inside >= 0) { const n = view.state.doc.nodeAt(p.inside); if (n && n.isAtom && n.isBlock) blk = { pos: p.inside, node: n }; }
+    blk = blk || blockAt(view.state.doc, p.pos);
+    if (!blk) return hide();
+    cur = blk; place(blk);
+  };
+  host.addEventListener('mousemove', onMove);
+  host.addEventListener('mouseleave', e => { if (!h.contains(e.relatedTarget)) hide(); });
+  const fresh = () => cur && blockAt(view.state.doc, cur.pos + 1)?.pos === cur.pos ? { pos: cur.pos, node: view.state.doc.nodeAt(cur.pos) } : (cur && view.state.doc.nodeAt(cur.pos) ? { pos: cur.pos, node: view.state.doc.nodeAt(cur.pos) } : null);
+  h.querySelector('.ne-h-add').addEventListener('mousedown', e => {
+    e.preventDefault(); const b = fresh(); if (!b) return;
+    if (e.altKey) {   // 위에 추가
+      const { state } = editor; const tr = state.tr.insert(b.pos, emptyLike(state.schema, b.node));
+      tr.setSelection(TextSelection.near(tr.doc.resolve(b.pos + (LIST_ITEMS.includes(b.node.type.name) ? 2 : 1)))); view.dispatch(tr); view.focus(); editor.commands.insertContent('/');
+    } else addBelow(editor, b, true);
+    hide();
+  });
+  const drag = h.querySelector('.ne-h-drag');
+  drag.addEventListener('dragstart', e => {
+    const b = fresh(); if (!b) return;
+    const sel = NodeSelection.create(view.state.doc, b.pos);
+    view.dispatch(view.state.tr.setSelection(sel));
+    const slice = sel.content();
+    view.dragging = { slice, move: true };
+    const dom = view.nodeDOM(b.pos);
+    try { e.dataTransfer.clearData(); e.dataTransfer.setData('text/html', dom?.outerHTML || ''); e.dataTransfer.setData('text/plain', dom?.textContent || ''); e.dataTransfer.effectAllowed = 'copyMove'; if (dom) e.dataTransfer.setDragImage(dom, 10, 10); } catch (x) {}
+  });
+  drag.addEventListener('dragend', () => { view.dragging = null; hide(); });
+  drag.addEventListener('click', e => { e.preventDefault(); const b = fresh(); if (b) openMenu(b); });
+  const closeMenu = () => { menu?.remove(); menu = null; document.removeEventListener('mousedown', outside, true); hide(); };
+  const outside = e => { if (menu && !menu.contains(e.target) && !h.contains(e.target)) closeMenu(); };
+  function openMenu(b) {
+    closeMenu();
+    view.dispatch(view.state.tr.setSelection(NodeSelection.create(view.state.doc, b.pos)));
+    menu = document.createElement('div'); menu.className = 'ne-menu ne-bmenu';
+    const it = (a, label, key = '') => `<button type="button" data-a="${a}" class="ne-mi"><span class="ne-ic">${label[0]}</span><span><b>${label.slice(1)}</b>${key ? `<small>${key}</small>` : ''}</span></button>`;
+    const TURN = [['text', '텍스트'], ['h1', '제목 1'], ['h2', '제목 2'], ['h3', '제목 3'], ['bullet', '글머리 목록'], ['ordered', '번호 목록'], ['task', '할 일'], ['toggle', '토글'], ['quote', '인용'], ['callout', '콜아웃'], ['code', '코드']];
+    menu.innerHTML = it('del', '🗑삭제', 'Del') + it('dup', '⧉복제', 'Ctrl+D') + it('up', '↑위로 이동', 'Ctrl+Shift+↑') + it('down', '↓아래로 이동', 'Ctrl+Shift+↓') + it('in', '→들여쓰기', 'Tab') + it('out', '←내어쓰기', 'Shift+Tab')
+      + `<div class="ne-pl" style="padding:6px 8px 2px;font-size:10px;color:#64748b">전환</div><div class="ne-turn">${TURN.map(([k, l]) => `<button type="button" data-t="${k}">${l}</button>`).join('')}</div>`
+      + `<div class="ne-pl" style="padding:6px 8px 2px;font-size:10px;color:#64748b">글자색</div><div class="ne-cols">${TEXT_COLORS.map(([n, c]) => `<button type="button" data-tc="${c || ''}" title="${n}"><span style="color:${c || '#e2e8f0'}">A</span></button>`).join('')}</div>`
+      + `<div class="ne-pl" style="padding:6px 8px 2px;font-size:10px;color:#64748b">배경색</div><div class="ne-cols">${BG_COLORS.map(([n, c]) => `<button type="button" data-bc="${c || ''}" title="${n}"><span style="background:${c || 'transparent'};border:1px solid #475569">A</span></button>`).join('')}</div>`;
+    document.body.appendChild(menu);
+    const r = h.getBoundingClientRect();
+    menu.style.left = Math.min(r.right + 6, innerWidth - 270) + 'px';
+    menu.style.top = Math.max(8, Math.min(r.top, innerHeight - menu.offsetHeight - 8)) + 'px';
+    menu.addEventListener('mousedown', e => {
+      e.preventDefault();
+      const btn = e.target.closest('button'); if (!btn) return;
+      const nb = view.state.doc.nodeAt(b.pos) ? { pos: b.pos, node: view.state.doc.nodeAt(b.pos) } : null; if (!nb) return closeMenu();
+      const a = btn.dataset.a;
+      if (a === 'del') deleteBlock(editor, nb);
+      else if (a === 'dup') duplicateBlock(editor, nb);
+      else if (a === 'up' || a === 'down') { moveBlock(editor, nb, a === 'up' ? -1 : 1); }
+      else if (a === 'in' || a === 'out') { view.dispatch(view.state.tr.setSelection(TextSelection.near(view.state.doc.resolve(nb.pos + 1 + (LIST_ITEMS.includes(nb.node.type.name) ? 1 : 0))))); tabKey(editor, a === 'in' ? 1 : -1); }
+      else if (btn.dataset.t) turnInto(editor, nb, btn.dataset.t);
+      else if (btn.dataset.tc !== undefined) colorBlock(editor, nb, 'color', btn.dataset.tc);
+      else if (btn.dataset.bc !== undefined) colorBlock(editor, nb, 'bg', btn.dataset.bc);
+      closeMenu(); view.focus();
+    });
+    setTimeout(() => document.addEventListener('mousedown', outside, true), 0);
+  }
+  editor.on('update', () => { if (cur && h.style.display !== 'none') { const b = fresh(); if (b) place(b); else hide(); } });
+  return () => { h.remove(); closeMenu(); host.removeEventListener('mousemove', onMove); };
+}
+
 export function create(el, opts = {}) {
   const upload = opts.upload || null;
   const editor = new Editor({
@@ -189,13 +429,13 @@ export function create(el, opts = {}) {
     editable: !!opts.editable,
     content: opts.html || '',
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3, 4] }, link: { openOnClick: !opts.editable, autolink: true, HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' } } }),
+      StarterKit.configure({ blockquote: false, heading: { levels: [1, 2, 3, 4] }, link: { openOnClick: !opts.editable, autolink: true, HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' } } }),
       TextStyle, Color, BackgroundColor,
       TaskList, TaskItem.configure({ nested: true }),
       Table.configure({ resizable: false }), TableRow, TableHeader, TableCell,
       Details.configure({ persist: true, HTMLAttributes: { class: 'ne-details' } }), DetailsSummary, DetailsContent,
       Image.configure({ inline: false, allowBase64: false }),
-      Callout,
+      Callout, Quote, Indent,
       Placeholder.configure({ placeholder: ({ node }) => node.type.name === 'heading' ? '제목' : (node.type.name === 'detailsSummary' ? '토글 제목' : "내용을 입력하거나 '/'로 블록 추가"), includeChildren: false }),
       makeSlash(() => upload), Keys,
     ],
@@ -208,6 +448,8 @@ export function create(el, opts = {}) {
   });
   if (opts.onSave) editor.on('save-now', () => opts.onSave(editor));
   const cleanups = [makeBubble(editor), makeTableBar(editor)];
+  if (opts.editable) cleanups.push(makeHandle(editor, el));
+  editor.blockOps = { blockAt: p => blockAt(editor.state.doc, p), addBelow: (b, s) => addBelow(editor, b, s), deleteBlock: b => deleteBlock(editor, b), duplicateBlock: b => duplicateBlock(editor, b), moveBlock: (b, d) => moveBlock(editor, b, d), tab: d => tabKey(editor, d), turnInto: (b, k) => turnInto(editor, b, k) };
   const origDestroy = editor.destroy.bind(editor);
   editor.destroy = () => { cleanups.forEach(f => f()); origDestroy(); };
   return editor;

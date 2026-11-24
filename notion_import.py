@@ -31,6 +31,7 @@ MAX_FILE = 1_900_000
 STMT_BYTES = 80_000
 T0 = time.time()
 BUDGET = float(os.environ.get("IMPORT_BUDGET_MIN", "330")) * 60
+FORCE = os.environ.get("FORCE_REIMPORT", "") == "1"   # Notion에서 바뀌지 않은 페이지도 다시 변환(앱에서 고친 페이지는 여전히 건너뜀)
 
 TEXT_COLORS = {"gray": "#9b9a97", "brown": "#ba856f", "orange": "#d9730d", "yellow": "#cb912f", "green": "#4dab9a",
                "blue": "#529cca", "purple": "#9a6dd7", "pink": "#e255a1", "red": "#e03e3e"}
@@ -191,10 +192,15 @@ def file_url(b: dict, key: str, image: bool):
     return None, False
 
 
+def ia(ind: int) -> str:
+    ind = min(int(ind or 0), 8)
+    return f' data-indent="{ind}" style="margin-left: {ind * 1.6}em"' if ind > 0 else ""
+
+
 CHILD_PAGES: list[tuple[str, str]] = []  # (page_id, title) 현재 페이지의 하위 페이지 (본문 순서)
 
 
-def blocks_html(blocks: list) -> str:
+def blocks_html(blocks: list, ind: int = 0) -> str:
     out, i = [], 0
     while i < len(blocks):
         b = blocks[i]
@@ -211,19 +217,19 @@ def blocks_html(blocks: list) -> str:
                     items.append(f'<li data-type="taskItem" data-checked="{"true" if d.get("checked") else "false"}">{inner}</li>')
                 else:
                     items.append(f"<li>{inner}</li>")
-            tag = {"bulleted_list_item": "<ul>", "numbered_list_item": "<ol>", "to_do": '<ul data-type="taskList">'}[t]
+            tag = {"bulleted_list_item": f"<ul{ia(ind)}>", "numbered_list_item": f"<ol{ia(ind)}>", "to_do": f'<ul data-type="taskList"{ia(ind)}>'}[t]
             out.append(tag + "".join(items) + ("</ol>" if t == "numbered_list_item" else "</ul>"))
             i = j
             continue
-        out.append(block_html(b))
+        out.append(block_html(b, ind))
         i += 1
     return "".join(out)
 
 
-def kids(b: dict) -> str:
+def kids(b: dict, ind: int = 0) -> str:
     if not b.get("has_children") or b["type"] in ("child_page", "child_database"):
         return ""
-    return blocks_html(load_children(b["id"]))
+    return blocks_html(load_children(b["id"]), ind)
 
 
 def load_children(bid: str) -> list:
@@ -234,28 +240,28 @@ def load_children(bid: str) -> list:
     return bl
 
 
-def block_html(b: dict) -> str:
+def block_html(b: dict, ind: int = 0) -> str:
     t = b["type"]
     d = b.get(t, {}) or {}
     if t == "paragraph":
-        return f"<p>{rich(d.get('rich_text'), d.get('color'))}</p>" + kids(b)
+        return f"<p{ia(ind)}>{rich(d.get('rich_text'), d.get('color'))}</p>" + kids(b, ind + 1)
     if t in ("heading_1", "heading_2", "heading_3"):
         lv = t[-1]
         text = rich(d.get("rich_text"), d.get("color"))
         if d.get("is_toggleable"):
-            return f'<details><summary><strong>{text}</strong></summary><div data-type="detailsContent">{kids(b) or "<p></p>"}</div></details>'
-        return f"<h{lv}>{text}</h{lv}>" + kids(b)
+            return f'<details{ia(ind)}><summary><strong>{text}</strong></summary><div data-type="detailsContent">{kids(b) or "<p></p>"}</div></details>'
+        return f"<h{lv}{ia(ind)}>{text}</h{lv}>" + kids(b, ind + 1)
     if t == "toggle":
-        return f'<details><summary>{rich(d.get("rich_text"), d.get("color"))}</summary><div data-type="detailsContent">{kids(b) or "<p></p>"}</div></details>'
+        return f'<details{ia(ind)}><summary>{rich(d.get("rich_text"), d.get("color"))}</summary><div data-type="detailsContent">{kids(b) or "<p></p>"}</div></details>'
     if t == "quote":
-        return f"<blockquote><p>{rich(d.get('rich_text'), d.get('color'))}</p>{kids(b)}</blockquote>"
+        return f"<blockquote{ia(ind)}><p>{rich(d.get('rich_text'), d.get('color'))}</p>{kids(b)}</blockquote>"
     if t == "callout":
         ic = (d.get("icon") or {}).get("emoji") or "💡"
-        return f'<div data-callout="" data-icon="{esc(ic)}"><p>{rich(d.get("rich_text"), d.get("color"))}</p>{kids(b)}</div>'
+        return f'<div data-callout="" data-icon="{esc(ic)}"{ia(ind)}><p>{rich(d.get("rich_text"), d.get("color"))}</p>{kids(b)}</div>'
     if t == "divider":
-        return "<hr>"
+        return f"<hr{ia(ind)}>"
     if t == "code":
-        return f"<pre><code>{esc(''.join(x.get('plain_text', '') for x in d.get('rich_text', [])))}</code></pre>"
+        return f"<pre{ia(ind)}><code>{esc(''.join(x.get('plain_text', '') for x in d.get('rich_text', [])))}</code></pre>"
     if t == "equation":
         return f"<p><code>{esc(d.get('expression', ''))}</code></p>"
     if t == "image":
@@ -263,7 +269,7 @@ def block_html(b: dict) -> str:
         cap = rich(d.get("caption"))
         if not url:
             return "<p>(이미지를 옮기지 못했습니다)</p>"
-        return f'<img src="{esc(url)}">' + (f"<p>{cap}</p>" if cap else "")
+        return f'<img src="{esc(url)}"{ia(ind)}>' + (f"<p>{cap}</p>" if cap else "")
     if t in ("pdf", "file", "video", "audio"):
         url, local = file_url(b, b["id"], False)
         name = (d.get("name") or "") or (url or "").split("?")[0].rsplit("/", 1)[-1] or t.upper()
@@ -288,9 +294,9 @@ def block_html(b: dict) -> str:
                 tag = "th" if (head and ri == 0) or (rh and ci == 0) else "td"
                 tds.append(f"<{tag}><p>{rich(cell)}</p></{tag}>")
             trs.append("<tr>" + "".join(tds) + "</tr>")
-        return "<table><tbody>" + "".join(trs) + "</tbody></table>"
+        return f"<table{ia(ind)}><tbody>" + "".join(trs) + "</tbody></table>"
     if t in ("column_list", "column", "synced_block", "template"):
-        return kids(b)
+        return kids(b, ind)
     if t == "child_page":
         return ""  # 트리의 하위 페이지로 옮김
     if t == "child_database":
@@ -430,7 +436,7 @@ def main():
         edited = pg.get("last_edited_time", "")
         prev = state.get(pid)
         CHILD_PAGES.clear()
-        if prev and prev.get("notion_edited") == edited:
+        if prev and prev.get("notion_edited") == edited and not FORCE:
             load_children(pid)  # 변경 없음: 하위 페이지 목록만 확인
         elif prev and prev.get("source") == "app":
             skipped_app += 1
