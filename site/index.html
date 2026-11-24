@@ -306,6 +306,29 @@
         </div>
       </div>
     </div>
+          <div data-sub="macro" class="space-y-5">
+        <div>
+          <h2 class="text-lg font-bold text-white tracking-tight">Macro Market</h2>
+          <p class="text-xs text-slate-400 mt-1">원자재 · 금리 · 변동성 · 환율 · 가상자산 · 표의 지표를 누르면 위 차트가 바뀝니다 · 금리는 변화폭(bp), 나머지는 등락률(%)</p>
+        </div>
+        <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-3">
+          <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2"><span id="mac-name" class="text-base font-bold text-white">-</span><span id="mac-src" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400"></span></div>
+              <div class="flex items-baseline gap-3 mt-1"><span id="mac-last" class="font-num text-2xl font-bold text-white">-</span><span id="mac-chg" class="font-mono text-sm"></span><span id="mac-asof" class="text-[11px] text-slate-500"></span></div>
+            </div>
+            <div class="inline-flex flex-wrap rounded-xl bg-slate-900 p-1 border border-terminal-border" id="mac-range"></div>
+          </div>
+          <div class="relative"><svg id="mac-chart" viewBox="0 0 900 300" preserveAspectRatio="none" class="w-full h-[300px]"></svg><div id="mac-tip" class="hidden absolute pointer-events-none text-[11px] font-mono bg-slate-900/95 border border-slate-700 rounded-lg px-2 py-1 text-slate-200"></div></div>
+        </div>
+        <div class="bg-terminal-panel border border-terminal-border rounded-2xl overflow-hidden">
+          <div class="overflow-x-auto"><table class="w-full text-left text-xs whitespace-nowrap">
+            <thead><tr class="bg-slate-900/90 border-b border-terminal-border text-[10px] text-slate-400 uppercase"><th class="sticky-col py-3 px-4">지표</th><th class="py-3 px-3 text-right">현재</th><th class="py-3 px-3 text-right">1D</th><th class="py-3 px-3 text-right">1W</th><th class="py-3 px-3 text-right">1M</th><th class="py-3 px-3 text-right">3M</th><th class="py-3 px-3 text-right">6M</th><th class="py-3 px-3 text-right">1Y</th><th class="py-3 px-3 text-right">YTD</th><th class="py-3 px-3 text-right">3Y</th><th class="py-3 px-4 text-right">기준일</th></tr></thead>
+            <tbody id="mac-tbody" class="divide-y divide-slate-800/70"></tbody>
+          </table></div>
+        </div>
+        <p id="mac-note" class="text-[11px] text-slate-500">데이터: Yahoo Finance(선물 근월물·지수·환율·BTC 종가), FRED(미국 국채 2년·10년 만기 수익률, 하루 늦게 갱신될 수 있음)</p>
+      </div>
     </section>
 
     <!-- TAB 1 -->
@@ -995,7 +1018,7 @@
   // ---------------------------------------------------------------- navigation
   const NAV = [
     { id: 'tabH', no: '00', title: 'Market Spectrum', desc: '시장 체온·폭·심리를 한눈에', subs: [['overview', '통합'], ['heatmap', 'S&P 500 구성종목 히트맵'], ['fg', '공포 & 탐욕 지수']] },
-    { id: 'tab0', no: '01', title: 'Market Summary', desc: '지수·섹터·뉴스·등락 상위 요약', subs: [['overview', '통합'], ['index', '미국 증시 시장 펄스 & 4대 주요 지수 흐름'], ['sector', '섹터별 수익률'], ['news', '시장 주요 뉴스 헤드라인'], ['movers', 'S&P 500 전일 수익률 상위 10 · 하위 10']] },
+    { id: 'tab0', no: '01', title: 'Market Summary', desc: '지수·섹터·뉴스·등락 상위 요약', subs: [['overview', '통합'], ['index', '미국 증시 시장 펄스 & 4대 주요 지수 흐름'], ['sector', '섹터별 수익률'], ['news', '시장 주요 뉴스 헤드라인'], ['movers', 'S&P 500 전일 수익률 상위 10 · 하위 10'], ['macro', 'Macro Market']] },
     { id: 'tab1', no: '02', title: 'Russell 1000 스크리너' },
     { id: 'tab2', no: '03', title: '수익률 vs 리스크·밸류' },
     { id: 'tab3', no: '04', title: '모델 포트폴리오', desc: '내 포트폴리오와 최적 조합 비교', subs: [['overview', '통합'], ['custom', '커스텀 모델 포트폴리오 시뮬레이터'], ['optimal', '최적 포트폴리오 탐색']] },
@@ -1040,7 +1063,7 @@
     if (!sb.classList.contains('-translate-x-full') && window.innerWidth < 1024) toggleMobileSidebar();
     window.scrollTo({ top: 0 });
     if (tabId === 'tabH') { if (cs === 'heatmap') renderHeatmap(); if (cs === 'overview') renderSpectrumOverview(); if (cs === 'fg') renderFearGreed(); }
-    if (tabId === 'tab0') { if (cs === 'index') renderMarketIndexChart(); if (cs === 'overview') renderSummaryOverview(); if (cs === 'sector') renderSectorChart(); }
+    if (tabId === 'tab0') { if (cs === 'index') renderMarketIndexChart(); if (cs === 'overview') renderSummaryOverview(); if (cs === 'sector') renderSectorChart(); if (cs === 'macro') renderMacro(); }
     if (tabId === 'tab1') renderOverviewTable();
     if (tabId === 'tab2') updateScatterView();
     if (tabId === 'tab3') { if (cs === 'custom') renderPortfolioSection(); if (cs === 'overview') renderPortfolioOverview(); if (cs === 'optimal') renderOptimal(); }
@@ -1207,6 +1230,63 @@
     const mv = DATA?.movers;
     $('sum-movers').innerHTML = mv ? `<div><div class="text-[11px] font-bold text-emerald-300 mb-1">▲ 상위 5</div>${mv.gainers.slice(0, 5).map(m => mrow(m, true)).join('')}</div><div><div class="text-[11px] font-bold text-rose-300 mb-1">▼ 하위 5</div>${mv.losers.slice(0, 5).map(m => mrow(m, false)).join('')}</div>` : '<div class="text-slate-500 text-xs">데이터 없음</div>';
     $('sum-news').innerHTML = (DATA?.news?.market || []).slice(0, 6).map(n => newsCard(n, true)).join('') || '<div class="text-slate-500">뉴스 없음</div>';
+  }
+
+  // ---------------------------------------------------------------- 01-5 Macro Market
+  let MACRO = null, macKey = 'WTI', macRange = '1Y';
+  const MAC_RANGES = [['1M', 1], ['3M', 3], ['6M', 6], ['1Y', 12], ['3Y', 36], ['5Y', 60]];
+  async function renderMacro() {
+    if (!MACRO) {
+      $('mac-tbody').innerHTML = '<tr><td colspan="11" class="py-8 text-center text-slate-500">불러오는 중…</td></tr>';
+      try { MACRO = await fetch('data/macro.json?ts=' + Date.now(), { cache: 'no-store' }).then(r => { if (!r.ok) throw 0; return r.json(); }); }
+      catch (e) { $('mac-tbody').innerHTML = '<tr><td colspan="11" class="py-8 text-center text-slate-500">다음 자동 갱신 후 표시됩니다</td></tr>'; return; }
+    }
+    const items = MACRO.items || [];
+    const fmtV = (x, v) => isNum(v) ? (x.kind === 'yield' ? v.toFixed(2) + '%' : v.toLocaleString('en-US', { minimumFractionDigits: x.dec, maximumFractionDigits: x.dec })) : '-';
+    const fmtC = (x, v) => { if (!isNum(v)) return '<span class="text-slate-600">-</span>';
+      const col = v > 0 ? 'text-emerald-400' : v < 0 ? 'text-rose-400' : 'text-slate-400';
+      return `<span class="font-mono ${col}">${v > 0 ? '+' : ''}${x.kind === 'yield' ? v.toFixed(0) + 'bp' : v.toFixed(2) + '%'}</span>`; };
+    let lastGrp = '';
+    $('mac-tbody').innerHTML = items.map(x => {
+      const head = x.group !== lastGrp ? `<tr class="bg-slate-900/60"><td colspan="11" class="sticky-col py-1.5 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wide">${esc(x.group)}</td></tr>` : '';
+      lastGrp = x.group; const act = x.key === macKey;
+      return head + `<tr onclick="macKey='${x.key}'; renderMacro()" class="cursor-pointer hover:bg-slate-800/60 ${act ? 'bg-blue-950/40' : ''}">
+        <td class="sticky-col py-2.5 px-4 font-semibold ${act ? 'text-blue-300' : 'text-white'}">${esc(x.name)} <span class="text-[10px] text-slate-500 font-normal">${esc(x.unit)}</span></td>
+        <td class="py-2.5 px-3 text-right font-num font-bold text-white">${fmtV(x, x.last)}</td>
+        ${['r1D', 'r1W', 'r1M', 'r3M', 'r6M', 'r1Y', 'rYTD', 'r3Y'].map(k => `<td class="py-2.5 px-3 text-right">${fmtC(x, x.chg?.[k])}</td>`).join('')}
+        <td class="py-2.5 px-4 text-right font-mono text-[10px] text-slate-500">${esc(x.asOf || '-')}</td></tr>`;
+    }).join('');
+    const x = items.find(i => i.key === macKey && i.hist) || items.find(i => i.hist); if (!x) return;
+    macKey = x.key;
+    $('mac-name').textContent = x.name; $('mac-src').textContent = x.source || '';
+    $('mac-last').textContent = fmtV(x, x.last) + (x.kind === 'yield' ? '' : ' ' + x.unit);
+    $('mac-chg').innerHTML = `1D ${fmtC(x, x.chg?.r1D)} · 1M ${fmtC(x, x.chg?.r1M)} · YTD ${fmtC(x, x.chg?.rYTD)}`;
+    $('mac-asof').textContent = `${x.asOf} 기준`;
+    $('mac-range').innerHTML = MAC_RANGES.map(([k]) => `<button onclick="macRange='${k}'; renderMacro()" class="px-3 py-1 rounded-lg text-xs font-semibold ${k === macRange ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}">${k}</button>`).join('');
+    const months = MAC_RANGES.find(r => r[0] === macRange)[1];
+    const end = new Date(x.hist.d[x.hist.d.length - 1] + 'T00:00:00Z'); end.setUTCMonth(end.getUTCMonth() - months);
+    const st = end.toISOString().slice(0, 10);
+    let i0 = x.hist.d.findIndex(d => d >= st); if (i0 < 0) i0 = 0;
+    const D = x.hist.d.slice(i0), C = x.hist.c.slice(i0), n = C.length;
+    const W = 900, H = 300, pl = 58, pr = 10, pt = 10, pb = 24;
+    let mn = Math.min(...C), mx = Math.max(...C); const pad = (mx - mn) * 0.06 || Math.abs(mx) * 0.01 || 1; mn -= pad; mx += pad;
+    const X = k => pl + (W - pl - pr) * (n > 1 ? k / (n - 1) : 0), Y = v => pt + (H - pt - pb) * (1 - (v - mn) / (mx - mn));
+    const up = C[n - 1] >= C[0], col = up ? '#10b981' : '#f43f5e';
+    const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => mn + (mx - mn) * f).map(v => `<line x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#1e293b"/><text x="${pl - 6}" y="${Y(v) + 3}" text-anchor="end" fill="#64748b" font-size="10">${fmtV(x, v)}</text>`).join('');
+    const xt = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round((n - 1) * f)).map(k => `<text x="${X(k)}" y="${H - 6}" text-anchor="middle" fill="#64748b" font-size="10">${D[k].slice(2)}</text>`).join('');
+    const line = C.map((v, k) => `${k ? 'L' : 'M'}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join('');
+    $('mac-chart').innerHTML = `<defs><linearGradient id="macg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity="0.25"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>${ticks}${xt}
+      <path d="${line}L${X(n - 1)},${H - pb}L${X(0)},${H - pb}Z" fill="url(#macg)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="1.8"/>
+      <line id="mac-cross" x1="0" x2="0" y1="${pt}" y2="${H - pb}" stroke="#94a3b8" stroke-dasharray="3 3" visibility="hidden"/><circle id="mac-dot" r="3.5" fill="${col}" visibility="hidden"/>`;
+    const svg = $('mac-chart'), tip = $('mac-tip');
+    svg.onmousemove = e => { const r = svg.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width * W;
+      const k = Math.max(0, Math.min(n - 1, Math.round((fx - pl) / (W - pl - pr) * (n - 1))));
+      $('mac-cross').setAttribute('x1', X(k)); $('mac-cross').setAttribute('x2', X(k)); $('mac-cross').setAttribute('visibility', 'visible');
+      $('mac-dot').setAttribute('cx', X(k)); $('mac-dot').setAttribute('cy', Y(C[k])); $('mac-dot').setAttribute('visibility', 'visible');
+      const chg = x.kind === 'yield' ? `${((C[k] - C[0]) * 100 >= 0 ? '+' : '')}${((C[k] - C[0]) * 100).toFixed(0)}bp` : `${(C[k] / C[0] - 1) * 100 >= 0 ? '+' : ''}${((C[k] / C[0] - 1) * 100).toFixed(2)}%`;
+      tip.innerHTML = `${D[k]} · <b>${fmtV(x, C[k])}</b> · 구간 ${chg}`; tip.classList.remove('hidden');
+      tip.style.left = Math.min(r.width - 220, Math.max(0, X(k) / W * r.width + 10)) + 'px'; tip.style.top = '8px'; };
+    svg.onmouseleave = () => { tip.classList.add('hidden'); $('mac-cross')?.setAttribute('visibility', 'hidden'); $('mac-dot')?.setAttribute('visibility', 'hidden'); };
   }
 
   // ---------------------------------------------------------------- 04 통합 + 최적 포트폴리오

@@ -1076,6 +1076,97 @@ def fear_greed(prices: dict, uni_syms: list[str], calib: dict | None = None) -> 
 
 
 # ---------------------------------------------------------------------------
+# Macro Market (원자재·금리·변동성·환율·가상자산)
+# ---------------------------------------------------------------------------
+MACRO = [
+    # key, 이름, 그룹, 소스, 심볼, 단위, 종류(price=등락률 % / yield=변화 bp), 소수점
+    ("WTI", "WTI 원유", "에너지·원자재", "yahoo", "CL=F", "$/bbl", "price", 2),
+    ("BRENT", "브렌트 원유", "에너지·원자재", "yahoo", "BZ=F", "$/bbl", "price", 2),
+    ("NG", "천연가스 (Henry Hub)", "에너지·원자재", "yahoo", "NG=F", "$/MMBtu", "price", 3),
+    ("COPPER", "구리", "에너지·원자재", "yahoo", "HG=F", "$/lb", "price", 3),
+    ("IRON", "철광석 (62% CFR 중국)", "에너지·원자재", "yahoo", "TIO=F", "$/t", "price", 2),
+    ("VIX", "VIX 변동성 지수", "금리·변동성", "yahoo", "^VIX", "pt", "price", 2),
+    ("UST2Y", "미국 2년물 국채금리", "금리·변동성", "fred", "DGS2", "%", "yield", 2),
+    ("UST10Y", "미국 10년물 국채금리", "금리·변동성", "fred", "DGS10", "%", "yield", 2),
+    ("DXY", "달러인덱스 (DXY)", "통화", "yahoo", "DX-Y.NYB", "pt", "price", 2),
+    ("EURUSD", "유로 (EUR/USD)", "통화", "yahoo", "EURUSD=X", "$", "price", 4),
+    ("USDJPY", "엔달러 (USD/JPY)", "통화", "yahoo", "JPY=X", "¥", "price", 2),
+    ("USDKRW", "원달러 (USD/KRW)", "통화", "yahoo", "KRW=X", "₩", "price", 1),
+    ("BTC", "비트코인 (BTC/USD)", "가상자산", "yahoo", "BTC-USD", "$", "price", 0),
+]
+FRED_FALLBACK = {"DGS10": "^TNX", "DGS2": "2YY=F"}
+
+
+def fred_series(ids: list[str]) -> dict[str, pd.Series]:
+    out = {}
+    try:
+        r = requests.get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": ",".join(ids)}, timeout=40,
+                         headers={"User-Agent": "AlphaDesk/1.0 (personal dashboard)"})
+        r.raise_for_status()
+        df = pd.read_csv(io.StringIO(r.text))
+        dcol = df.columns[0]
+        df[dcol] = pd.to_datetime(df[dcol])
+        df = df.set_index(dcol)
+        for i in ids:
+            if i in df.columns:
+                v = pd.to_numeric(df[i], errors="coerce").dropna()
+                if len(v):
+                    out[i] = v
+    except Exception as ex:  # noqa: BLE001
+        warn(f"FRED 금리 조회 실패: {ex}")
+    return out
+
+
+def diff_block(level: pd.Series) -> dict:
+    """금리처럼 수준 변화가 의미 있는 지표: 기간 변화(bp)."""
+    last_d, last = level.index[-1], float(level.iloc[-1])
+    out = {"r1D": (last - float(level.iloc[-2])) * 100 if len(level) > 1 else None}
+    for k in list(PERIODS) + ["rYTD"]:
+        st = period_start(last_d, k)
+        if st < level.index[0] - pd.Timedelta(days=5):
+            out[k] = None
+            continue
+        p0 = price_on_or_before(level, st)
+        out[k] = None if p0 is None else (last - p0) * 100
+    return {k: (None if v is None else round(v, 1)) for k, v in out.items()}
+
+
+def macro_block(years: int = 5) -> dict | None:
+    ysyms = [m[4] for m in MACRO if m[3] == "yahoo"]
+    fids = [m[4] for m in MACRO if m[3] == "fred"]
+    px = download_prices(ysyms + list(FRED_FALLBACK.values()), years)
+    fr = fred_series(fids)
+    cut = pd.Timestamp.today() - pd.DateOffset(years=years)
+    items = []
+    for key, name, grp, src, sym, unit, kind, dec in MACRO:
+        ser, used_src = None, None
+        if src == "fred":
+            ser = fr.get(sym)
+            used_src = f"FRED {sym}"
+            if ser is None or len(ser) < 30:
+                fb = px.get(FRED_FALLBACK[sym])
+                if fb is not None and len(fb):
+                    ser, used_src = fb["Close"].dropna(), f"Yahoo {FRED_FALLBACK[sym]} (FRED 대체)"
+        else:
+            df = px.get(sym)
+            if df is not None and len(df):
+                ser, used_src = df["Close"].dropna(), f"Yahoo {sym}"
+        if ser is None or len(ser) < 5:
+            warn(f"Macro 지표 데이터 없음: {name} ({sym})")
+            items.append({"key": key, "name": name, "group": grp, "unit": unit, "kind": kind, "dec": dec, "source": used_src or sym, "last": None})
+            continue
+        ser = ser[ser.index >= cut]
+        ser = ser[~ser.index.duplicated(keep="last")]
+        chg = diff_block(ser) if kind == "yield" else returns_block(ser)
+        items.append({"key": key, "name": name, "group": grp, "unit": unit, "kind": kind, "dec": dec, "source": used_src,
+                      "asOf": ser.index[-1].strftime("%Y-%m-%d"), "last": round(float(ser.iloc[-1]), max(dec, 2)), "chg": chg,
+                      "hist": {"d": [d.strftime("%Y-%m-%d") for d in ser.index], "c": [round(float(x), max(dec, 2) + 1) for x in ser]}})
+    ok = sum(1 for x in items if x.get("last") is not None)
+    print(f"   Macro 지표 {ok}/{len(items)}개")
+    return {"generatedAt": dt.datetime.now(dt.timezone.utc).isoformat(), "items": items}
+
+
+# ---------------------------------------------------------------------------
 # 최적 포트폴리오 탐색 (사후적 백테스트 · 15~40종목)
 # ---------------------------------------------------------------------------
 OPT_WINDOWS = [("1W", "최근 1주", 5), ("1M", "최근 1개월", 21), ("3M", "최근 3개월", 63), ("6M", "최근 6개월", 126)]
@@ -1532,6 +1623,14 @@ def main() -> None:
     fg = fear_greed(prices, [yahoo_symbol(s_["ticker"]) for s_ in stocks], cfg.get("fear_greed_calibration"))
     if fg:
         print(f"   {fg['asOf']}: {fg['score']} ({fg['label']})")
+
+    print("⑥-1 Macro Market")
+    try:
+        mac = macro_block(5)
+        if mac:
+            dump(out / "macro.json", mac)
+    except Exception as ex:  # noqa: BLE001
+        warn(f"Macro Market 수집 실패: {ex}")
 
     print("⑥-2 최적 포트폴리오")
     opt = optimal_portfolios(prices, stocks, prices["^GSPC"]["Close"]) if "^GSPC" in prices else None
