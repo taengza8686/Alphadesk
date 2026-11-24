@@ -1100,9 +1100,9 @@ FRED_FALLBACK = {"DGS10": "^TNX", "DGS2": "2YY=F"}
 def fred_series(ids: list[str]) -> dict[str, pd.Series]:
     """FRED(무키 CSV) → 실패 시 미국 재무부 공식 일별 국채 수익률 CSV로 대체."""
     out = {}
-    for attempt in range(3):
+    for attempt in range(1):   # GitHub Actions에서 FRED가 자주 응답하지 않아 1회만 짧게 시도
         try:
-            r = requests.get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": ",".join(ids)}, timeout=(15, 90),
+            r = requests.get("https://fred.stlouisfed.org/graph/fredgraph.csv", params={"id": ",".join(ids)}, timeout=(10, 25),
                              headers={"User-Agent": "AlphaDesk/1.0 (personal dashboard)"})
             r.raise_for_status()
             df = pd.read_csv(io.StringIO(r.text))
@@ -1117,8 +1117,7 @@ def fred_series(ids: list[str]) -> dict[str, pd.Series]:
             if out:
                 return out
         except Exception as ex:  # noqa: BLE001
-            warn(f"FRED 금리 조회 실패({attempt + 1}/3): {str(ex)[:100]}")
-            time.sleep(5)
+            print(f"   FRED 응답 없음 → 미국 재무부 공식 CSV 사용 ({str(ex)[:60]})")
     # 미국 재무부 Daily Treasury Par Yield Curve Rates
     col = {"DGS2": "2 Yr", "DGS10": "10 Yr", "DGS3MO": "3 Mo", "DGS30": "30 Yr"}
     frames = []
