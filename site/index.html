@@ -26,6 +26,7 @@
     .sticky-col { position: sticky; left: 0; z-index: 5; background: #0f1623; box-shadow: 1px 0 0 #1e293b, 6px 0 8px -6px rgba(0,0,0,.6); }
     thead .sticky-col { background: #0b111c; z-index: 6; }
     tr:hover > .sticky-col { background: #172033; }
+    .sticky-col.sticky-hl { background: #121a2a; }
     .sidebar-item-active { background: rgba(37, 99, 235, 0.16); color: #60a5fa; border-left: 3px solid #3b82f6; }
     .sidebar-item-inactive { color: #94a3b8; border-left: 3px solid transparent; }
     .sidebar-item-inactive:hover { background: rgba(30, 41, 59, 0.5); color: #f8fafc; }
@@ -2020,7 +2021,7 @@
     } else {
       const SHOW = 8, all = fin.quarters, off = Math.max(0, all.length - SHOW);
       const qs = all.slice(off);
-      $('fin-thead').innerHTML = `<tr class="bg-slate-900/90 border-b border-terminal-border text-[11px] text-slate-400 uppercase"><th class="py-3 px-5">재무 항목</th>${qs.map(q => `<th class="py-3 px-4 text-right font-mono"><div>${esc(q.label)}</div><div class="text-[9px] text-slate-500 normal-case">${esc(q.end)}</div></th>`).join('')}</tr>`;
+      $('fin-thead').innerHTML = `<tr class="bg-slate-900/90 border-b border-terminal-border text-[11px] text-slate-400 uppercase"><th class="sticky-col py-3 px-5">재무 항목</th>${qs.map(q => `<th class="py-3 px-4 text-right font-mono"><div>${esc(q.label)}</div><div class="text-[9px] text-slate-500 normal-case">${esc(q.end)}</div></th>`).join('')}</tr>`;
       const rows = fin[stmtType] || [];
       $('fin-tbody').innerHTML = rows.map(row => {
         const cells = qs.map((q, ci) => {
@@ -2041,7 +2042,7 @@
           const dmark = row.derived?.[i] ? '<span class="derived-mark" title="분기 공시값이 없어 연간(10-K) 또는 누적(YTD) 값에서 차감해 계산">ᴰ</span>' : '';
           return `<td class="py-3 px-4 text-right"><div class="font-num font-semibold ${row.highlight ? 'text-white' : 'text-slate-200'}">${disp}${dmark}</div><div class="font-num text-[10px] text-slate-500 mt-0.5">${[qoq, yoy].filter(Boolean).join(' · ') || '&nbsp;'}</div></td>`;
         }).join('');
-        return `<tr class="${row.highlight ? 'bg-slate-900/40' : ''}"><td class="py-3 px-5 font-medium ${row.highlight ? 'text-blue-300 font-semibold' : 'text-slate-300'}">${esc(row.item)}</td>${cells}</tr>`;
+        return `<tr class="${row.highlight ? 'bg-slate-900/40' : ''}"><td class="sticky-col ${row.highlight ? 'sticky-hl' : ''} py-3 px-5 font-medium ${row.highlight ? 'text-blue-300 font-semibold' : 'text-slate-300'}">${esc(row.item)}</td>${cells}</tr>`;
       }).join('') || `<tr><td class="py-6 px-5 text-slate-500">이 재무제표 항목이 XBRL에 없습니다</td></tr>`;
     }
 
