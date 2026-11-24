@@ -1,4 +1,4 @@
-name: Notion → AlphaDesk 노트 이관
+name: Notion → AlphaDesk 노트 이관 (요청 시에만 수동 실행)
 
 on:
   workflow_dispatch:
@@ -7,9 +7,6 @@ on:
         description: "1 = 바뀌지 않은 페이지도 다시 변환 (AlphaDesk에서 고친 페이지는 건너뜀)"
         required: false
         default: "0"
-  schedule:
-    # 이관 기간 동안 매일 1회 변경분 반영 (한국시간 06:41)
-    - cron: "41 21 * * *"
 
 permissions:
   contents: read
