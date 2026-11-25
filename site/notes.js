@@ -38,7 +38,13 @@ function ntIndex() {
     if (!NT.kids.has(p)) NT.kids.set(p, []);
     NT.kids.get(p).push(n);
   }
-  for (const a of NT.kids.values()) a.sort((x, y) => (x.sort - y.sort) || String(x.title).localeCompare(String(y.title)));
+  const byTitle = (x, y) => String(x.title || '').localeCompare(String(y.title || ''), 'en', { sensitivity: 'base', numeric: true });
+  for (const a of NT.kids.values()) {
+    // 기업 목록(제목에 "(티커 US)"가 있는 페이지가 대부분인 폴더)은 항상 알파벳순 — 새 기업을 추가해도 제자리에 들어감
+    const companies = a.filter(n => NT_RE_TICKER.test(n.title || '')).length;
+    if (companies && companies >= a.length / 2) a.sort((x, y) => (NT_RE_TICKER.test(y.title || '') - NT_RE_TICKER.test(x.title || '')) || byTitle(x, y));
+    else a.sort((x, y) => (x.sort - y.sort) || byTitle(x, y));
+  }
 }
 const ntKids = id => NT.kids.get(id || '') || [];
 const ntNode = id => NT.nodes.get(id);
