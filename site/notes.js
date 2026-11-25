@@ -99,7 +99,7 @@ async function ntCreateDefaults() {
 function ntRenderSplit(scope) {
   const host = $('nt-' + scope);
   if (!host.dataset.ready) {
-    host.innerHTML = `<div class="flex flex-col lg:flex-row gap-4 items-start">
+    host.innerHTML = `${scope === 'company' ? '<div id="nt-company-stats" class="mb-4"></div>' : ''}<div class="flex flex-col lg:flex-row gap-4 items-start">
       <aside class="w-full lg:w-72 shrink-0 bg-terminal-panel border border-terminal-border rounded-2xl p-3 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] overflow-y-auto">
         <div class="flex items-center gap-2 mb-2">
           <input id="nt-${scope}-q" oninput="NT.filter=this.value; ntDrawTree('${scope}')" placeholder="${scope === 'company' ? '티커·기업명 찾기' : '페이지 찾기'}" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-blue-500">
@@ -116,7 +116,26 @@ function ntRenderSplit(scope) {
   ntDrawTree(scope);
   ntShow(scope, sel);
 }
+// 07-2 맨 위: 정리 중인 기업 수 (트리가 바뀔 때마다 다시 계산 → 기업 추가·삭제·이동 즉시 반영)
+function ntCompaniesUnder(id) { const out = []; const walk = x => ntKids(x).forEach(n => { if (ntTicker(n)) out.push(n); else walk(n.id); }); if (id) walk(id); return out; }
+function ntCoStats() {
+  const box = $('nt-company-stats'); const root = ntCoRoot(); if (!box || !root) return;
+  const all = ntCompaniesUnder(root.id);
+  const tickers = new Set(all.map(ntTicker));
+  const withQ = all.filter(c => ntQuarterPages(c).some(x => x.k != null)).length;
+  const qPages = all.reduce((a, c) => a + ntQuarterPages(c).length, 0);
+  const secs = ntKids(root.id).map(sc => ({ sc, n: ntCompaniesUnder(sc.id).length })).sort((a, b) => b.n - a.n);
+  const kpi = (l, v, sub = '') => `<div class="bg-terminal-panel border border-terminal-border rounded-2xl px-4 py-3"><div class="text-[11px] text-slate-400">${l}</div><div class="font-num text-2xl font-bold text-white mt-0.5">${v}</div>${sub ? `<div class="text-[10px] text-slate-500 mt-0.5">${sub}</div>` : ''}</div>`;
+  box.innerHTML = `<div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      ${kpi('정리 중인 기업', all.length.toLocaleString() + '<span class="text-sm text-slate-400 font-normal"> 개</span>', tickers.size !== all.length ? `고유 티커 ${tickers.size}개 (같은 티커가 두 폴더에 있음)` : '이름에 (티커 US)가 있는 페이지 기준')}
+      ${kpi('섹터', secs.filter(x => x.n).length + '<span class="text-sm text-slate-400 font-normal"> / ' + secs.length + '</span>', '기업이 있는 섹터 / 전체 폴더')}
+      ${kpi('분기 실적 있는 기업', withQ.toLocaleString() + '<span class="text-sm text-slate-400 font-normal"> 개</span>', all.length ? `전체의 ${Math.round(withQ / all.length * 100)}%` : '')}
+      ${kpi('분기 실적 페이지', qPages.toLocaleString() + '<span class="text-sm text-slate-400 font-normal"> 개</span>', all.length ? `기업당 평균 ${(qPages / all.length).toFixed(1)}개` : '')}
+    </div>
+    <div class="flex flex-wrap gap-1.5 mt-3">${secs.map(({ sc, n }) => `<button onclick="ntSelect('company','${sc.id}')" class="nt-chip ${NT.sel.company === sc.id ? 'border-blue-600 text-white' : ''}">${esc(sc.title)} <b class="font-num text-blue-300">${n}</b></button>`).join('')}</div>`;
+}
 function ntDrawTree(scope) {
+  if (scope === 'company') ntCoStats();
   const box = $(`nt-${scope}-tree`); if (!box) return;
   const root = scope === 'market' ? ntMrRoot() : ntCoRoot();
   if (!root) { box.innerHTML = '<div class="text-xs text-slate-500 p-2">폴더가 없습니다</div>'; return; }
