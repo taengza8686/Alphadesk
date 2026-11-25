@@ -462,14 +462,28 @@ const ConsensusAuto = Extension.create({
       key: new PluginKey('consensusAuto'),
       appendTransaction(trs, oldState, state) {
         if (!trs.some(t => t.docChanged) || trs.some(t => t.getMeta('consensusAuto'))) return null;
-        const $f = state.selection.$from; const blk = $f.parent; if (!blk.isTextblock) return null;
-        const start = $f.start(); let text = ''; const map = [];
-        blk.forEach((ch, off) => { if (ch.isText) { for (let i = 0; i < ch.text.length; i++) { text += ch.text[i]; map.push(start + off + i); } } else { text += '\n'; map.push(start + off); } });
-        const r = consVerdict(text); if (!r) return null;
-        if (r.existing && r.existing.word === r.verdict) return null;
-        const tr = state.tr;
-        if (r.existing) tr.insertText(r.verdict, map[r.existing.from], map[r.existing.to - 1] + 1);
-        else tr.insertText(' ' + r.verdict, map[r.close - 1] + 1);
+        // 이번 변경이 닿은 줄들(붙여넣기로 여러 줄이 바뀐 경우 포함)을 모두 확인
+        const ranges = [];
+        trs.forEach((t, ti) => t.steps.forEach((st, si) => st.getMap().forEach((a, b, from, to) => {
+          let f = from, e = to;
+          for (let k = si + 1; k < t.steps.length; k++) { f = t.steps[k].getMap().map(f, -1); e = t.steps[k].getMap().map(e, 1); }
+          for (let j = ti + 1; j < trs.length; j++) { f = trs[j].mapping.map(f, -1); e = trs[j].mapping.map(e, 1); }
+          ranges.push([Math.max(0, f), Math.min(state.doc.content.size, e)]);
+        })));
+        const blocks = new Map();
+        ranges.forEach(([f, e]) => state.doc.nodesBetween(f, Math.max(f, e), (n, pos) => { if (n.isTextblock) { blocks.set(pos, n); return false; } return blocks.size < 300; }));
+        const tr = state.tr; let changed = false;
+        [...blocks.entries()].sort((a, b) => b[0] - a[0]).forEach(([pos, blk]) => {   // 뒤쪽 줄부터 고쳐서 위치가 어긋나지 않게
+          if (blk.textContent.indexOf('컨센서스') < 0) return;
+          const start = pos + 1; let text = ''; const map = [];
+          blk.forEach((ch, off) => { if (ch.isText) { for (let i = 0; i < ch.text.length; i++) { text += ch.text[i]; map.push(start + off + i); } } else { text += '\n'; map.push(start + off); } });
+          const r = consVerdict(text); if (!r) return;
+          if (r.existing && r.existing.word === r.verdict) return;
+          if (r.existing) tr.insertText(r.verdict, map[r.existing.from], map[r.existing.to - 1] + 1);
+          else tr.insertText(' ' + r.verdict, map[r.close - 1] + 1);
+          changed = true;
+        });
+        if (!changed) return null;
         tr.setMeta('consensusAuto', true);
         return tr;
       },
