@@ -464,6 +464,45 @@ function consVerdict(text) {
   const ex = rest.match(/^(\s*)((?:[+-]?\d[\d,]*(?:\.\d+)?\s*(?:%|bp)\s*)?(상회|하회|부합))/);
   return { verdict, label, close, existing: ex ? { from: close + ex[1].length, to: close + ex[0].length, word: ex[2] } : null };
 }
+
+// 컨센서스 줄 고치기(공용): 붙일 위치를 뒤쪽 줄부터 고쳐서 위치가 어긋나지 않게
+const normColor = c => { c = String(c || '').toLowerCase().replace(/\s+/g, ''); const m = c.match(/^#([0-9a-f]{6})$/); return m ? `rgb(${parseInt(m[1].slice(0, 2), 16)},${parseInt(m[1].slice(2, 4), 16)},${parseInt(m[1].slice(4, 6), 16)})` : c; };
+function fixConsensusBlocks(state, tr, entries) {
+  let changed = false;
+  entries.sort((a, b) => b[0] - a[0]).forEach(([pos, blk]) => {
+    if (blk.textContent.indexOf('컨센서스') < 0) return;
+    const start = pos + 1; let text = ''; const map = [];
+    blk.forEach((ch, off) => { if (ch.isText) { for (let i = 0; i < ch.text.length; i++) { text += ch.text[i]; map.push(start + off + i); } } else { text += '\n'; map.push(start + off); } });
+    const r = consVerdict(text); if (!r) return;
+    const color = r.verdict === '상회' ? '#a3e635' : r.verdict === '하회' ? '#f87171' : '#ffffff';   // 연두 / 빨강 / 흰색
+    if (r.existing && r.existing.word === r.label) {
+      // 글자는 맞지만 색이 다르면(예전 버전·직접 입력) 색만 맞춘다
+      const a = map[r.existing.from], b = map[r.existing.to - 1] + 1;
+      let ok = true; state.doc.nodesBetween(a, b, n => { if (n.isText && !n.marks.some(m => m.type.name === 'textStyle' && normColor(m.attrs.color) === normColor(color))) ok = false; });
+      if (ok) return;
+      const ts = state.schema.marks.textStyle; if (ts) { tr.removeMark(a, b, ts); tr.addMark(a, b, ts.create({ color })); changed = true; }
+      return;
+    }
+    let from;
+    if (r.existing) { from = map[r.existing.from]; tr.insertText(r.label, from, map[r.existing.to - 1] + 1); }
+    else { const at = map[r.close - 1] + 1; tr.insertText(' ', at); from = at + 1; tr.insertText(r.label, from); }
+    const ts = state.schema.marks.textStyle;
+    if (ts) { tr.removeMark(from, from + r.label.length, ts); tr.addMark(from, from + r.label.length, ts.create({ color })); }
+    changed = true;
+  });
+  return changed;
+}
+function normalizeConsensus(editor) {
+  const { state } = editor; const entries = [];
+  state.doc.descendants((n, pos) => { if (n.isTextblock) { if (n.textContent.indexOf('컨센서스') >= 0) entries.push([pos, n]); return false; } return true; });
+  if (!entries.length) return false;
+  const tr = state.tr;
+  if (!fixConsensusBlocks(state, tr, entries)) return false;
+  tr.setMeta('consensusAuto', true); tr.setMeta('addToHistory', false);
+  editor.view.dispatch(tr);
+  return true;
+}
+
 const ConsensusAuto = Extension.create({
   name: 'consensusAuto',
   addProseMirrorPlugins() {
@@ -481,21 +520,8 @@ const ConsensusAuto = Extension.create({
         })));
         const blocks = new Map();
         ranges.forEach(([f, e]) => state.doc.nodesBetween(f, Math.max(f, e), (n, pos) => { if (n.isTextblock) { blocks.set(pos, n); return false; } return blocks.size < 300; }));
-        const tr = state.tr; let changed = false;
-        [...blocks.entries()].sort((a, b) => b[0] - a[0]).forEach(([pos, blk]) => {   // 뒤쪽 줄부터 고쳐서 위치가 어긋나지 않게
-          if (blk.textContent.indexOf('컨센서스') < 0) return;
-          const start = pos + 1; let text = ''; const map = [];
-          blk.forEach((ch, off) => { if (ch.isText) { for (let i = 0; i < ch.text.length; i++) { text += ch.text[i]; map.push(start + off + i); } } else { text += '\n'; map.push(start + off); } });
-          const r = consVerdict(text); if (!r) return;
-          if (r.existing && r.existing.word === r.label) return;
-          const color = r.verdict === '상회' ? '#a3e635' : r.verdict === '하회' ? '#f87171' : '#ffffff';   // 연두 / 빨강 / 흰색
-          let from;
-          if (r.existing) { from = map[r.existing.from]; tr.insertText(r.label, from, map[r.existing.to - 1] + 1); }
-          else { const at = map[r.close - 1] + 1; tr.insertText(' ', at); from = at + 1; tr.insertText(r.label, from); }
-          const ts = state.schema.marks.textStyle;
-          if (ts) { tr.removeMark(from, from + r.label.length, ts); tr.addMark(from, from + r.label.length, ts.create({ color })); }
-          changed = true;
-        });
+        const tr = state.tr;
+        const changed = fixConsensusBlocks(state, tr, [...blocks.entries()]);
         if (!changed) return null;
         tr.setMeta('consensusAuto', true);
         return tr;
@@ -592,6 +618,8 @@ export function create(el, opts = {}) {
     onUpdate: ({ editor }) => opts.onUpdate && opts.onUpdate(editor),
   });
   if (opts.onSave) editor.on('save-now', () => opts.onSave(editor));
+  // 편집 모드로 열 때: 예전에 적힌 상회/하회도 지금 규칙(차이 %·색상)으로 한 번에 맞춘다
+  if (opts.editable) setTimeout(() => { try { normalizeConsensus(editor); } catch (e) {} }, 0);
   const cleanups = [makeBubble(editor), makeTableBar(editor)];
   if (opts.editable) cleanups.push(makeHandle(editor, el));
   editor.blockOps = { blockAt: p => blockAt(editor.state.doc, p), addBelow: (b, s) => addBelow(editor, b, s), deleteBlock: b => deleteBlock(editor, b), duplicateBlock: b => duplicateBlock(editor, b), moveBlock: (b, d) => moveBlock(editor, b, d), tab: d => tabKey(editor, d), turnInto: (b, k) => turnInto(editor, b, k), split: b => splitBlockLines(editor, b) };
