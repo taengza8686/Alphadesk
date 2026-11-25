@@ -117,3 +117,7 @@
 .ne-doc pre[data-indent] { padding-left: calc(14px + var(--ind, 0) * 1.6em); }
 .ne-doc table[data-indent] { margin-left: calc(var(--ind, 0) * 1.6em) !important; padding-left: 0; }
 .ne-doc details[data-indent], .ne-doc [data-type="details"][data-indent] { padding-left: calc(var(--ind, 0) * 1.6em); }
+
+/* 끌어서 선택할 때 브라우저의 '스크롤 고정(앵커링)'이 화면을 되돌리지 않게 */
+#tab6, #tab6 .ne-doc { overflow-anchor: none; }
+.ne-doc { -webkit-user-drag: none; }

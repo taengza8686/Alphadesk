@@ -137,7 +137,7 @@ function makeBubble(editor) {
   });
   const upd = () => {
     const { from, to, empty } = editor.state.selection;
-    if (empty || !editor.isEditable || !editor.isFocused || editor.isActive('image')) { el.style.display = 'none'; pal.style.display = 'none'; return; }
+    if (empty || !editor.isEditable || !editor.isFocused || editor.isActive('image') || editor._ptrDown) { el.style.display = 'none'; pal.style.display = 'none'; return; }
     const a = editor.view.coordsAtPos(from), b = editor.view.coordsAtPos(to);
     el.style.display = 'block';
     const w = el.offsetWidth;
@@ -145,9 +145,10 @@ function makeBubble(editor) {
     el.style.top = Math.max(8, a.top - el.offsetHeight - 8) + 'px';
     ['bold', 'italic', 'underline', 'strike', 'code', 'link'].forEach(k => el.querySelector(`[data-a="${k}"]`).classList.toggle('on', editor.isActive(k)));
   };
-  editor.on('selectionUpdate', upd); editor.on('blur', () => setTimeout(upd, 150)); editor.on('focus', upd);
-  addEventListener('scroll', upd, true);
-  return () => { el.remove(); removeEventListener('scroll', upd, true); };
+  editor.on('selectionUpdate', upd); editor.on('blur', () => setTimeout(upd, 150)); editor.on('focus', upd); editor.on('pointer-up', () => setTimeout(upd, 0));
+  const onScroll = () => { if (el.style.display !== 'none') upd(); };
+  addEventListener('scroll', onScroll, true);
+  return () => { el.remove(); removeEventListener('scroll', onScroll, true); };
 }
 function setLink(editor) {
   const prev = editor.getAttributes('link').href || '';
@@ -165,14 +166,16 @@ function makeTableBar(editor) {
   document.body.appendChild(el);
   el.addEventListener('mousedown', e => { e.preventDefault(); const b = e.target.closest('[data-t]'); if (b) editor.chain().focus()[b.dataset.t]().run(); upd(); });
   const upd = () => {
-    if (!editor.isEditable || !editor.isActive('table') || !editor.isFocused) { el.style.display = 'none'; return; }
+    if (!editor.isEditable || !editor.isActive('table') || !editor.isFocused || editor._ptrDown) { el.style.display = 'none'; return; }
     let dom = editor.view.domAtPos(editor.state.selection.from).node; while (dom && dom.nodeName !== 'TABLE') dom = dom.parentNode;
     if (!dom) { el.style.display = 'none'; return; }
     const r = dom.getBoundingClientRect(); el.style.display = 'block';
     el.style.left = Math.max(8, r.left) + 'px'; el.style.top = Math.max(8, r.top - el.offsetHeight - 6) + 'px';
   };
-  editor.on('selectionUpdate', upd); editor.on('blur', () => setTimeout(upd, 150)); editor.on('focus', upd); addEventListener('scroll', upd, true);
-  return () => { el.remove(); removeEventListener('scroll', upd, true); };
+  editor.on('selectionUpdate', upd); editor.on('blur', () => setTimeout(upd, 150)); editor.on('focus', upd); editor.on('pointer-up', () => setTimeout(upd, 0));
+  const onScroll = () => { if (el.style.display !== 'none') upd(); };
+  addEventListener('scroll', onScroll, true);
+  return () => { el.remove(); removeEventListener('scroll', onScroll, true); };
 }
 
 const Keys = Extension.create({
@@ -353,6 +356,7 @@ function makeHandle(editor, host) {
   };
   const onMove = e => {
     if (!editor.isEditable || menu || !view.dom.isConnected) return;
+    if (editor._ptrDown) { if (h.style.display !== 'none') h.style.display = 'none'; return; }   // 끌어 선택 중
     const dr = view.dom.getBoundingClientRect();
     // 편집 영역 + 왼쪽 손잡이 여백까지를 "줄 위"로 본다
     const inZone = e.clientY >= dr.top - 6 && e.clientY <= dr.bottom + 6 && e.clientX >= dr.left - 90 && e.clientX <= dr.right + 30;
@@ -620,7 +624,13 @@ export function create(el, opts = {}) {
   if (opts.onSave) editor.on('save-now', () => opts.onSave(editor));
   // 편집 모드로 열 때: 예전에 적힌 상회/하회도 지금 규칙(차이 %·색상)으로 한 번에 맞춘다
   if (opts.editable) setTimeout(() => { try { normalizeConsensus(editor); } catch (e) {} }, 0);
-  const cleanups = [makeBubble(editor), makeTableBar(editor)];
+  // 마우스로 끌어 선택하는 동안에는 손잡이·서식 툴바를 움직이지 않는다(화면이 위아래로 튀지 않게)
+  editor._ptrDown = false;
+  const onDown = e => { if (e.button === 0) editor._ptrDown = true; };
+  const onUp = () => { if (editor._ptrDown) { editor._ptrDown = false; editor.emit('pointer-up'); } };
+  editor.view.dom.addEventListener('mousedown', onDown);
+  window.addEventListener('mouseup', onUp, true);
+  const cleanups = [makeBubble(editor), makeTableBar(editor), () => { editor.view.dom.removeEventListener('mousedown', onDown); window.removeEventListener('mouseup', onUp, true); }];
   if (opts.editable) cleanups.push(makeHandle(editor, el));
   editor.blockOps = { blockAt: p => blockAt(editor.state.doc, p), addBelow: (b, s) => addBelow(editor, b, s), deleteBlock: b => deleteBlock(editor, b), duplicateBlock: b => duplicateBlock(editor, b), moveBlock: (b, d) => moveBlock(editor, b, d), tab: d => tabKey(editor, d), turnInto: (b, k) => turnInto(editor, b, k), split: b => splitBlockLines(editor, b) };
   const origDestroy = editor.destroy.bind(editor);
