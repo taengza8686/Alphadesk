@@ -450,10 +450,17 @@ function consVerdict(text) {
   const va = a.v * sa, vb = b.v * sb;
   const eps = Math.max(Math.abs(va), Math.abs(vb)) * 1e-9;
   const verdict = Math.abs(va - vb) <= eps ? '부합' : va > vb ? '상회' : '하회';
+  // 차이: 금액·배수는 컨센서스 대비 %, 비율(%) 항목은 bp 차이
+  let diff = '';
+  if (verdict !== '부합') {
+    if (a.pct && b.pct) { const bp = Math.round((a.v - b.v) * 100); diff = (bp > 0 ? '+' : '') + bp + 'bp'; }
+    else if (vb !== 0) { const pc = (va - vb) / Math.abs(vb) * 100; diff = (pc > 0 ? '+' : '') + pc.toFixed(1) + '%'; }
+  }
+  const label = diff ? `${diff} ${verdict}` : verdict;
   const close = cm.index + cm[0].length;               // ')' 다음 위치
   const rest = text.slice(close);
-  const ex = rest.match(/^\s*(상회|하회|부합)/);
-  return { verdict, close, existing: ex ? { from: close + ex[0].length - ex[1].length, to: close + ex[0].length, word: ex[1] } : null };
+  const ex = rest.match(/^(\s*)((?:[+-]?\d[\d,]*(?:\.\d+)?\s*(?:%|bp)\s*)?(상회|하회|부합))/);
+  return { verdict, label, close, existing: ex ? { from: close + ex[1].length, to: close + ex[0].length, word: ex[2] } : null };
 }
 const ConsensusAuto = Extension.create({
   name: 'consensusAuto',
@@ -478,9 +485,13 @@ const ConsensusAuto = Extension.create({
           const start = pos + 1; let text = ''; const map = [];
           blk.forEach((ch, off) => { if (ch.isText) { for (let i = 0; i < ch.text.length; i++) { text += ch.text[i]; map.push(start + off + i); } } else { text += '\n'; map.push(start + off); } });
           const r = consVerdict(text); if (!r) return;
-          if (r.existing && r.existing.word === r.verdict) return;
-          if (r.existing) tr.insertText(r.verdict, map[r.existing.from], map[r.existing.to - 1] + 1);
-          else tr.insertText(' ' + r.verdict, map[r.close - 1] + 1);
+          if (r.existing && r.existing.word === r.label) return;
+          const color = r.verdict === '상회' ? '#a3e635' : r.verdict === '하회' ? '#f87171' : '#ffffff';   // 연두 / 빨강 / 흰색
+          let from;
+          if (r.existing) { from = map[r.existing.from]; tr.insertText(r.label, from, map[r.existing.to - 1] + 1); }
+          else { const at = map[r.close - 1] + 1; tr.insertText(' ', at); from = at + 1; tr.insertText(r.label, from); }
+          const ts = state.schema.marks.textStyle;
+          if (ts) { tr.removeMark(from, from + r.label.length, ts); tr.addMark(from, from + r.label.length, ts.create({ color })); }
           changed = true;
         });
         if (!changed) return null;

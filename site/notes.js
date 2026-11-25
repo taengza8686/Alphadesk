@@ -420,7 +420,7 @@ function ntParseLine(s) {
   if (suf) { const S = { K: 1e-3, M: 1, B: 1e3, T: 1e6 }[suf.toUpperCase()]; if (S) scale = S; }
   const isMn = money && !!suf;           // 금액(백만 달러 환산)인지, 주당 금액(EPS 등)인지
   const yoy = ntParseChg(rest, 'YoY'), qoq = ntParseChg(rest, 'QoQ');
-  const cm = rest.match(/컨센서스\s*\(([^)]*)\)\s*(상회|하회|부합)?/) || rest.match(/컨센서스\s*(상회|하회|부합)/);
+  const cm = rest.match(/컨센서스\s*\(([^)]*)\)\s*(?:[+-]?\d[\d,]*(?:\.\d+)?\s*(?:%|bp)\s*)?(상회|하회|부합)?/) || rest.match(/컨센서스\s*(상회|하회|부합)/);
   let cons = null, consTxt = '', beat = '';
   if (cm) {
     if (cm.length === 3) { consTxt = cm[1]; beat = cm[2] || ''; const c = ntParseLine('x ' + cm[1]); if (c) cons = c.v; }
@@ -587,6 +587,8 @@ function ntQuarterTemplate(html) {
   ts.forEach(t => {
     if (inGuidance(t)) return;
     t.nodeValue = t.nodeValue
+      .replace(/\s*[+-]?\d[\d,]*(?:\.\d+)?\s*(?:%|bp)\s*(상회|하회|부합)(?=[\s,)]|$)/g, '')
+      .replace(/^\s*[+-]?\d[\d,]*(?:\.\d+)?\s*(?:%|bp)\s*(상회|하회|부합)\s*$/, '')
       .replace(/(\d{4})\s*년\s*\d{1,2}\s*월\s*\d{1,2}\s*일\s*발표/, 'YYYY년 M월 D일 발표')
       .replace(/(\s?)[+-]?(\$?)-?[\d,]*\.?\d+(\s*[~～]\s*[\d,]*\.?\d+)?(?![\d.]*\s*Q\b)/g, (m0, sp, d) => sp + d)
       .replace(/(흑전|적전|적지|흑지)\s*(YoY|QoQ)/g, '% $2')
