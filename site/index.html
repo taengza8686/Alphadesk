@@ -441,6 +441,7 @@
             <option value="BETA">Y축: Beta (β)</option><option value="VOL">Y축: 연환산 변동성 (%)</option><option value="PE">Y축: Fwd P/E (x)</option>
           </select>
           <select id="scatter-sector-filter" onchange="updateScatterView()" class="bg-terminal-card border border-terminal-border rounded-xl px-3 py-2 text-xs text-slate-200"><option value="ALL">전체 섹터</option></select>
+          <select id="scatter-theme-filter" onchange="updateScatterView()" title="02 스크리너와 같은 매출 기준 세부 테마" class="bg-terminal-card border border-indigo-700/60 rounded-xl px-3 py-2 text-xs text-indigo-200 max-w-[230px]"><option value="ALL">전체 세부 테마</option></select>
           <select id="scatter-limit" onchange="updateScatterView()" class="bg-terminal-card border border-terminal-border rounded-xl px-3 py-2 text-xs text-slate-200">
             <option value="25" selected>시총 상위 25개</option><option value="50">시총 상위 50개</option><option value="100">시총 상위 100개</option>
           </select>
@@ -1636,6 +1637,10 @@
     gEl.innerHTML = `<option value="ALL">전체 테마 대분류</option>` + groups.map(g => `<option value="${esc(g)}">${esc(g)} (${gc[g]})</option>`).join('');
     if (groups.includes(gCur)) gEl.value = gCur;
     fillThemeSelect();
+    // 03 Risk/Return 분포도: 세부 테마 전체 목록
+    { const tc = {}; stocksData.forEach(s => { if (s.theme) tc[s.theme] = (tc[s.theme] || 0) + 1; });
+      const tl = Object.keys(tc).sort((a, b) => a.localeCompare(b, 'ko')), el = $('scatter-theme-filter');
+      if (el) { const cur = el.value; el.innerHTML = `<option value="ALL">전체 세부 테마 (${tl.length})</option>` + tl.map(t => `<option value="${esc(t)}">${esc(t)} (${tc[t]})</option>`).join(''); if (tl.includes(cur)) el.value = cur; } }
     const ic = {}; stocksData.forEach(s => { if (s.industry) ic[s.industry] = (ic[s.industry] || 0) + 1; });
     const iEl = $('industry-filter'), iCur = iEl.value, inds = Object.keys(ic).sort();
     iEl.innerHTML = `<option value="ALL">전체 세부 업종(Yahoo) (${inds.length})</option>` + inds.map(i => `<option value="${esc(i)}">${esc(i)} (${ic[i]})</option>`).join('');
@@ -1793,7 +1798,8 @@
     const sec = $('scatter-sector-filter').value, limit = parseInt($('scatter-limit').value, 10);
     const bm = benchmarkData[bmKey] || {};
     const bmRet = bm[periodKey];
-    const pool = stocksData.filter(s => sec === 'ALL' || s.gicsSector === sec).sort((a, b) => (b.mktCap || 0) - (a.mktCap || 0)).slice(0, limit);
+    const th = $('scatter-theme-filter')?.value || 'ALL';
+    const pool = stocksData.filter(s => (sec === 'ALL' || s.gicsSector === sec) && (th === 'ALL' || s.theme === th)).sort((a, b) => (b.mktCap || 0) - (a.mktCap || 0)).slice(0, limit);
     const yOf = s => yMetric === 'BETA' ? s.beta?.[bmKey] : yMetric === 'VOL' ? s.vol?.[periodKey] : s.fwdPe;
     const points = [], excluded = [];
     pool.forEach(s => {
