@@ -409,9 +409,27 @@ def yahoo_symbol(t: str) -> str:
     return t.replace(".", "-").upper()
 
 
-def download_prices(symbols: list[str], years: int) -> dict[str, pd.DataFrame]:
-    """yfinance 일괄 다운로드. Close는 분할만 반영된 실제 종가(TradingView 기본 차트와 동일 기준)."""
+def last_closed_session() -> dt.date:
+    """마지막으로 장이 끝난 미국 거래일(뉴욕 시간 기준). 장중·야간(24시간 거래) 미완성 봉을 버리는 기준."""
+    from zoneinfo import ZoneInfo
+    ny = dt.datetime.now(ZoneInfo("America/New_York"))
+    d = ny.date()
+    if ny.weekday() < 5 and (ny.hour, ny.minute) >= (16, 20):
+        return d
+    d -= dt.timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= dt.timedelta(days=1)
+    return d
+
+
+def download_prices(symbols: list[str], years: int, equity: bool = True) -> dict[str, pd.DataFrame]:
+    """yfinance 일괄 다운로드. Close는 분할만 반영된 실제 종가(TradingView 기본 차트와 동일 기준).
+
+    equity=True(주식·ETF·지수): 아직 끝나지 않은 거래일의 봉은 버린다. 미국 장 마감 뒤 야간(24시간) 거래가 시작되면
+    Yahoo가 '다음 날짜' 봉을 만들어서, 그 봉이 섞이면 전일 수익률·상하위 종목 계산이 틀어지기 때문.
+    """
     import yfinance as yf
+    cutoff = pd.Timestamp(last_closed_session()) if equity else None
 
     out: dict[str, pd.DataFrame] = {}
     for attempt in range(3):
@@ -431,6 +449,8 @@ def download_prices(symbols: list[str], years: int) -> dict[str, pd.DataFrame]:
                 sub = sub[["Open", "High", "Low", "Close", "Volume"]].dropna(subset=["Close"])
                 if len(sub) > 5:
                     sub.index = pd.to_datetime(sub.index).tz_localize(None)
+                    if cutoff is not None:
+                        sub = sub[sub.index.normalize() <= cutoff]
                     out[s] = sub
             except (KeyError, TypeError):
                 pass
@@ -884,7 +904,8 @@ def sp500_movers(prices: dict, n: int = 10) -> dict | None:
     need = [yahoo_symbol(c["ticker"]) for c in cons if yahoo_symbol(c["ticker"]) not in prices]
     extra = download_prices(need, 1) if need else {}
     last_dates = [df.index[-1] for df in prices.values() if df is not None and len(df)]
-    ref = max(last_dates) if last_dates else None
+    # 기준일 = 가장 많은 종목의 마지막 거래일 (일부 종목에만 있는 이상한 날짜 봉에 끌려가지 않도록)
+    ref = pd.Series(last_dates).mode().max() if last_dates else None
     rows = []
     for c in cons:
         ys = yahoo_symbol(c["ticker"])
@@ -1206,7 +1227,7 @@ def diff_block(level: pd.Series) -> dict:
 def macro_block(years: int = 5) -> dict | None:
     ysyms = [m[4] for m in MACRO if m[3] == "yahoo"]
     fids = [m[4] for m in MACRO if m[3] == "fred"]
-    px = download_prices(ysyms + list(FRED_FALLBACK.values()), years)
+    px = download_prices(ysyms + list(FRED_FALLBACK.values()), years, equity=False)   # 선물·환율은 24시간 거래라 그대로
     fr = fred_series(fids)
     cut = pd.Timestamp.today() - pd.DateOffset(years=years)
     items, calc_src = [], {}
