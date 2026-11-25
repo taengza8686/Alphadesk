@@ -612,7 +612,7 @@ export function create(el, opts = {}) {
     editorProps: {
       attributes: { class: 'ne-doc' },
       transformPastedHTML: cleanPastedHTML,
-      handlePaste: (view, e, slice) => { const fs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/')); if (fs.length && upload && opts.editable) { uploadAndInsert(editor, upload, fs); return true; } if (opts.editable && !editor.isActive('codeBlock') && !editor.isActive('table') && slice && pasteLines(editor, slice)) return true; return false; },
+      handlePaste: (view, e, slice) => { const fs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/')); if (fs.length && upload && opts.editable) { uploadAndInsert(editor, upload, fs); return true; } if (opts.editable && opts.splitPaste !== false && !editor.isActive('codeBlock') && !editor.isActive('table') && slice && pasteLines(editor, slice)) return true; return false; },
       handleDrop: (view, e) => { const fs = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith('image/')); if (fs.length && upload && opts.editable) { const p = view.posAtCoords({ left: e.clientX, top: e.clientY }); uploadAndInsert(editor, upload, fs, p?.pos); return true; } return false; },
     },
     onUpdate: ({ editor }) => opts.onUpdate && opts.onUpdate(editor),

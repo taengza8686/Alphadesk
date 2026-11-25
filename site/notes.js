@@ -243,6 +243,8 @@ function ntMountEditor(el, pg) {
   NT.ed = NoteEditor.create(el, {
     html: pg.html || '', editable: NT.canEdit,
     upload: NT.canEdit ? ntUpload : null,
+    // 기업 개요(개요 페이지와 그 하위)는 붙여넣은 형식 그대로 — 줄마다 자동 나누기 안 함
+    splitPaste: !ntPath(pg.id).some(n => /^(개요|overview)$/i.test((n.title || '').trim())),
     onUpdate: () => { if (!NT.cur) return; NT.cur.dirty = true; ntSaveState('편집 중…'); clearTimeout(NT.saveT); NT.saveT = setTimeout(ntSave, 1500); },
     onSave: () => { clearTimeout(NT.saveT); ntSave(); },
   });
