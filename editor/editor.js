@@ -10,7 +10,7 @@ import { Details, DetailsSummary, DetailsContent } from '@tiptap/extension-detai
 import Image from '@tiptap/extension-image';
 import { Placeholder } from '@tiptap/extensions';
 import Suggestion from '@tiptap/suggestion';
-import { PluginKey } from '@tiptap/pm/state';
+import { PluginKey, Plugin } from '@tiptap/pm/state';
 
 export const TEXT_COLORS = [['기본', null], ['회색', '#9b9a97'], ['갈색', '#ba856f'], ['주황', '#d9730d'], ['노랑', '#cb912f'], ['초록', '#4dab9a'], ['파랑', '#529cca'], ['보라', '#9a6dd7'], ['분홍', '#e255a1'], ['빨강', '#e03e3e']];
 export const BG_COLORS = [['기본', null], ['회색', 'rgba(155,154,151,0.22)'], ['갈색', 'rgba(186,133,111,0.25)'], ['주황', 'rgba(217,115,13,0.25)'], ['노랑', 'rgba(223,171,1,0.25)'], ['초록', 'rgba(77,171,154,0.25)'], ['파랑', 'rgba(82,156,202,0.25)'], ['보라', 'rgba(154,109,215,0.25)'], ['분홍', 'rgba(226,85,161,0.25)'], ['빨강', 'rgba(224,62,62,0.25)']];
@@ -351,20 +351,26 @@ function makeHandle(editor, host) {
     h.style.left = (view.dom.getBoundingClientRect().left - hr.left - 50) + 'px';   // 모든 줄의 손잡이를 같은 세로선에 정렬
   };
   const onMove = e => {
-    if (!editor.isEditable || menu) return;
-    if (h.contains(e.target)) return;
+    if (!editor.isEditable || menu || !view.dom.isConnected) return;
     const dr = view.dom.getBoundingClientRect();
-    if (e.clientY < dr.top || e.clientY > dr.bottom) return hide();
+    // 편집 영역 + 왼쪽 손잡이 여백까지를 "줄 위"로 본다
+    const inZone = e.clientY >= dr.top - 6 && e.clientY <= dr.bottom + 6 && e.clientX >= dr.left - 90 && e.clientX <= dr.right + 30;
+    if (!inZone) return hide();
+    if (h.contains(e.target)) return;                         // 손잡이 위: 그대로 둔다
+    if (cur && h.style.display !== 'none' && e.clientX < dr.left + 6) {
+      const r = h.getBoundingClientRect();                     // 손잡이 쪽으로 가는 중이면 같은 높이에서는 줄을 바꾸지 않는다
+      if (e.clientY >= r.top - 8 && e.clientY <= r.bottom + 8) return;
+    }
     const x = Math.min(Math.max(e.clientX, dr.left + 40), dr.right - 10);
     const p = view.posAtCoords({ left: x, top: e.clientY }); if (!p) return;
     let blk = null;
     if (p.inside >= 0) { const n = view.state.doc.nodeAt(p.inside); if (n && n.isAtom && n.isBlock) blk = { pos: p.inside, node: n }; }
     blk = blk || blockAt(view.state.doc, p.pos);
-    if (!blk) return hide();
+    if (!blk) return;
+    if (cur && cur.pos === blk.pos && h.style.display !== 'none') return;
     cur = blk; place(blk);
   };
-  host.addEventListener('mousemove', onMove);
-  host.addEventListener('mouseleave', e => { if (!h.contains(e.relatedTarget)) hide(); });
+  document.addEventListener('mousemove', onMove, { passive: true });
   const fresh = () => cur && blockAt(view.state.doc, cur.pos + 1)?.pos === cur.pos ? { pos: cur.pos, node: view.state.doc.nodeAt(cur.pos) } : (cur && view.state.doc.nodeAt(cur.pos) ? { pos: cur.pos, node: view.state.doc.nodeAt(cur.pos) } : null);
   h.querySelector('.ne-h-add').addEventListener('mousedown', e => {
     e.preventDefault(); const b = fresh(); if (!b) return;
@@ -419,7 +425,67 @@ function makeHandle(editor, host) {
     setTimeout(() => document.addEventListener('mousedown', outside, true), 0);
   }
   editor.on('update', () => { if (cur && h.style.display !== 'none') { const b = fresh(); if (b) place(b); else hide(); } });
-  return () => { h.remove(); closeMenu(); host.removeEventListener('mousemove', onMove); };
+  return () => { h.remove(); closeMenu(); document.removeEventListener('mousemove', onMove); };
+}
+
+
+// 컨센서스 자동 비교: "항목 $값, … 컨센서스($값)" 줄에서 두 값을 비교해 뒤에 상회/하회/부합을 자동으로 붙인다
+function ntNum(str, fallbackScale) {
+  const t = String(str || '').replace(/\s+/g, '');
+  if (!t || /[~～]/.test(t)) return null;
+  const m = t.match(/^(-)?\$?(-)?([\d,]*\.?\d+)([KMBT]|조|억)?(%|x|bp|배)?$/i); if (!m) return null;
+  let v = parseFloat(m[3].replace(/,/g, '')); if (!isFinite(v)) return null; if (m[1] || m[2]) v = -v;
+  const S = { K: 1e3, M: 1e6, B: 1e9, T: 1e12, '조': 1e12, '억': 1e8 };
+  const sc = m[4] ? (S[m[4].toUpperCase()] || S[m[4]]) : null;
+  return { v, sc, pct: !!m[5] && m[5] === '%' };
+}
+function consVerdict(text) {
+  if (text.indexOf('컨센서스') < 0) return null;
+  const main = text.match(/^(.+?)\s+(-?\$?\s?-?[\d,]*\.?\d+\s*(?:[KMBT](?![a-z])|조|억)?\s*(?:%|x|bp|배)?)(?=\s*(?:,|\(|$))/i);
+  const cm = /컨센서스\s*\(\s*([^)]*?)\s*\)/.exec(text);
+  if (!main || !cm || !/\d/.test(cm[1])) return null;
+  const a = ntNum(main[2]), b = ntNum(cm[1]);
+  if (!a || !b) return null;
+  const sa = a.sc || 1, sb = b.sc || a.sc || 1;
+  const va = a.v * sa, vb = b.v * sb;
+  const eps = Math.max(Math.abs(va), Math.abs(vb)) * 1e-9;
+  const verdict = Math.abs(va - vb) <= eps ? '부합' : va > vb ? '상회' : '하회';
+  const close = cm.index + cm[0].length;               // ')' 다음 위치
+  const rest = text.slice(close);
+  const ex = rest.match(/^\s*(상회|하회|부합)/);
+  return { verdict, close, existing: ex ? { from: close + ex[0].length - ex[1].length, to: close + ex[0].length, word: ex[1] } : null };
+}
+const ConsensusAuto = Extension.create({
+  name: 'consensusAuto',
+  addProseMirrorPlugins() {
+    return [new Plugin({
+      key: new PluginKey('consensusAuto'),
+      appendTransaction(trs, oldState, state) {
+        if (!trs.some(t => t.docChanged) || trs.some(t => t.getMeta('consensusAuto'))) return null;
+        const $f = state.selection.$from; const blk = $f.parent; if (!blk.isTextblock) return null;
+        const start = $f.start(); let text = ''; const map = [];
+        blk.forEach((ch, off) => { if (ch.isText) { for (let i = 0; i < ch.text.length; i++) { text += ch.text[i]; map.push(start + off + i); } } else { text += '\n'; map.push(start + off); } });
+        const r = consVerdict(text); if (!r) return null;
+        if (r.existing && r.existing.word === r.verdict) return null;
+        const tr = state.tr;
+        if (r.existing) tr.insertText(r.verdict, map[r.existing.from], map[r.existing.to - 1] + 1);
+        else tr.insertText(' ' + r.verdict, map[r.close - 1] + 1);
+        tr.setMeta('consensusAuto', true);
+        return tr;
+      },
+    })];
+  },
+});
+// 바깥(웹·문서)에서 붙여넣은 글의 글자색·배경색·글꼴은 지워서 기본(흰색) 글씨로
+function cleanPastedHTML(html) {
+  if (/data-pm-slice/.test(html)) return html;            // 이 편집기 안에서 복사한 것은 서식 유지
+  return html
+    .replace(/(\sstyle\s*=\s*)(["'])([\s\S]*?)\2/gi, (m, a, q, st) => {
+      const keep = st.split(';').filter(d => d.trim() && !/^\s*(color|background|background-color|font-family|font-size|line-height|caret-color|-webkit-text-fill-color)\s*:/i.test(d)).join(';');
+      return keep ? `${a}${q}${keep}${q}` : '';
+    })
+    .replace(/(<font\b[^>]*?)\s(color|face|size)\s*=\s*(["'][^"']*["']|\S+)/gi, '$1')
+    .replace(/\s(bgcolor|color)\s*=\s*(["'][^"']*["'])/gi, '');
 }
 
 export function create(el, opts = {}) {
@@ -435,12 +501,13 @@ export function create(el, opts = {}) {
       Table.configure({ resizable: false }), TableRow, TableHeader, TableCell,
       Details.configure({ persist: true, HTMLAttributes: { class: 'ne-details' } }), DetailsSummary, DetailsContent,
       Image.configure({ inline: false, allowBase64: false }),
-      Callout, Quote, Indent,
+      Callout, Quote, Indent, ConsensusAuto,
       Placeholder.configure({ placeholder: ({ node }) => node.type.name === 'heading' ? '제목' : (node.type.name === 'detailsSummary' ? '토글 제목' : "내용을 입력하거나 '/'로 블록 추가"), includeChildren: false }),
       makeSlash(() => upload), Keys,
     ],
     editorProps: {
       attributes: { class: 'ne-doc' },
+      transformPastedHTML: cleanPastedHTML,
       handlePaste: (view, e) => { const fs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/')); if (fs.length && upload && opts.editable) { uploadAndInsert(editor, upload, fs); return true; } return false; },
       handleDrop: (view, e) => { const fs = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith('image/')); if (fs.length && upload && opts.editable) { const p = view.posAtCoords({ left: e.clientX, top: e.clientY }); uploadAndInsert(editor, upload, fs, p?.pos); return true; } return false; },
     },

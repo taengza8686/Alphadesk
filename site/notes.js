@@ -581,7 +581,11 @@ function ntQuarterTemplate(html) {
     if (p && /conference|컨퍼런스|콜 주요/i.test(p.textContent)) [...li.children].filter(c => c !== p).forEach(c => c.remove());
   });
   const walker = doc.createTreeWalker(b, NodeFilter.SHOW_TEXT); const ts = []; while (walker.nextNode()) ts.push(walker.currentNode);
+  // (Guidance) 아래 내용은 직전 분기 수치를 그대로 둔다 → 새 분기 가이던스와 비교(상향/하향)용
+  const ownText = li => { const p = [...li.children].find(c => c.tagName === 'P'); return (p || li).textContent || ''; };
+  const inGuidance = t => { let e = t.parentElement; while (e && e !== b) { if (e.tagName === 'LI' && /guidance|가이던스/i.test(ownText(e))) return true; e = e.parentElement; } return false; };
   ts.forEach(t => {
+    if (inGuidance(t)) return;
     t.nodeValue = t.nodeValue
       .replace(/(\d{4})\s*년\s*\d{1,2}\s*월\s*\d{1,2}\s*일\s*발표/, 'YYYY년 M월 D일 발표')
       .replace(/(\s?)[+-]?(\$?)-?[\d,]*\.?\d+(\s*[~～]\s*[\d,]*\.?\d+)?(?![\d.]*\s*Q\b)/g, (m0, sp, d) => sp + d)
