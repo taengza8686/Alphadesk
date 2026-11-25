@@ -1,0 +1,91 @@
+name: AlphaDesk 백업에서 복구
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "되돌릴 날짜 (예: 2026-11-25 → 그날 밤 23:59 KST까지의 마지막 백업). 비우면 가장 최근 백업"
+        required: false
+        default: ""
+      scope:
+        description: "복구 범위"
+        type: choice
+        options: [notes, accounts, all, page]
+        default: notes
+      page_id:
+        description: "범위가 page일 때만: 되돌릴 페이지 id (주소창 #tab6/…/ 뒤의 32자리)"
+        required: false
+        default: ""
+      confirm:
+        description: "정말 복구하려면 복구 라고 입력"
+        required: true
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: alphadesk-backup
+  cancel-in-progress: false
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - name: 확인
+        env:
+          OK: ${{ github.event.inputs.confirm }}
+        run: |
+          if [ "$OK" != "복구" ]; then echo "confirm 칸에 '복구'를 입력해야 실행됩니다"; exit 1; fi
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/Alphadesk-backup
+          token: ${{ secrets.BACKUP_REPO_TOKEN }}
+          path: backup
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: 안전장치 — 복구 직전 현재 상태를 먼저 백업
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          export CLOUDFLARE_API_TOKEN="$(printf '%s' "$CLOUDFLARE_API_TOKEN" | tr -d '[:space:]')"
+          export CLOUDFLARE_ACCOUNT_ID="$(printf '%s' "$CLOUDFLARE_ACCOUNT_ID" | tr -d '[:space:]')"
+          git -C backup rev-parse HEAD > pre_commit.txt
+          python tools/backup.py backup
+          cd backup
+          git config user.name "AlphaDesk Backup"; git config user.email "taengza8686@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then git commit -q -m "복구 직전 자동 백업 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST"; git push -q; fi
+      - name: 날짜에 맞는 백업 고르기
+        id: pick
+        env:
+          D: ${{ github.event.inputs.date }}
+        run: |
+          PRE=$(cat pre_commit.txt)
+          cd backup
+          if ! printf '%s' "$D" | grep -Eq '^([0-9]{4}-[0-9]{2}-[0-9]{2})?$'; then echo "날짜는 2026-11-25 형식으로 입력하세요"; exit 1; fi
+          if [ -n "$D" ]; then C=$(git rev-list -1 --before="$D 23:59:59 +0900" "$PRE"); else C="$PRE"; fi
+          if [ -z "$C" ]; then echo "그 날짜 이전 백업이 없습니다"; exit 1; fi
+          git log -1 --format='선택한 백업: %s (%ci)' $C
+          git worktree add -q ../snap $C
+      - name: 복구 실행
+        env:
+          SCOPE: ${{ github.event.inputs.scope }}
+          PID: ${{ github.event.inputs.page_id }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          export CLOUDFLARE_API_TOKEN="$(printf '%s' "$CLOUDFLARE_API_TOKEN" | tr -d '[:space:]')"
+          export CLOUDFLARE_ACCOUNT_ID="$(printf '%s' "$CLOUDFLARE_ACCOUNT_ID" | tr -d '[:space:]')"
+          S="$SCOPE"
+          if [ "$S" = "page" ]; then
+            if ! printf '%s' "$PID" | grep -Eq '^[0-9a-f]{32}$'; then echo "page_id는 32자리 영문·숫자입니다"; exit 1; fi
+            S="page:$PID"
+          fi
+          python tools/restore.py snap "$S"
