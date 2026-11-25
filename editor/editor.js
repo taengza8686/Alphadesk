@@ -2,6 +2,7 @@
 import { Editor, Extension, Node, mergeAttributes, InputRule, wrappingInputRule } from '@tiptap/core';
 import Blockquote from '@tiptap/extension-blockquote';
 import { NodeSelection, TextSelection } from '@tiptap/pm/state';
+import { Slice, Fragment } from '@tiptap/pm/model';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyle, Color, BackgroundColor } from '@tiptap/extension-text-style';
 import { TaskList, TaskItem } from '@tiptap/extension-list';
@@ -400,7 +401,7 @@ function makeHandle(editor, host) {
     menu = document.createElement('div'); menu.className = 'ne-menu ne-bmenu';
     const it = (a, label, key = '') => `<button type="button" data-a="${a}" class="ne-mi"><span class="ne-ic">${label[0]}</span><span><b>${label.slice(1)}</b>${key ? `<small>${key}</small>` : ''}</span></button>`;
     const TURN = [['text', '텍스트'], ['h1', '제목 1'], ['h2', '제목 2'], ['h3', '제목 3'], ['bullet', '글머리 목록'], ['ordered', '번호 목록'], ['task', '할 일'], ['toggle', '토글'], ['quote', '인용'], ['callout', '콜아웃'], ['code', '코드']];
-    menu.innerHTML = it('del', '🗑삭제', 'Del') + it('dup', '⧉복제', 'Ctrl+D') + it('up', '↑위로 이동', 'Ctrl+Shift+↑') + it('down', '↓아래로 이동', 'Ctrl+Shift+↓') + it('in', '→들여쓰기', 'Tab') + it('out', '←내어쓰기', 'Shift+Tab')
+    menu.innerHTML = it('del', '🗑삭제', 'Del') + it('dup', '⧉복제', 'Ctrl+D') + it('split', '↵줄마다 나누기', '') + it('up', '↑위로 이동', 'Ctrl+Shift+↑') + it('down', '↓아래로 이동', 'Ctrl+Shift+↓') + it('in', '→들여쓰기', 'Tab') + it('out', '←내어쓰기', 'Shift+Tab')
       + `<div class="ne-pl" style="padding:6px 8px 2px;font-size:10px;color:#64748b">전환</div><div class="ne-turn">${TURN.map(([k, l]) => `<button type="button" data-t="${k}">${l}</button>`).join('')}</div>`
       + `<div class="ne-pl" style="padding:6px 8px 2px;font-size:10px;color:#64748b">글자색</div><div class="ne-cols">${TEXT_COLORS.map(([n, c]) => `<button type="button" data-tc="${c || ''}" title="${n}"><span style="color:${c || '#e2e8f0'}">A</span></button>`).join('')}</div>`
       + `<div class="ne-pl" style="padding:6px 8px 2px;font-size:10px;color:#64748b">배경색</div><div class="ne-cols">${BG_COLORS.map(([n, c]) => `<button type="button" data-bc="${c || ''}" title="${n}"><span style="background:${c || 'transparent'};border:1px solid #475569">A</span></button>`).join('')}</div>`;
@@ -415,6 +416,7 @@ function makeHandle(editor, host) {
       const a = btn.dataset.a;
       if (a === 'del') deleteBlock(editor, nb);
       else if (a === 'dup') duplicateBlock(editor, nb);
+      else if (a === 'split') { if (!splitBlockLines(editor, nb)) alert('나눌 줄이 없습니다 (한 줄짜리)'); }
       else if (a === 'up' || a === 'down') { moveBlock(editor, nb, a === 'up' ? -1 : 1); }
       else if (a === 'in' || a === 'out') { view.dispatch(view.state.tr.setSelection(TextSelection.near(view.state.doc.resolve(nb.pos + 1 + (LIST_ITEMS.includes(nb.node.type.name) ? 1 : 0))))); tabKey(editor, a === 'in' ? 1 : -1); }
       else if (btn.dataset.t) turnInto(editor, nb, btn.dataset.t);
@@ -513,6 +515,57 @@ function cleanPastedHTML(html) {
     .replace(/\s(bgcolor|color)\s*=\s*(["'][^"']*["'])/gi, '');
 }
 
+
+// 여러 줄을 붙여넣으면 줄마다 Enter를 친 것처럼 나눈다 (목록 안이면 줄마다 새 글머리, 아니면 줄마다 새 문단)
+function pasteLines(editor, slice) {
+  const { state } = editor;
+  const top = []; slice.content.forEach(n => top.push(n));
+  if (!top.length || !top.every(n => n.isTextblock)) return false;   // 목록·표 등 구조가 있는 붙여넣기는 기본 동작
+  const segs = [];
+  top.forEach(n => {
+    let cur = [];
+    n.forEach(ch => { if (ch.type.name === 'hardBreak') { segs.push(cur); cur = []; } else cur.push(ch); });
+    segs.push(cur);
+  });
+  const lines = segs.filter(seg => seg.some(ch => !ch.isText || ch.text.trim()));
+  if (lines.length < 2) return false;
+  const li = inListItem(state);
+  const bullet = /^\s*(?:[•·▪◦‣∙●○■□\-–—*]|\d{1,2}[.)])\s+/;
+  lines.forEach((seg, i) => {
+    if (i > 0) { if (li) editor.commands.splitListItem(inListItem(editor.state) || li); else editor.commands.splitBlock(); }
+    let nodes = seg.slice();
+    if (li && nodes[0] && nodes[0].isText) {   // 목록 안에서는 줄 앞의 "•", "-", "1." 같은 기호를 뗀다
+      const t = nodes[0].text.replace(bullet, '').replace(/^\s+/, '');
+      nodes[0] = t ? nodes[0].withText(t) : null; nodes = nodes.filter(Boolean);
+    } else if (nodes[0] && nodes[0].isText) { const t = nodes[0].text.replace(/^\s+/, ''); nodes[0] = t ? nodes[0].withText(t) : null; nodes = nodes.filter(Boolean); }
+    if (!nodes.length) return;
+    const { tr } = editor.state;
+    tr.replaceSelection(new Slice(Fragment.fromArray(nodes), 0, 0));
+    editor.view.dispatch(tr.scrollIntoView());
+  });
+  return true;
+}
+
+
+// 이미 한 줄(한 글머리)에 뭉쳐 있는 내용을 줄마다 나누기 (줄 메뉴 ⋮⋮ → 줄마다 나누기)
+function splitBlockLines(editor, blk) {
+  const { state, view } = editor; const sch = state.schema; const node = blk.node;
+  const segsOf = tb => { const out = []; let cur = []; tb.forEach(ch => { if (ch.type.name === 'hardBreak') { out.push(cur); cur = []; } else cur.push(ch); }); out.push(cur); return out.filter(sg => sg.some(c => !c.isText || c.text.trim())); };
+  let nodes = [];
+  if (LIST_ITEMS.includes(node.type.name)) {
+    const paras = [], rest = [];
+    node.forEach(ch => (ch.isTextblock ? paras : rest).push(ch));
+    paras.forEach(tb => segsOf(tb).forEach(sg => nodes.push(node.type.create(node.type.name === 'taskItem' ? { checked: false } : null, sch.nodes.paragraph.create(null, sg)))));
+    if (!nodes.length) return false;
+    if (rest.length) { const last = nodes[nodes.length - 1]; nodes[nodes.length - 1] = last.type.create(last.attrs, last.content.append(Fragment.fromArray(rest))); }
+  } else if (node.isTextblock) {
+    nodes = segsOf(node).map(sg => node.type.create(node.attrs, sg));
+  }
+  if (nodes.length < 2) return false;
+  view.dispatch(state.tr.replaceWith(blk.pos, blk.pos + node.nodeSize, Fragment.fromArray(nodes)));
+  return true;
+}
+
 export function create(el, opts = {}) {
   const upload = opts.upload || null;
   const editor = new Editor({
@@ -533,7 +586,7 @@ export function create(el, opts = {}) {
     editorProps: {
       attributes: { class: 'ne-doc' },
       transformPastedHTML: cleanPastedHTML,
-      handlePaste: (view, e) => { const fs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/')); if (fs.length && upload && opts.editable) { uploadAndInsert(editor, upload, fs); return true; } return false; },
+      handlePaste: (view, e, slice) => { const fs = [...(e.clipboardData?.files || [])].filter(f => f.type.startsWith('image/')); if (fs.length && upload && opts.editable) { uploadAndInsert(editor, upload, fs); return true; } if (opts.editable && !editor.isActive('codeBlock') && !editor.isActive('table') && slice && pasteLines(editor, slice)) return true; return false; },
       handleDrop: (view, e) => { const fs = [...(e.dataTransfer?.files || [])].filter(f => f.type.startsWith('image/')); if (fs.length && upload && opts.editable) { const p = view.posAtCoords({ left: e.clientX, top: e.clientY }); uploadAndInsert(editor, upload, fs, p?.pos); return true; } return false; },
     },
     onUpdate: ({ editor }) => opts.onUpdate && opts.onUpdate(editor),
@@ -541,7 +594,7 @@ export function create(el, opts = {}) {
   if (opts.onSave) editor.on('save-now', () => opts.onSave(editor));
   const cleanups = [makeBubble(editor), makeTableBar(editor)];
   if (opts.editable) cleanups.push(makeHandle(editor, el));
-  editor.blockOps = { blockAt: p => blockAt(editor.state.doc, p), addBelow: (b, s) => addBelow(editor, b, s), deleteBlock: b => deleteBlock(editor, b), duplicateBlock: b => duplicateBlock(editor, b), moveBlock: (b, d) => moveBlock(editor, b, d), tab: d => tabKey(editor, d), turnInto: (b, k) => turnInto(editor, b, k) };
+  editor.blockOps = { blockAt: p => blockAt(editor.state.doc, p), addBelow: (b, s) => addBelow(editor, b, s), deleteBlock: b => deleteBlock(editor, b), duplicateBlock: b => duplicateBlock(editor, b), moveBlock: (b, d) => moveBlock(editor, b, d), tab: d => tabKey(editor, d), turnInto: (b, k) => turnInto(editor, b, k), split: b => splitBlockLines(editor, b) };
   const origDestroy = editor.destroy.bind(editor);
   editor.destroy = () => { cleanups.forEach(f => f()); origDestroy(); };
   return editor;
