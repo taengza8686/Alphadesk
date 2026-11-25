@@ -122,7 +122,7 @@
               <div class="text-[10px] text-slate-500 mt-1">가로축: 1일 수익률 구간(%) · 세로축: 종목 수</div>
             </div>
             <div class="bg-terminal-panel border border-terminal-border rounded-2xl p-4">
-              <div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-white">공포 &amp; 탐욕 지수 · 최근 1년</span><button onclick="switchTab('tabH','fg')" class="text-[11px] text-blue-400 hover:text-blue-300">자세히 →</button></div>
+              <div class="flex items-center justify-between mb-2"><span class="text-xs font-bold text-white">공포 &amp; 탐욕 지수 · 최근 1년</span><span id="spec-fg-ma" class="ml-2"></span><button onclick="switchTab('tabH','fg')" class="text-[11px] text-blue-400 hover:text-blue-300">자세히 →</button></div>
               <svg id="spec-fg-line" viewBox="0 0 360 150" preserveAspectRatio="none" class="w-full h-[150px]"></svg>
             </div>
           </div>
@@ -181,7 +181,7 @@
           </div>
           <div class="xl:col-span-4 space-y-2.5" id="fg-components"></div>
           <div class="xl:col-span-4 flex flex-col">
-            <div class="text-[11px] text-slate-400 mb-1">최근 1년 추이</div>
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-1"><div class="text-[11px] text-slate-400">최근 1년 추이</div><div id="fg-ma"></div></div>
             <svg id="fg-history" viewBox="0 0 400 210" preserveAspectRatio="none" class="w-full h-[210px]"></svg>
           </div>
         </div>
@@ -234,7 +234,7 @@
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span id="active-index-title" class="text-xs font-bold text-white">S&P 500</span>
           </div>
-          <span class="text-[11px] text-slate-400 font-mono">TradingView Real-Time Chart · BB(20,2) · RSI(14) · MACD(12,26,9)</span>
+          <div class="flex flex-wrap items-center gap-3"><div id="idx-ma"></div><span class="text-[11px] text-slate-400 font-mono">TradingView · BB(20,2) · RSI(14) · MACD(12,26,9)</span></div>
         </div>
         <div id="market_index_tv_container" class="w-full h-[540px]"></div>
       </div>
@@ -323,7 +323,7 @@
               <div class="flex items-center gap-2"><span id="mac-name" class="text-base font-bold text-white">-</span><span id="mac-src" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-400"></span></div>
               <div class="flex items-baseline gap-3 mt-1"><span id="mac-last" class="font-num text-2xl font-bold text-white">-</span><span id="mac-chg" class="font-mono text-sm"></span><span id="mac-asof" class="text-[11px] text-slate-500"></span></div>
             </div>
-            <div class="inline-flex flex-wrap rounded-xl bg-slate-900 p-1 border border-terminal-border" id="mac-range"></div>
+            <div class="flex flex-col items-end gap-2"><div class="inline-flex flex-wrap rounded-xl bg-slate-900 p-1 border border-terminal-border" id="mac-range"></div><div id="mac-ma"></div></div>
           </div>
           <div class="relative"><svg id="mac-chart" viewBox="0 0 900 300" preserveAspectRatio="none" class="w-full h-[300px]"></svg><div id="mac-tip" class="hidden absolute pointer-events-none text-[11px] font-mono bg-slate-900/95 border border-slate-700 rounded-lg px-2 py-1 text-slate-200"></div></div>
         </div>
@@ -575,6 +575,8 @@
               <span class="flex items-center gap-1.5 text-slate-400 font-medium"><span class="w-3 h-1 bg-slate-500 rounded"></span> 벤치마크</span>
             </div>
           </div>
+          <div class="flex justify-end -mt-1"><div id="pf-ma"></div>
+          </div>
           <div id="portfolio-chart-box" class="w-full h-[320px] bg-slate-950/60 rounded-xl border border-slate-800/80 p-2"></div>
           <div id="port-excluded" class="text-[11px] text-amber-300"></div>
           <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-3">
@@ -616,6 +618,7 @@
           <div class="xl:col-span-7 bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-3">
             <div class="flex items-center justify-between"><h3 class="text-sm font-bold text-white">누적 수익률 (시작일 = 100)</h3>
               <div class="flex items-center gap-4 text-xs"><span class="flex items-center gap-1.5 text-blue-400"><span class="w-3 h-1 bg-blue-500 rounded"></span> 최적 포트폴리오</span><span class="flex items-center gap-1.5 text-slate-400"><span class="w-3 h-1 bg-slate-500 rounded"></span> S&P 500</span></div></div>
+            <div class="flex justify-end"><div id="opt-ma"></div></div>
             <svg id="opt-chart" viewBox="0 0 640 260" preserveAspectRatio="none" class="w-full h-[260px]"></svg>
           </div>
           <div class="xl:col-span-5 bg-terminal-panel border border-terminal-border rounded-2xl p-5 space-y-3">
@@ -731,6 +734,7 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-3 text-xs">
+          <div id="tech-ma"></div>
           <span class="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono">BB (20, 2)</span>
           <span class="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-300 font-mono">RSI (14)</span>
           <span class="px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 font-mono">MACD (12, 26, 9)</span>
@@ -1087,6 +1091,59 @@
     if (tabId === 'tab6') renderNotes(cs);
   }
 
+
+  // ---------------------------------------------------------------- 이동평균선 (20·60·120·200) — 모든 시계열 차트 공용
+  // 선택한 봉 기준(일간·주간·월간)으로 다시 묶은 뒤 그 봉 개수로 단순이동평균(SMA)을 계산한다
+  const MA_LENS = [20, 60, 120, 200];
+  const MA_COLORS = { 20: '#facc15', 60: '#38bdf8', 120: '#fb923c', 200: '#f472b6' };
+  const MA_TF_LABEL = { D: '일간', W: '주간', M: '월간' };
+  let MA_SET = (() => { try { const j = JSON.parse(localStorage.getItem('alphadesk_ma_v1') || 'null'); if (j && j.on) return { on: j.on, tf: j.tf || {} }; } catch (e) {} return { on: { 20: true, 60: true, 120: true, 200: true }, tf: {} }; })();
+  const MA_RENDER = {};
+  function maSave() { try { localStorage.setItem('alphadesk_ma_v1', JSON.stringify(MA_SET)); } catch (e) {} }
+  const maTf = key => MA_SET.tf[key] || 'D';
+  function maSetTf(key, tf) { MA_SET.tf[key] = tf; maSave(); try { MA_RENDER[key]?.(); } catch (e) { console.error(e); } }
+  function maToggle(key, n) { MA_SET.on[n] = !MA_SET.on[n]; maSave(); try { MA_RENDER[key]?.(); } catch (e) { console.error(e); } }
+  function tfKey(iso, tf) {
+    if (tf === 'M') return iso.slice(0, 7);
+    if (tf === 'W') { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - (d.getUTCDay() + 6) % 7); return d.toISOString().slice(0, 10); }
+    return iso;
+  }
+  // 날짜 배열 + 여러 값 배열을 같은 기준으로 묶기(각 주·월의 마지막 값)
+  function resampleTF(dates, list, tf) {
+    if (tf === 'D') return { d: dates.slice(), s: list.map(a => a.slice()) };
+    const d = [], s = list.map(() => []); let last = null;
+    dates.forEach((x, i) => {
+      const k = tfKey(x, tf);
+      if (k !== last) { d.push(x); s.forEach((o, j) => o.push(list[j][i])); last = k; }
+      else { d[d.length - 1] = x; s.forEach((o, j) => { if (isNum(list[j][i])) o[o.length - 1] = list[j][i]; }); }
+    });
+    return { d, s };
+  }
+  function smaArr(v, n) {
+    const o = new Array(v.length).fill(null); let sum = 0, cnt = 0;
+    for (let i = 0; i < v.length; i++) {
+      if (isNum(v[i])) { sum += v[i]; cnt++; }
+      if (i >= n) { const y = v[i - n]; if (isNum(y)) { sum -= y; cnt--; } }
+      if (i >= n - 1 && cnt === n) o[i] = sum / n;
+    }
+    return o;
+  }
+  const maLines = vals => MA_LENS.filter(n => MA_SET.on[n]).map(n => ({ n, v: smaArr(vals, n), color: MA_COLORS[n] }));
+  const maVisible = (lines, i0, i1) => lines.flatMap(l => l.v.slice(i0, i1 + 1).filter(isNum));
+  function maSvgPaths(lines, i0, i1, X, Y) {
+    return lines.map(l => { let d = '', pen = false;
+      for (let i = i0; i <= i1; i++) { const v = l.v[i]; if (!isNum(v)) { pen = false; continue; } d += (pen ? 'L' : 'M') + X(i - i0).toFixed(1) + ',' + Y(v).toFixed(1); pen = true; }
+      return d ? `<path d="${d}" fill="none" stroke="${l.color}" stroke-width="1.3" stroke-opacity="0.95" vector-effect="non-scaling-stroke"/>` : ''; }).join('');
+  }
+  function maBarHtml(key, opts = {}) {
+    const tf = maTf(key);
+    const tfb = opts.tf === false ? '' : `<div class="inline-flex rounded-lg bg-slate-900 p-0.5 border border-slate-800">${['D', 'W', 'M'].map(k => `<button onclick="maSetTf('${key}','${k}')" class="px-2 py-0.5 rounded-md text-[11px] font-semibold ${k === tf ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}">${MA_TF_LABEL[k]}</button>`).join('')}</div>`;
+    const chips = MA_LENS.map(n => `<button onclick="maToggle('${key}',${n})" title="${n}${opts.unit || (tf === 'W' ? '주' : tf === 'M' ? '개월' : '일')} 이동평균 켜기/끄기" class="flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-mono ${MA_SET.on[n] ? 'text-slate-200' : 'text-slate-600 line-through'} hover:bg-slate-800"><span class="inline-block w-3 h-[3px] rounded" style="background:${MA_SET.on[n] ? MA_COLORS[n] : '#334155'}"></span>${n}</button>`).join('');
+    return `<div class="flex flex-wrap items-center gap-2">${tfb}<div class="flex items-center gap-0.5"><span class="text-[10px] text-slate-500 mr-1">이동평균</span>${chips}</div>${opts.note ? `<span class="text-[10px] text-slate-500">${opts.note}</span>` : ''}</div>`;
+  }
+  // TradingView 차트용: 켜 둔 이동평균을 TradingView 기본 지표로 추가(TradingView가 고른 봉 기준으로 계산)
+  const maTvStudies = () => MA_LENS.filter(n => MA_SET.on[n]).map(n => ({ id: 'MASimple@tv-basicstudies', inputs: { length: n } }));
+
   // ---------------------------------------------------------------- TradingView
   const TV_INT = { '1D': 'D', '1W': 'W', '1M': 'M', '1Y': '12M' };
   function mountTvChart(containerId, symbol, opts = {}) {
@@ -1100,7 +1157,8 @@
     new TradingView.widget(Object.assign({
       autosize: true, symbol, interval: 'D', timezone: 'America/New_York', theme: 'dark', style: '1', locale: 'kr',
       toolbar_bg: '#0f1623', enable_publishing: false, hide_top_toolbar: false, hide_legend: false, save_image: false,
-      container_id: containerId, studies: ['BB@tv-basicstudies', 'RSI@tv-basicstudies', 'MACD@tv-basicstudies']
+      container_id: containerId, studies: [...maTvStudies(), 'BB@tv-basicstudies', 'RSI@tv-basicstudies', 'MACD@tv-basicstudies'],
+      studies_overrides: { 'moving average.ma.color': '#facc15', 'moving average.ma.linewidth': 1 }
     }, opts));
   }
 
@@ -1130,8 +1188,10 @@
     const b = benchmarkData[marketIndexKey] || {};
     const sym = b.tv || DEFAULT_TV[marketIndexKey];
     $('active-index-title').textContent = `${b.name || marketIndexKey} — 차트는 지수 추종 ETF ${sym.split(':')[1]} (TradingView는 지수 원지수 차트의 외부 게시를 허용하지 않음)`;
+    if ($('idx-ma')) $('idx-ma').innerHTML = maBarHtml('idx', { tf: false, note: '봉 기준(일·주·월봉)을 따라 계산' });
     mountTvChart('market_index_tv_container', sym, { interval: TV_INT[marketIndexInterval] });
   }
+  MA_RENDER.idx = () => renderMarketIndexChart();
   // ---------------------------------------------------------------- 공포·탐욕 지수
   const FG_COLORS = [[25, '#e11d48'], [45, '#f97316'], [56, '#94a3b8'], [76, '#4ade80'], [101, '#10b981']];
   const fgColor = v => (FG_COLORS.find(([hi]) => v < hi) || FG_COLORS[4])[1];
@@ -1161,7 +1221,8 @@
         <div class="mt-1.5 h-1.5 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full" style="width:${isNum(c.score) ? c.score : 0}%;background:${isNum(c.score) ? fgColor(c.score) : '#334155'}"></div></div>
         <div class="text-[10px] text-slate-500 mt-1">${esc(c.desc)}</div>
       </div>`).join('');
-    const h = f.history || { d: [], v: [] }, W = 400, H = 210, pl = 26, pb = 18;
+    if ($('fg-ma')) $('fg-ma').innerHTML = maBarHtml('fg');
+    const h0 = f.history || { d: [], v: [] }, fR = resampleTF(h0.d, [h0.v], maTf('fg')), h = { d: fR.d, v: fR.s[0] }, maL = maLines(h.v), W = 400, H = 210, pl = 26, pb = 18;
     const n = h.v.length, X = i => pl + (W - pl - 4) * (n > 1 ? i / (n - 1) : 0), Y = v => 6 + (H - pb - 6) * (1 - v / 100);
     const bandRects = bands.map(([a, b, c]) => `<rect x="${pl}" y="${Y(b)}" width="${W - pl - 4}" height="${Y(a) - Y(b)}" fill="${c}" opacity="0.07"/>`).join('');
     const grid = [0, 25, 50, 75, 100].map(v => `<line x1="${pl}" x2="${W - 4}" y1="${Y(v)}" y2="${Y(v)}" stroke="#1e293b"/><text x="${pl - 4}" y="${Y(v) + 3}" text-anchor="end" fill="#64748b" font-size="9">${v}</text>`).join('');
@@ -1169,11 +1230,12 @@
     const months = []; let lastM = '';
     h.d.forEach((d, i) => { const m = d.slice(0, 7); if (m !== lastM) { lastM = m; if (i > 5 && i < n - 5) months.push(`<text x="${X(i)}" y="${H - 4}" text-anchor="middle" fill="#64748b" font-size="9">${d.slice(2, 4)}.${d.slice(5, 7)}</text>`); } });
     $('fg-history').innerHTML = bandRects + grid + months.filter((_, i) => i % 2 === 0).join('')
-      + `<path d="${path}" fill="none" stroke="#e2e8f0" stroke-width="1.6"/>`
+      + `<path d="${path}" fill="none" stroke="#e2e8f0" stroke-width="1.6"/>` + maSvgPaths(maL, 0, n - 1, X, Y)
       + (n ? `<circle cx="${X(n - 1)}" cy="${Y(h.v[n - 1])}" r="3.5" fill="${fgColor(h.v[n - 1])}"/>` : '');
     const cal = f.calibration ? ` · CNN 눈금 보정 적용(보정 전 원점수 ${Math.round(f.rawScore)}): 점수 = ${f.calibration.a} + ${f.calibration.b} × 원점수 — ${f.calibration.note || ''}` : '';
     $('fg-method').textContent = `산출 방식: ${f.method || ''}${cal} · 구성 지표 점수는 보정 전 백분위 · 데이터: Yahoo Finance(S&P 500·VIX·HYG·IEF) + AlphaDesk 유니버스 종가. CNN 공식 수치와 다를 수 있습니다.`;
   }
+  MA_RENDER.fg = () => { if (currentTab === 'tabH') { if (currentSub.tabH === 'fg') renderFearGreed(); else renderSpectrumOverview(); } };
   // ---------------------------------------------------------------- 00 통합: Market Spectrum
   const kpiCard = (label, val, sub, color, onclick) => `<button ${onclick ? `onclick="${onclick}"` : ''} class="text-left bg-terminal-panel border border-terminal-border hover:border-slate-600 rounded-2xl p-4 transition-all">
       <div class="text-[11px] text-slate-400">${label}</div><div class="font-num text-xl font-bold mt-1" style="color:${color || '#f8fafc'}">${val}</div><div class="text-[10px] text-slate-500 mt-0.5 leading-snug">${sub || ''}</div></button>`;
@@ -1200,11 +1262,13 @@
         + `<line x1="${5 + (0 - E[0]) * bw}" x2="${5 + (0 - E[0]) * bw}" y1="4" y2="${Ht - pb}" stroke="#475569" stroke-dasharray="3 3"/>`;
     } else svg.innerHTML = '<text x="180" y="85" text-anchor="middle" fill="#64748b" font-size="11">다음 자동 갱신 후 표시됩니다</text>';
     // 공포탐욕 1년 미니 라인
-    const h = f?.history, L = $('spec-fg-line');
+    const h0 = f?.history, L = $('spec-fg-line');
+    if ($('spec-fg-ma')) $('spec-fg-ma').innerHTML = maBarHtml('fg');
+    const h = h0?.v?.length ? (() => { const R = resampleTF(h0.d, [h0.v], maTf('fg')); return { d: R.d, v: R.s[0] }; })() : null;
     if (h?.v?.length) {
       const W = 360, Ht = 150, n = h.v.length, X = i => 4 + (W - 8) * i / (n - 1), Y = v => 4 + (Ht - 8) * (1 - v / 100);
       L.innerHTML = [[0, 25, '#e11d48'], [25, 45, '#f97316'], [45, 55, '#64748b'], [55, 75, '#4ade80'], [75, 100, '#10b981']].map(([a, b, c]) => `<rect x="0" y="${Y(b)}" width="${W}" height="${Y(a) - Y(b)}" fill="${c}" opacity="0.08"/>`).join('')
-        + `<path d="${h.v.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('')}" fill="none" stroke="#e2e8f0" stroke-width="1.5"/><circle cx="${X(n - 1)}" cy="${Y(h.v[n - 1])}" r="3.5" fill="${fgColor(h.v[n - 1])}"/>`;
+        + `<path d="${h.v.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('')}" fill="none" stroke="#e2e8f0" stroke-width="1.5"/><circle cx="${X(n - 1)}" cy="${Y(h.v[n - 1])}" r="3.5" fill="${fgColor(h.v[n - 1])}"/>` + maSvgPaths(maLines(h.v), 0, n - 1, X, Y);
     }
   }
 
@@ -1282,19 +1346,22 @@
     $('mac-asof').textContent = `${x.asOf} 기준`;
     $('mac-range').innerHTML = MAC_RANGES.map(([k]) => `<button onclick="macRange='${k}'; renderMacro()" class="px-3 py-1 rounded-lg text-xs font-semibold ${k === macRange ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}">${k}</button>`).join('');
     const months = MAC_RANGES.find(r => r[0] === macRange)[1];
-    const end = new Date(x.hist.d[x.hist.d.length - 1] + 'T00:00:00Z'); end.setUTCMonth(end.getUTCMonth() - months);
+    $('mac-ma').innerHTML = maBarHtml('mac');
+    const R = resampleTF(x.hist.d, [x.hist.c], maTf('mac')), maL = maLines(R.s[0]);
+    const end = new Date(R.d[R.d.length - 1] + 'T00:00:00Z'); end.setUTCMonth(end.getUTCMonth() - months);
     const st = end.toISOString().slice(0, 10);
-    let i0 = x.hist.d.findIndex(d => d >= st); if (i0 < 0) i0 = 0;
-    const D = x.hist.d.slice(i0), C = x.hist.c.slice(i0), n = C.length;
+    let i0 = R.d.findIndex(d => d >= st); if (i0 < 0) i0 = 0;
+    const D = R.d.slice(i0), C = R.s[0].slice(i0), n = C.length;
+    const maVis = maVisible(maL, i0, R.d.length - 1);
     const W = 900, H = 300, pl = 58, pr = 10, pt = 10, pb = 24;
-    let mn = Math.min(...C), mx = Math.max(...C); const pad = (mx - mn) * 0.06 || Math.abs(mx) * 0.01 || 1; mn -= pad; mx += pad;
+    let mn = Math.min(...C, ...maVis), mx = Math.max(...C, ...maVis); const pad = (mx - mn) * 0.06 || Math.abs(mx) * 0.01 || 1; mn -= pad; mx += pad;
     const X = k => pl + (W - pl - pr) * (n > 1 ? k / (n - 1) : 0), Y = v => pt + (H - pt - pb) * (1 - (v - mn) / (mx - mn));
     const up = C[n - 1] >= C[0], col = up ? '#10b981' : '#f43f5e';
     const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => mn + (mx - mn) * f).map(v => `<line x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#1e293b"/><text x="${pl - 6}" y="${Y(v) + 3}" text-anchor="end" fill="#64748b" font-size="10">${fmtV(x, v)}</text>`).join('');
     const xt = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round((n - 1) * f)).map(k => `<text x="${X(k)}" y="${H - 6}" text-anchor="middle" fill="#64748b" font-size="10">${D[k].slice(2)}</text>`).join('');
     const line = C.map((v, k) => `${k ? 'L' : 'M'}${X(k).toFixed(1)},${Y(v).toFixed(1)}`).join('');
     $('mac-chart').innerHTML = `<defs><linearGradient id="macg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity="0.25"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>${ticks}${xt}
-      <path d="${line}L${X(n - 1)},${H - pb}L${X(0)},${H - pb}Z" fill="url(#macg)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="1.8"/>
+      <path d="${line}L${X(n - 1)},${H - pb}L${X(0)},${H - pb}Z" fill="url(#macg)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="1.8"/>${maSvgPaths(maL, i0, R.d.length - 1, X, Y)}
       <line id="mac-cross" x1="0" x2="0" y1="${pt}" y2="${H - pb}" stroke="#94a3b8" stroke-dasharray="3 3" visibility="hidden"/><circle id="mac-dot" r="3.5" fill="${col}" visibility="hidden"/>`;
     const svg = $('mac-chart'), tip = $('mac-tip');
     svg.onmousemove = e => { const r = svg.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width * W;
@@ -1302,11 +1369,13 @@
       $('mac-cross').setAttribute('x1', X(k)); $('mac-cross').setAttribute('x2', X(k)); $('mac-cross').setAttribute('visibility', 'visible');
       $('mac-dot').setAttribute('cx', X(k)); $('mac-dot').setAttribute('cy', Y(C[k])); $('mac-dot').setAttribute('visibility', 'visible');
       const chg = isBp(x) ? `${((C[k] - C[0]) * 100 >= 0 ? '+' : '')}${((C[k] - C[0]) * 100).toFixed(0)}bp` : `${(C[k] / C[0] - 1) * 100 >= 0 ? '+' : ''}${((C[k] / C[0] - 1) * 100).toFixed(2)}%`;
-      tip.innerHTML = `${D[k]} · <b>${fmtV(x, C[k])}</b> · 구간 ${chg}`; tip.classList.remove('hidden');
-      tip.style.left = Math.min(r.width - 220, Math.max(0, X(k) / W * r.width + 10)) + 'px'; tip.style.top = '8px'; };
+      const maTxt = maL.map(l => isNum(l.v[i0 + k]) ? ` · <span style="color:${l.color}">MA${l.n} ${fmtV(x, l.v[i0 + k])}</span>` : '').join('');
+      tip.innerHTML = `${D[k]} · <b>${fmtV(x, C[k])}</b> · 구간 ${chg}${maTxt}`; tip.classList.remove('hidden');
+      tip.style.left = Math.min(r.width - 380, Math.max(0, X(k) / W * r.width + 10)) + 'px'; tip.style.top = '8px'; };
     svg.onmouseleave = () => { tip.classList.add('hidden'); $('mac-cross')?.setAttribute('visibility', 'hidden'); $('mac-dot')?.setAttribute('visibility', 'hidden'); };
   }
 
+  MA_RENDER.mac = () => renderMacro();
   // ---------------------------------------------------------------- 04 통합 + 최적 포트폴리오
   let optWin = '3M';
   const OPT_KEYS = [['1W', '1주'], ['1M', '1개월'], ['3M', '3개월'], ['6M', '6개월']];
@@ -1331,12 +1400,15 @@
         <td class="py-2 px-3 text-[11px] text-indigo-200">${esc(s.theme || '-')}</td><td class="py-2 px-3">${getGicsBadge(h.sector)}</td>
         <td class="py-2 px-3 text-right font-mono font-bold text-white">${h.weight.toFixed(1)}%</td><td class="py-2 px-3 text-right">${fmtPctHtml(h.ret)}</td>
         <td class="py-2 px-3 text-right font-mono text-slate-300">${h.vol.toFixed(1)}%</td><td class="py-2 px-4 text-right font-mono ${h.volRatio >= 1.2 ? 'text-amber-300' : 'text-slate-400'}">${h.volRatio.toFixed(2)}×</td></tr>`; }).join('');
-    const c = w.curve, W = 640, H = 260, pl = 36, pb = 20, n = c.p.length, all = c.p.concat(c.b), mn = Math.min(...all), mx = Math.max(...all), pad = (mx - mn) * 0.08 || 1;
+    if ($('opt-ma')) $('opt-ma').innerHTML = maBarHtml('opt', { note: '최적 포트폴리오 선 기준' });
+    const c = (() => { const R = resampleTF(w.curve.d, [w.curve.p, w.curve.b], maTf('opt')); return { d: R.d, p: R.s[0], b: R.s[1] }; })();
+    const optMa = maLines(c.p);
+    const W = 640, H = 260, pl = 36, pb = 20, n = c.p.length, all = c.p.concat(c.b, maVisible(optMa, 0, c.p.length - 1)), mn = Math.min(...all), mx = Math.max(...all), pad = (mx - mn) * 0.08 || 1;
     const X = i => pl + (W - pl - 6) * (n > 1 ? i / (n - 1) : 0), Y = v => 6 + (H - pb - 6) * (1 - (v - mn + pad) / (mx - mn + 2 * pad));
     const line = (arr, col, wd) => `<path d="${arr.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join('')}" fill="none" stroke="${col}" stroke-width="${wd}"/>`;
     const ticks = [mn, (mn + mx) / 2, mx].map(v => `<line x1="${pl}" x2="${W - 6}" y1="${Y(v)}" y2="${Y(v)}" stroke="#1e293b"/><text x="${pl - 4}" y="${Y(v) + 3}" text-anchor="end" fill="#64748b" font-size="10">${v.toFixed(1)}</text>`).join('');
     const xl = [0, Math.floor((n - 1) / 2), n - 1].map(i => `<text x="${X(i)}" y="${H - 4}" text-anchor="middle" fill="#64748b" font-size="10">${c.d[i].slice(5)}</text>`).join('');
-    $('opt-chart').innerHTML = ticks + xl + `<line x1="${pl}" x2="${W - 6}" y1="${Y(100)}" y2="${Y(100)}" stroke="#475569" stroke-dasharray="3 3"/>` + line(c.b, '#64748b', 1.6) + line(c.p, '#3b82f6', 2.2);
+    $('opt-chart').innerHTML = ticks + xl + `<line x1="${pl}" x2="${W - 6}" y1="${Y(100)}" y2="${Y(100)}" stroke="#475569" stroke-dasharray="3 3"/>` + line(c.b, '#64748b', 1.6) + line(c.p, '#3b82f6', 2.2) + maSvgPaths(optMa, 0, n - 1, X, Y);
     const o = w.oos;
     $('opt-oos').innerHTML = o ? `<p class="text-slate-400 leading-relaxed">같은 방법을 <b class="text-slate-200">직전 ${w.label.replace('최근 ', '')}(${o.formStart} ~ ${o.formEnd})</b> 데이터로 적용해 ${o.n}종목을 고른 뒤, 이후 같은 기간(~${o.holdEnd}) 그대로 보유했다면:</p>
       <div class="grid grid-cols-3 gap-2 text-center">
@@ -2016,7 +2088,7 @@
     const totalWeight = modelPortfolio.reduce((a, b) => a + b.weight, 0);
     const need = modelPortfolio.map(h => h.ticker).filter(t => HIST[t] === undefined && findStock(t));
     if (need.length) { $('port-chart-sub').textContent = `일별 종가 불러오는 중 (${need.length}종목)…`; Promise.all(need.map(loadHist)).then(() => { $('port-chart-sub').textContent = '시작일 100pt 기준 정규화 · 실제 일별 종가'; if (currentTab === 'tab3') renderPortfolioSection(); }); }
-    const res = DATA ? computePortfolioPath(bmKey, periodKey) : null;
+    let res = DATA ? computePortfolioPath(bmKey, periodKey) : null;
     renderPeriodTable(bmKey);
     const portRet = res?.portPath ? res.portPath[res.portPath.length - 1] - 100 : null;
     const bmRet = res ? res.bmPath[res.bmPath.length - 1] - 100 : null;
@@ -2058,8 +2130,11 @@
 
     const box = $('portfolio-chart-box');
     if (!res) { box.innerHTML = '<div class="h-full flex items-center justify-center text-xs text-slate-500">벤치마크 가격 데이터가 없습니다</div>'; return; }
+    if ($('pf-ma')) $('pf-ma').innerHTML = maBarHtml('pf', { note: '내 포트폴리오 선 기준 · 고른 기간 안에서 계산' });
+    { const R = resampleTF(res.dates, [res.bmPath, res.portPath || res.bmPath], maTf('pf')); res = { ...res, dates: R.d, bmPath: R.s[0], portPath: res.portPath ? R.s[1] : null }; }
+    const pfMa = maLines(res.portPath || res.bmPath);
     const W = 640, H = 290, padL = 46, padR = 54, padT = 16, padB = 28, n = res.dates.length;
-    const all = res.bmPath.concat(res.portPath || []);
+    const all = res.bmPath.concat(res.portPath || [], maVisible(pfMa, 0, n - 1));
     const minV = Math.min(...all), maxV = Math.max(...all), pad = (maxV - minV) * 0.08 || 2;
     const lo = minV - pad, hi = maxV + pad;
     const toX = i => padL + (i / Math.max(1, n - 1)) * (W - padL - padR);
@@ -2073,9 +2148,12 @@
       <line x1="${padL}" y1="${toY(100)}" x2="${W - padR}" y2="${toY(100)}" stroke="#475569" stroke-dasharray="3 3"/>
       <path d="${path(res.bmPath)}" fill="none" stroke="#64748b" stroke-width="1.8"/>
       ${res.portPath ? `<path d="${path(res.portPath)}" fill="none" stroke="#3b82f6" stroke-width="2.4"/><text x="${W - padR + 4}" y="${toY(pEnd) + 3}" fill="#60a5fa" font-size="10" font-family="JetBrains Mono">${pEnd.toFixed(1)}</text>` : ''}
+      ${maSvgPaths(pfMa, 0, n - 1, toX, toY)}
       <text x="${W - padR + 4}" y="${toY(bEnd) + 3}" fill="#94a3b8" font-size="10" font-family="JetBrains Mono">${bEnd.toFixed(1)}</text></svg>`;
   }
+  MA_RENDER.pf = () => renderPortfolioSection();
 
+  MA_RENDER.opt = () => renderOptimal();
   // ---------------------------------------------------------------- TAB 4
   function setStatementType(type) {
     stmtType = type;
@@ -2201,10 +2279,12 @@
     const t = currentTechTicker();
     const s = findStock(t);
     $('tech-ipo-badge').textContent = `첫 거래일: ${s?.firstTradeDate || '-'}`;
+    if ($('tech-ma')) $('tech-ma').innerHTML = maBarHtml('tech', { tf: false, note: '봉 기준(일·주·월·연봉)을 따라 계산' });
     if (techEngine === 'TV') mountTvChart('tradingview_chart_container', tvSymbolFor(t), { interval: TV_INT[techInterval] });
     else drawCustomTechnicalChart();
     renderTechRelativeChart();
   }
+  MA_RENDER.tech = () => renderTechnicalTab();
   function setTechRelBenchmark(k) {
     techRelBenchmark = k;
     ['SP500', 'NDX', 'DJI', 'RUT'].forEach(x => $('btn-rel-bm-' + x).className = `px-2.5 py-1 rounded-lg text-xs font-semibold ${x === k ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'}`);
@@ -2290,6 +2370,7 @@
     }
     empty.classList.add('hidden');
     const full = withIndicators(aggregateBars(h, techInterval));
+    const maFull = maLines(full.map(b => b.close));
     const lastIso = full[full.length - 1].date;
     let data = full;
     if (techRange !== 'ALL') {
@@ -2299,8 +2380,10 @@
       data = full.filter(b => b.date >= st);
     }
     if (!data.length) return;
+    const mi0 = full.length - data.length, mi1 = full.length - 1;
+    const maVis = maVisible(maFull, mi0, mi1);
     const padL = 10, padR = 62, priceH = H * 0.52, volH = H * 0.13, rsiH = H * 0.16, macdH = H * 0.17;
-    const hiP = Math.max(...data.map(d => Math.max(d.high, d.bbUp ?? -Infinity))), loP = Math.min(...data.map(d => Math.min(d.low, d.bbLow ?? Infinity)));
+    const hiP = Math.max(...data.map(d => Math.max(d.high, d.bbUp ?? -Infinity)), ...maVis), loP = Math.min(...data.map(d => Math.min(d.low, d.bbLow ?? Infinity)), ...maVis);
     const maxV = Math.max(...data.map(d => d.volume), 1);
     const plotW = W - padL - padR, barW = plotW / data.length;
     const toX = i => padL + i * barW + barW / 2, toPY = p => 14 + ((hiP - p) / (hiP - loP || 1)) * (priceH - 26);
@@ -2310,6 +2393,12 @@
       ctx.strokeStyle = k === 'bbMid' ? 'rgba(245,158,11,0.35)' : 'rgba(245,158,11,0.55)'; ctx.lineWidth = 1; ctx.beginPath(); let st = false;
       data.forEach((d, i) => { if (d[k] === null) return; const x = toX(i), y = toPY(d[k]); if (!st) { ctx.moveTo(x, y); st = true; } else ctx.lineTo(x, y); }); ctx.stroke();
     });
+    // 이동평균선
+    maFull.forEach(l => { ctx.strokeStyle = l.color; ctx.lineWidth = 1.3; ctx.beginPath(); let pen = false;
+      for (let i = mi0; i <= mi1; i++) { const v = l.v[i]; if (!isNum(v)) { pen = false; continue; } const x = toX(i - mi0), y = toPY(v); if (pen) ctx.lineTo(x, y); else { ctx.moveTo(x, y); pen = true; } }
+      ctx.stroke(); });
+    { const lastMa = maFull.map(l => ({ n: l.n, c: l.color, v: l.v[mi1] })); let lx = padL + 4; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'left';
+      lastMa.forEach(m => { const t = `MA${m.n} ${isNum(m.v) ? m.v.toFixed(2) : '-'}`; ctx.fillStyle = m.c; ctx.fillText(t, lx, 10); lx += ctx.measureText(t).width + 12; }); }
     const cw = Math.max(1, barW * 0.65);
     data.forEach((d, i) => {
       const x = toX(i), up = d.close >= d.open, col = up ? '#10b981' : '#f43f5e';
