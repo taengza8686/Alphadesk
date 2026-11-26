@@ -256,6 +256,7 @@ function ntActions(scope, id) {
   let h = '';
   if (NT.canEdit) {
     if (scope === 'market') h += btn(`ntAddDay()`, '＋ 오늘 시황 추가', 'border-blue-600/60 text-blue-300');
+    { const n = ntNode(id), par = n && ntNode(n.parent_id); if (scope === 'company' && par && /^earnings$/i.test((par.title || '').trim()) && ntQKey(n.title) != null) h += btn(`ntAiConcall('${id}')`, '🤖 컨콜 정리 추가', 'border-violet-600/60 text-violet-300'); }
     h += btn(`ntAddChild('${scope}','${id}')`, '＋ 하위 페이지') + btn(`ntMove('${id}')`, '이동') + btn(`ntRevisions('${id}')`, '이전 버전') + btn(`ntDelete('${scope}','${id}')`, '삭제', 'hover:border-rose-500 hover:text-rose-300');
   }
   return h + notion;
@@ -783,4 +784,37 @@ async function ntRenderSectorTable(host) {
       ${cell(r.rev)}${cell(r.gpm)}${cell(r.opm)}${cell(r.eps)}<td class="px-3 text-right font-num text-slate-200">${isNum(r.p.ntmPE) ? r.p.ntmPE.toFixed(1) + 'x' : '-'}</td></tr>`).join('')}</tbody></table>
     <p class="text-[10px] text-slate-500 mt-2">값 옆 YoY·컨센서스 결과는 분기 페이지 본문에 적힌 수치입니다. 행을 누르면 기업별 실적 표로 이동합니다. 분기 페이지가 없는 기업 ${companies.length - rows.length}곳은 빠졌습니다.</p>`
     : '<div class="text-sm text-slate-500 py-8 text-center">이 섹터에는 분기 실적 페이지가 있는 기업이 없습니다</div>';
+}
+
+// ------------------------------------------------------------------ 컨퍼런스콜 AI 정리 ([컨퍼런스 콜 최근 트렌드] · [이번 분기 컨콜 전분기 대비 변화])
+const NT_AI_T1 = '[컨퍼런스 콜 최근 트렌드]', NT_AI_T2 = '[이번 분기 컨콜 전분기 대비 변화]';
+async function ntAiConcall(id) {
+  if (!NT.ed || NT.cur?.id !== id) return;
+  const btn = [...document.querySelectorAll('button')].find(b => b.textContent.includes('컨콜 정리 추가'));
+  const old = btn?.textContent; if (btn) { btn.disabled = true; btn.textContent = '🤖 정리 중… (최대 1분)'; }
+  try {
+    await ntFlush();
+    const j = await ntApi('ai', { method: 'POST', body: JSON.stringify({ id, html: NT.ed.getHTML() }) });
+    if (!NT.ed || NT.cur?.id !== id) return;
+    const li = t => `<li><p>${esc(t)}</p></li>`;
+    const dirTag = d => `<span style="color: ${/개선|신규/.test(d) ? '#a3e635' : /악화|축소/.test(d) ? '#f87171' : '#cbd5e1'}">${esc(d || '')}</span>`;
+    const trend = (j.trend || []).filter(t => t.topic && (t.points || []).length).map(t => `<li><p><strong>${esc(t.topic)}</strong></p><ul>${t.points.map(li).join('')}</ul></li>`).join('');
+    const chg = (j.change || []).filter(c => c.topic).map(c => `<li><p><strong>${esc(c.topic)}</strong> — ${dirTag(c.direction)}</p><ul>${c.before ? `<li><p>${esc(j.quarters?.[1] || '직전 분기')}: ${esc(c.before)}</p></li>` : ''}<li><p>${esc(j.quarters?.[0] || '이번 분기')}: ${esc(c.now || '')}</p></li></ul></li>`).join('');
+    const basis = `<p><em><span style="color: #9b9a97">🤖 AI 정리(${esc(j.model || 'Gemini')}) · 근거: 이 기업 ${esc((j.quarters || []).join(', '))} 페이지의 컨퍼런스콜 노트만 사용 · 확인 후 고쳐 쓰세요</span></em></p>`;
+    const add = `<hr><h3>${NT_AI_T1}</h3>${basis}<ul>${trend || li('정리할 내용이 없습니다')}</ul><h3>${NT_AI_T2}</h3><ul>${chg || li((j.quarters || []).length < 2 ? '직전 분기 컨퍼런스콜 노트가 없어 비교하지 못했습니다' : '정리할 내용이 없습니다')}</ul>${j.note ? `<p><em><span style="color: #cb912f">⚠️ ${esc(j.note)}</span></em></p>` : ''}`;
+    // 예전에 넣은 AI 정리가 있으면 그 부분만 새것으로 바꾼다
+    const doc = new DOMParser().parseFromString(NT.ed.getHTML(), 'text/html'), bd = doc.body, kids = [...bd.children];
+    const i1 = kids.findIndex(el => /^H[1-4]$/.test(el.tagName) && el.textContent.trim() === NT_AI_T1);
+    if (i1 >= 0) {
+      let i = i1; if (kids[i - 1]?.tagName === 'HR') i--;
+      let end = kids.length;
+      for (let x = i1 + 1; x < kids.length; x++) { const el = kids[x]; if (/^H[1-4]$/.test(el.tagName) && el.textContent.trim() !== NT_AI_T2) { end = x; break; } }
+      const tmp = doc.createElement('div'); tmp.innerHTML = add;
+      kids.slice(i, end).forEach((el, n) => { if (n === 0) el.replaceWith(...tmp.childNodes); else el.remove(); });
+      NT.ed.commands.setContent(bd.innerHTML, { emitUpdate: true });
+    } else NT.ed.chain().focus('end').insertContent(add).run();
+    NT.cur.dirty = true; ntSave();
+    const h = [...document.querySelectorAll('#nt-ed h3')].find(x => x.textContent.trim() === NT_AI_T1); h?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) { alert('컨콜 정리 실패: ' + e.message); }
+  finally { if (btn) { btn.disabled = false; btn.textContent = old; } }
 }

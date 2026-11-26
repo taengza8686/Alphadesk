@@ -55,6 +55,7 @@ jobs:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           PF_PASSWORD: ${{ secrets.PF_PASSWORD }}
+          GEMINI_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           export CLOUDFLARE_API_TOKEN="$(printf '%s' "$CF_TOKEN" | tr -d '[:space:]')"
           export CLOUDFLARE_ACCOUNT_ID="$(printf '%s' "$CF_ACCOUNT" | tr -d '[:space:]')"
@@ -103,6 +104,10 @@ jobs:
               && echo "포트폴리오 서버 저장: 비밀번호 설정됨" || echo "포트폴리오 서버 저장: 비밀번호 설정 실패"
           else
             echo "포트폴리오 서버 저장: GitHub 비밀값 PF_PASSWORD 없음"
+          fi
+          if [ -n "$GEMINI_KEY" ]; then   # 07 컨퍼런스콜 AI 정리용(서버에서만 사용)
+            printf '%s' "$GEMINI_KEY" | tr -d '[:space:]' | npx --yes wrangler@4 pages secret put GEMINI_API_KEY --project-name alphadesk > /dev/null 2>&1 \
+              && echo "AI 정리: Gemini 키 설정됨" || echo "AI 정리: Gemini 키 설정 실패"
           fi
           npx --yes wrangler@4 pages deploy site --project-name alphadesk --branch main --commit-dirty=true
       - uses: actions/configure-pages@v5
