@@ -224,6 +224,20 @@ async function ntShow(scope, id) {
     <div id="nt-ed" class="mt-4 ${NT.canEdit ? '' : 'ne-ro'}"></div>`;
   ntMountEditor($('nt-ed'), pg);
   if (scope === 'market') ntDayChips();
+  if (scope === 'company' && NT.canEdit) ntFeedPrevQuarter(pg);
+}
+// 분기 실적 페이지: 직전 분기 페이지의 NTM PE·시가총액을 읽어 편집기에 넘김 → "…, +x.x% QoQ" 자동 계산
+async function ntFeedPrevQuarter(pg) {
+  const n = ntNode(pg.id), par = n && ntNode(n.parent_id);
+  if (!par || !/^earnings$/i.test((par.title || '').trim())) return;
+  const k = ntQKey(pg.title); if (k == null) return;
+  const prev = ntKids(par.id).find(x => ntQKey(x.title) === k - 1);
+  if (!prev) return;
+  try {
+    const pp = await ntApi('page?id=' + prev.id);
+    const m = ntParseEarnings(pp.html);
+    if (NT.cur?.id === pg.id && NT.ed?.setPrevMetrics && (isNum(m.ntmPE) || isNum(m.mktCap))) NT.ed.setPrevMetrics({ ntmPE: m.ntmPE, mktCap: m.mktCap });
+  } catch (e) {}
 }
 function ntCrumbs(scope, id) {
   const p = ntPath(id);
@@ -589,6 +603,7 @@ function ntQuarterTemplate(html) {
     if (p && /conference|컨퍼런스|콜 주요/i.test(p.textContent)) [...li.children].filter(c => c !== p).forEach(c => c.remove());
   });
   const walker = doc.createTreeWalker(b, NodeFilter.SHOW_TEXT); const ts = []; while (walker.nextNode()) ts.push(walker.currentNode);
+  ts.forEach(t => { t.nodeValue = t.nodeValue.replace(/\s*,\s*[+-]?\d[\d,]*(?:\.\d+)?\s*%\s*QoQ/gi, m0 => /NTM|Market\s*Cap/i.test(t.parentElement?.closest('p,li,h1,h2,h3,h4')?.textContent || '') ? '' : m0); });
   // (Guidance) 아래 내용은 직전 분기 수치를 그대로 둔다 → 새 분기 가이던스와 비교(상향/하향)용
   const ownText = li => { const p = [...li.children].find(c => c.tagName === 'P'); return (p || li).textContent || ''; };
   const inGuidance = t => { let e = t.parentElement; while (e && e !== b) { if (e.tagName === 'LI' && /guidance|가이던스/i.test(ownText(e))) return true; e = e.parentElement; } return false; };

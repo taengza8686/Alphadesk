@@ -507,6 +507,63 @@ function normalizeConsensus(editor) {
   return true;
 }
 
+
+// NTM PE · Market Cap 전분기 대비(QoQ) 자동 계산: "NTM PE: 59.28x" → "NTM PE: 59.28x, +12.3% QoQ"
+const QOQ_RULES = [
+  { key: 'ntmPE', re: /NTM\s*P\/?E\s*[:：]?\s*([\d][\d,]*(?:\.\d+)?)\s*x/gi, val: m => parseFloat(m[1].replace(/,/g, '')) },
+  { key: 'mktCap', re: /Market\s*Cap\s*[:：]?\s*\$?\s*([\d][\d,]*(?:\.\d+)?)\s*([KMBT])?(?![a-z])/gi,
+    val: m => parseFloat(m[1].replace(/,/g, '')) * ({ K: 1e-3, M: 1, B: 1e3, T: 1e6 }[(m[2] || 'M').toUpperCase()] || 1) },
+];
+function qoqEdits(text, prev) {
+  const out = [];
+  if (!prev) return out;
+  for (const r of QOQ_RULES) {
+    const p = prev[r.key]; if (!(typeof p === 'number' && isFinite(p) && p !== 0)) continue;
+    r.re.lastIndex = 0; let m;
+    while ((m = r.re.exec(text))) {
+      const v = r.val(m); if (!isFinite(v)) continue;
+      const pc = (v - p) / Math.abs(p) * 100;
+      const label = `, ${pc > 0 ? '+' : ''}${pc.toFixed(1)}% QoQ`;
+      const end = m.index + m[0].length;
+      const ex = text.slice(end).match(/^\s*,\s*(?:[+-]?\d[\d,]*(?:\.\d+)?|[+-])?\s*%\s*QoQ/i);
+      if (ex && ex[0] === label) continue;
+      out.push({ from: end, to: end + (ex ? ex[0].length : 0), label });
+    }
+  }
+  return out.sort((a, b) => b.from - a.from);
+}
+function fixQoqBlocks(state, tr, entries, prev) {
+  let changed = false;
+  entries.sort((a, b) => b[0] - a[0]).forEach(([pos, blk]) => {
+    const t = blk.textContent; if (!/NTM|Market\s*Cap/i.test(t)) return;
+    const start = pos + 1; let text = ''; const map = [];
+    blk.forEach((ch, off) => { if (ch.isText) { for (let i = 0; i < ch.text.length; i++) { text += ch.text[i]; map.push(start + off + i); } } else { text += '\n'; map.push(start + off); } });
+    qoqEdits(text, prev).forEach(e => {
+      const a = e.from > 0 ? map[e.from - 1] + 1 : start, b = e.to > e.from ? map[e.to - 1] + 1 : a;
+      tr.insertText(e.label, a, b); changed = true;
+    });
+  });
+  return changed;
+}
+function makeQoq(getPrev) {
+  return Extension.create({
+    name: 'qoqAuto',
+    addProseMirrorPlugins() {
+      return [new Plugin({
+        key: new PluginKey('qoqAuto'),
+        appendTransaction(trs, oldState, state) {
+          const prev = getPrev(); if (!prev || !trs.some(t => t.docChanged) || trs.some(t => t.getMeta('qoqAuto'))) return null;
+          const entries = []; const $f = state.selection.$from;
+          state.doc.descendants((n, pos) => { if (n.isTextblock) { if (/NTM|Market\s*Cap/i.test(n.textContent)) entries.push([pos, n]); return false; } return true; });
+          if (!entries.length) return null;
+          const tr = state.tr; if (!fixQoqBlocks(state, tr, entries, prev)) return null;
+          tr.setMeta('qoqAuto', true); return tr;
+        },
+      })];
+    },
+  });
+}
+
 const ConsensusAuto = Extension.create({
   name: 'consensusAuto',
   addProseMirrorPlugins() {
@@ -598,6 +655,7 @@ function splitBlockLines(editor, blk) {
 
 export function create(el, opts = {}) {
   const upload = opts.upload || null;
+  let prevMetrics = opts.prevMetrics || null;
   const editor = new Editor({
     element: el,
     editable: !!opts.editable,
@@ -609,7 +667,7 @@ export function create(el, opts = {}) {
       Table.configure({ resizable: false }), TableRow, TableHeader, TableCell,
       Details.configure({ persist: true, HTMLAttributes: { class: 'ne-details' } }), DetailsSummary, DetailsContent,
       Image.configure({ inline: false, allowBase64: false }),
-      Callout, Quote, Indent, ConsensusAuto,
+      Callout, Quote, Indent, ConsensusAuto, makeQoq(() => prevMetrics),
       Placeholder.configure({ placeholder: ({ node }) => node.type.name === 'heading' ? '제목' : (node.type.name === 'detailsSummary' ? '토글 제목' : "내용을 입력하거나 '/'로 블록 추가"), includeChildren: false }),
       makeSlash(() => upload), Keys,
     ],
@@ -622,6 +680,12 @@ export function create(el, opts = {}) {
     onUpdate: ({ editor }) => opts.onUpdate && opts.onUpdate(editor),
   });
   if (opts.onSave) editor.on('save-now', () => opts.onSave(editor));
+  // 직전 분기 NTM PE·시가총액을 받으면 이 페이지의 QoQ를 바로 계산
+  editor.setPrevMetrics = m => {
+    prevMetrics = m || null; if (!prevMetrics || !editor.isEditable) return;
+    const entries = []; editor.state.doc.descendants((n, pos) => { if (n.isTextblock) { if (/NTM|Market\s*Cap/i.test(n.textContent)) entries.push([pos, n]); return false; } return true; });
+    const tr = editor.state.tr; if (fixQoqBlocks(editor.state, tr, entries, prevMetrics)) { tr.setMeta('qoqAuto', true); editor.view.dispatch(tr); }
+  };
   // 편집 모드로 열 때: 예전에 적힌 상회/하회도 지금 규칙(차이 %·색상)으로 한 번에 맞춘다
   if (opts.editable) setTimeout(() => { try { normalizeConsensus(editor); } catch (e) {} }, 0);
   // 마우스로 끌어 선택하는 동안에는 손잡이·서식 툴바를 움직이지 않는다(화면이 위아래로 튀지 않게)
