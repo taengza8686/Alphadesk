@@ -927,7 +927,7 @@
   }
 
   // 종목별 파일 지연 로딩 (1,000종목 데이터를 한 번에 받지 않음)
-  const HIST = {}, FIN = {}, PENDING = {};
+  const HIST = {}, FIN = {}, PENDING = {}, HIST_RELOADED = new Set();
   const fileOf = t => findStock(t)?.file || t;
   function lazyGet(store, dir, t) {
     if (store[t] !== undefined) return Promise.resolve(store[t]);
@@ -979,6 +979,11 @@
   }
   function applyData(d) {
     if (!d || !Array.isArray(d.stocks)) throw new Error('형식 오류');
+    // 새 데이터(다른 생성 시각)를 받으면 종목별 일봉·재무 캐시도 비운다 → 지수는 새 날짜, 종목은 옛 날짜인 채로 1D가 0%가 되는 것 방지
+    const stamp = d.generatedAt || d.asOf || d.benchmarks?.SP500?.asOf || '';
+    if (DATA && stamp !== (DATA.generatedAt || DATA.asOf || DATA.benchmarks?.SP500?.asOf || '')) {
+      Object.keys(HIST).forEach(k => delete HIST[k]); Object.keys(FIN).forEach(k => delete FIN[k]); HIST_RELOADED.clear();
+    }
     DATA = d;
     stocksData = d.stocks;
     benchmarkData = d.benchmarks || {};
@@ -2026,6 +2031,9 @@
     const used = [], excluded = [];
     modelPortfolio.forEach(h => {
       const hist = HIST[h.ticker];
+      if (hist?.d?.length && hist.d[hist.d.length - 1] < endIso && !HIST_RELOADED.has(h.ticker)) {   // 일봉이 지수보다 오래됨 → 한 번 다시 받기
+        HIST_RELOADED.add(h.ticker); delete HIST[h.ticker]; loadHist(h.ticker).then(() => { if (currentTab === 'tab3') { currentSub.tab3 === 'overview' ? renderPortfolioOverview() : renderPortfolioSection(); } });
+      }
       const flat = why => { if (pfOpt.missing === 'zero') { used.push({ h, series: dates.map(() => 1), p0: 1, flat: why }); excluded.push(`${h.ticker}(${why} → 0% 간주)`); } else excluded.push(`${h.ticker}(${why})`); };
       if (!hist || h.weight <= 0) { if (h.weight > 0) flat('가격 없음'); return; }
       const j0 = idxOnOrBefore(hist.d, dates[0]);
