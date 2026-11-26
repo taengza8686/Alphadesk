@@ -945,6 +945,9 @@ class KoTranslator:
         self.provider = None
         self.mm_fail = 0
         self.chars = 0
+        self.used_models: set[str] = set()
+        self.fail_batches = 0
+        self.last_err = ""
 
     def save(self):
         if len(self.cache) > 6000:   # 오래된 항목 정리
@@ -952,24 +955,57 @@ class KoTranslator:
         CACHE.mkdir(exist_ok=True)
         self.p.write_text(json.dumps(self.cache, ensure_ascii=False))
 
+    def _models(self) -> list[str]:
+        """시도할 Gemini 모델 순서. 503(일시 과부하)이 나면 다음 모델로 넘어간다."""
+        if getattr(self, "_mlist", None) is not None:
+            return self._mlist
+        want = [os.environ.get("GEMINI_MODEL") or "", "gemini-flash-lite-latest", "gemini-flash-latest"]
+        try:   # 실제로 쓸 수 있는 flash 계열 모델을 목록에서 보충(이름이 바뀌어도 동작하도록)
+            r = requests.get("https://generativelanguage.googleapis.com/v1beta/models", params={"key": self.gkey, "pageSize": 200}, timeout=20)
+            names = [m["name"].split("/", 1)[-1] for m in (r.json().get("models") or [])
+                     if "generateContent" in (m.get("supportedGenerationMethods") or [])]
+            extra = sorted([n for n in names if "flash" in n and not any(x in n for x in ("image", "tts", "audio", "live", "thinking", "exp"))], reverse=True)
+            want += [n for n in extra if "lite" in n][:2] + [n for n in extra if "lite" not in n][:1]
+        except Exception:  # noqa: BLE001
+            pass
+        self._mlist = [m for i, m in enumerate(want) if m and m not in want[:i]]
+        return self._mlist
+
     def _gemini(self, texts: list[str]) -> list[str] | None:
-        model = os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")
         prompt = ("다음 영어 금융·경제 뉴스 문장들을 자연스러운 한국어로 번역하세요. 기업명·티커·고유명사는 원문 표기를 유지하고, "
                   "숫자와 단위는 정확히 옮기세요. 입력과 같은 순서·같은 개수의 JSON 문자열 배열만 출력하세요.\n"
                   + json.dumps(texts, ensure_ascii=False))
-        try:
-            r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
-                              params={"key": self.gkey}, timeout=90,
-                              json={"contents": [{"parts": [{"text": prompt}]}],
-                                    "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1}})
-            r.raise_for_status()
-            txt = r.json()["candidates"][0]["content"]["parts"][0]["text"]
-            out = json.loads(txt)
-            if isinstance(out, list) and len(out) == len(texts):
-                return [str(x) for x in out]
-            warn("Gemini 번역 응답 개수 불일치 → MyMemory로 대체")
-        except Exception as ex:  # noqa: BLE001
-            warn(f"Gemini 번역 실패 → MyMemory로 대체: {str(ex)[:120]}")
+        last = ""
+        for model in self._models():
+            for attempt in range(3):
+                try:
+                    r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+                                      params={"key": self.gkey}, timeout=90,
+                                      json={"contents": [{"parts": [{"text": prompt}]}],
+                                            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.1}})
+                    if r.status_code in (429, 500, 502, 503, 504):   # 일시 과부하·한도: 잠시 기다렸다 다시
+                        last = f"{model} {r.status_code}"
+                        try:
+                            wait = float(r.headers.get("Retry-After") or 0)
+                        except ValueError:
+                            wait = 0
+                        time.sleep(min(30, max(wait, (3, 8, 15)[attempt])))
+                        continue
+                    if r.status_code >= 400:                          # 모델 없음·권한 등: 다음 모델로
+                        last = f"{model} {r.status_code}"
+                        break
+                    txt = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+                    out = json.loads(txt)
+                    if isinstance(out, list) and len(out) == len(texts):
+                        self.used_models.add(model)
+                        return [str(x) for x in out]
+                    last = f"{model} 응답 개수 불일치"
+                    break
+                except Exception as ex:  # noqa: BLE001
+                    last = f"{model} {str(ex)[:80]}"
+                    time.sleep((3, 8, 15)[attempt])
+        self.fail_batches += 1
+        self.last_err = last
         return None
 
     def _mymemory(self, text: str) -> str | None:
@@ -996,13 +1032,17 @@ class KoTranslator:
     def translate(self, texts: list[str]) -> dict:
         todo = list(dict.fromkeys(t for t in texts if t and t not in self.cache))
         if todo and self.gkey:
-            for i in range(0, len(todo), 60):
-                part = todo[i:i + 60]
+            nb = 0
+            for i in range(0, len(todo), 40):
+                part = todo[i:i + 40]
+                nb += 1
                 got = self._gemini(part)
                 if got:
                     self.cache.update(dict(zip(part, got)))
                     self.provider = "Gemini"
-                time.sleep(4)
+                time.sleep(3)
+            if self.fail_batches:   # 경고는 묶음마다가 아니라 한 번만
+                warn(f"Gemini 일시 과부하로 번역 {self.fail_batches}/{nb}묶음을 MyMemory로 대체 (재시도·대체 모델까지 실패: {self.last_err})")
             todo = [t for t in todo if t not in self.cache]
         for t in todo:
             ko = self._mymemory(t)
@@ -1438,12 +1478,17 @@ def market_brief(gkey: str | None, benchmarks: dict, sectors: list, movers: dict
               "sections는 다음 5개를 이 순서로: '지수·시장 폭', '섹터·테마', '급등·급락 종목', '주요 뉴스·이슈', '심리·변동성'.\n데이터:\n"
               + json.dumps(facts, ensure_ascii=False, default=str))
     models = [os.environ.get("GEMINI_BRIEF_MODEL", "gemini-flash-latest"), os.environ.get("GEMINI_MODEL", "gemini-flash-lite-latest")]
-    for model in models:
+    errs = []
+    for model, attempt in [(m, a) for m in dict.fromkeys(models) for a in range(2)]:
         try:
             r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
                               params={"key": gkey}, timeout=(20, 420 if model == models[0] else 180),
                               json={"contents": [{"parts": [{"text": prompt}]}],
                                     "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2}})
+            if r.status_code in (429, 500, 502, 503, 504):   # 일시 과부하: 잠시 뒤 같은 모델 한 번 더 → 다음 모델
+                errs.append(f"{model} {r.status_code}")
+                time.sleep(12 if attempt == 0 else 4)
+                continue
             r.raise_for_status()
             j = json.loads(r.json()["candidates"][0]["content"]["parts"][0]["text"])
             if isinstance(j, dict) and j.get("headline"):
@@ -1456,7 +1501,8 @@ def market_brief(gkey: str | None, benchmarks: dict, sectors: list, movers: dict
                                    "섹터": len(facts["섹터ETF"]), "테마": len(facts["투자테마_대분류_시총가중"]),
                                    "종목": len(facts["S&P500_상승상위10"]) + len(facts["S&P500_하락상위10"])}}
         except Exception as ex:  # noqa: BLE001
-            warn(f"시장 요약(Gemini {model}) 실패: {str(ex)[:120]}")
+            errs.append(f"{model} {str(ex)[:80]}")
+    warn(f"시장 요약(Gemini) 실패 → 자동 요약으로 대체: {' / '.join(errs[-3:])}")
     return None
 
 
