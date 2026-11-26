@@ -1701,6 +1701,13 @@ def main() -> None:
                            "asOf": c.index[-1].strftime("%Y-%m-%d"), **returns_block(c),
                            "history": {"d": [d.strftime("%Y-%m-%d") for d in c.index], "c": [round(float(x), 2) for x in c]}}
 
+    # 진단: 기준일 맞는지 (지수 마지막 날짜 vs 종목 마지막 날짜 분포)
+    try:
+        lds = pd.Series([df.index[-1].strftime("%Y-%m-%d") for k, df in prices.items() if df is not None and len(df)]).value_counts()
+        print(f"   기준일 점검: 마감 기준 {last_closed_session()} · 지수 " + ", ".join(f"{k} {v.get('asOf')}" for k, v in benchmarks.items())
+              + " · 종목 마지막 날짜 " + ", ".join(f"{d} {n}개" for d, n in lds.head(4).items()))
+    except Exception as ex:  # noqa: BLE001
+        print(f"   기준일 점검 실패: {ex}")
     print("④ SEC 재무·공시 + Yahoo 부가정보")
     z = open_bulk_facts(sec) if len(uni) > 40 else None
     budget = [args.info_budget, 0]
