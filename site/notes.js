@@ -215,6 +215,7 @@ async function ntShow(scope, id) {
     <div class="flex flex-wrap items-center gap-2 mt-2 text-[11px] text-slate-500">
       ${pg.title !== undefined ? ntTags(pg.title) : ''}
       <span>수정 ${esc(ntFmtDate(pg.updated_at))}${pg.updated_by && pg.updated_by !== 'notion' ? ' · ' + esc(pg.updated_by) : (pg.source === 'notion' ? ' · Notion에서 옮김' : '')}</span>
+      <span id="nt-chg-note" class="text-blue-300/80"></span>
       <span id="nt-save" class="ml-auto"></span>
       ${ntActions(scope, id)}
     </div>
@@ -231,12 +232,18 @@ async function ntFeedPrevQuarter(pg) {
   const n = ntNode(pg.id), par = n && ntNode(n.parent_id);
   if (!par || !/^earnings$/i.test((par.title || '').trim())) return;
   const k = ntQKey(pg.title); if (k == null) return;
-  const prev = ntKids(par.id).find(x => ntQKey(x.title) === k - 1);
-  if (!prev) return;
+  const sib = d => ntKids(par.id).find(x => x.id !== pg.id && ntQKey(x.title) === k - d);
+  const prevQ = sib(1), prevY = sib(4);
+  if (!prevQ && !prevY) return;
   try {
-    const pp = await ntApi('page?id=' + prev.id);
-    const m = ntParseEarnings(pp.html);
-    if (NT.cur?.id === pg.id && NT.ed?.setPrevMetrics && (isNum(m.ntmPE) || isNum(m.mktCap))) NT.ed.setPrevMetrics({ ntmPE: m.ntmPE, mktCap: m.mktCap });
+    const [pq, py] = await Promise.all([prevQ ? ntApi('page?id=' + prevQ.id) : null, prevY ? ntApi('page?id=' + prevY.id) : null]);
+    if (NT.cur?.id !== pg.id || !NT.ed) return;
+    const eq = pq ? ntParseEarnings(pq.html) : null, ey = py ? ntParseEarnings(py.html) : null;
+    if (eq && NT.ed.setPrevMetrics && (isNum(eq.ntmPE) || isNum(eq.mktCap))) NT.ed.setPrevMetrics({ ntmPE: eq.ntmPE, mktCap: eq.mktCap });
+    const toMap = e => e ? Object.fromEntries(e.items.filter(i => isNum(i.v) && !i.range).map(i => [i.key, { v: i.v, unit: i.unit, isMn: i.isMn }])) : null;
+    if (NT.ed.setChangeRefs) NT.ed.setChangeRefs({ parse: ntParseLine, skip: NT_SKIP_SEC, yoy: toMap(ey), qoq: toMap(eq) });
+    const note = $('nt-chg-note');
+    if (note) note.textContent = `자동 계산 기준 — YoY: ${prevY ? ntQLabel(k - 4) : '1년 전 페이지 없음'} · QoQ: ${prevQ ? ntQLabel(k - 1) : '직전 분기 페이지 없음'}`;
   } catch (e) {}
 }
 function ntCrumbs(scope, id) {

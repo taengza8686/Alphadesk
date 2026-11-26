@@ -564,6 +564,97 @@ function makeQoq(getPrev) {
   });
 }
 
+
+// 항목별 YoY·QoQ 자동 계산: 1년 전·직전 분기 페이지의 같은 항목 값과 비교 (금액 %, 마진 등 % 항목은 bp)
+const CHG_TOKEN = /([+-]?\d[\d,]*(?:\.\d+)?\s*(?:%p|%|bp)|[+-]?\s*(?:%|bp)|흑자전환|적자전환|적자지속|흑자지속|흑전|적전|적지|흑지|[+-])?\s*(YoY|QoQ)\b/g;
+function chgLabel(cur, ref) {
+  if (cur.unit === '%' || cur.unit === 'bp') { const d = cur.unit === '%' ? (cur.v - ref.v) * 100 : cur.v - ref.v; const r = Math.round(d); return `${r > 0 ? '+' : ''}${r.toLocaleString('en-US')}bp`; }
+  if (ref.v > 0) { const pc = (cur.v / ref.v - 1) * 100; return `${pc > 0 ? '+' : ''}${pc.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`; }
+  if (ref.v < 0 && cur.v > 0) return '흑전';
+  if (ref.v < 0 && cur.v < 0) return '적지';
+  if (ref.v > 0 && cur.v < 0) return '적전';
+  return null;
+}
+function lineCtx(state, pos) {   // pos: 문단 시작 위치 → 위쪽 목록 줄 제목들(바깥→안쪽)
+  const $p = state.doc.resolve(pos + 1); const path = [];
+  for (let d = $p.depth - 1; d > 0; d--) {
+    const n = $p.node(d);
+    if (n.type.name === 'listItem' || n.type.name === 'taskItem') {
+      if (d === $p.depth - 1) continue;              // 자기 자신의 목록 줄
+      const f = n.firstChild; path.unshift(f && f.isTextblock ? f.textContent.trim() : '');
+    }
+  }
+  const inLi = $p.depth >= 2 && ['listItem', 'taskItem'].includes($p.node($p.depth - 1).type.name) && $p.index($p.depth - 1) === 0;
+  return { path, inLi };
+}
+function chgEditsFor(state, pos, blk, ctx, onlyEmpty) {
+  const text = blk.textContent; if (!/\d/.test(text)) return [];
+  const { path, inLi } = lineCtx(state, pos); if (!inLi) return [];
+  const r = ctx.parse(text); if (!r || r.range || !isFinite(r.v)) return [];
+  const secs = [], metricParents = [];
+  path.forEach(x => { const pr = ctx.parse(x); if (pr) metricParents.push(pr.name); else secs.push(x); });
+  if (secs.some(x => ctx.skip.test(x))) return [];
+  const sec = secs.filter(x => !/^(재무제표|실적 요약)$/.test(x.replace(/[()]/g, '').trim())).join(' › ');
+  const key = [sec, ...metricParents, r.name].join(' › ').toLowerCase().replace(/\s+/g, ' ');
+  const vi = text.indexOf(r.raw, r.name.length); if (vi < 0) return [];
+  const vEnd = vi + r.raw.length;
+  const edits = []; const seen = {};
+  CHG_TOKEN.lastIndex = vEnd; let m;
+  while ((m = CHG_TOKEN.exec(text))) {
+    const kind = m[2]; if (seen[kind]) continue; seen[kind] = 1;
+    const ref = (kind === 'YoY' ? ctx.yoy : ctx.qoq)?.[key]; if (!ref || ref.unit !== r.unit || !!ref.isMn !== !!r.isMn) continue;
+    const label = chgLabel(r, ref); if (!label) continue;
+    const from = m.index, to = m.index + (m[1] ? m[1].length : 0);
+    const curTok = (m[1] || '').replace(/\s+/g, '');
+    if (onlyEmpty && /\d|흑|적/.test(curTok)) continue;     // 열 때: 비어 있는 칸만 채움(이미 적힌 숫자는 그대로)
+    if (curTok === label) continue;
+    const lead = m[1] ? (m[1].match(/^\s*/)[0]) : '';
+    edits.push({ from, to, label: m[1] ? lead + label : label + ' ' });
+  }
+  if (!seen.YoY && !onlyEmpty) {   // YoY 칸이 없으면 값 바로 뒤에 붙임
+    const ref = ctx.yoy?.[key];
+    if (ref && ref.unit === r.unit && !!ref.isMn === !!r.isMn) { const label = chgLabel(r, ref); if (label) edits.push({ from: vEnd, to: vEnd, label: `, ${label} YoY` }); }
+  }
+  return edits.sort((a, b) => b.from - a.from);
+}
+function fixChgBlocks(state, tr, entries, ctx, onlyEmpty) {
+  let changed = false;
+  entries.sort((a, b) => b[0] - a[0]).forEach(([pos, blk]) => {
+    const edits = chgEditsFor(state, pos, blk, ctx, onlyEmpty); if (!edits.length) return;
+    const start = pos + 1; const map = []; blk.forEach((ch, off) => { if (ch.isText) for (let i = 0; i < ch.text.length; i++) map.push(start + off + i); else map.push(start + off); });
+    edits.forEach(e => { const a = e.from < map.length ? map[e.from] : start + blk.content.size, b = e.to > e.from ? map[e.to - 1] + 1 : a; tr.insertText(e.label, a, b); changed = true; });
+  });
+  return changed;
+}
+function changedBlocks(trs, state) {
+  const ranges = [];
+  trs.forEach((t, ti) => t.steps.forEach((st, si) => st.getMap().forEach((a, b, from, to) => {
+    let f = from, e = to;
+    for (let k = si + 1; k < t.steps.length; k++) { f = t.steps[k].getMap().map(f, -1); e = t.steps[k].getMap().map(e, 1); }
+    for (let j = ti + 1; j < trs.length; j++) { f = trs[j].mapping.map(f, -1); e = trs[j].mapping.map(e, 1); }
+    ranges.push([Math.max(0, f), Math.min(state.doc.content.size, e)]);
+  })));
+  const blocks = new Map();
+  ranges.forEach(([f, e]) => state.doc.nodesBetween(f, Math.max(f, e), (n, pos) => { if (n.isTextblock) { blocks.set(pos, n); return false; } return blocks.size < 300; }));
+  return [...blocks.entries()];
+}
+function makeChg(getCtx) {
+  return Extension.create({
+    name: 'chgAuto',
+    addProseMirrorPlugins() {
+      return [new Plugin({
+        key: new PluginKey('chgAuto'),
+        appendTransaction(trs, oldState, state) {
+          const ctx = getCtx(); if (!ctx || !trs.some(t => t.docChanged) || trs.some(t => t.getMeta('chgAuto'))) return null;
+          const entries = changedBlocks(trs, state); if (!entries.length) return null;
+          const tr = state.tr; if (!fixChgBlocks(state, tr, entries, ctx, false)) return null;
+          tr.setMeta('chgAuto', true); return tr;
+        },
+      })];
+    },
+  });
+}
+
 const ConsensusAuto = Extension.create({
   name: 'consensusAuto',
   addProseMirrorPlugins() {
@@ -656,6 +747,7 @@ function splitBlockLines(editor, blk) {
 export function create(el, opts = {}) {
   const upload = opts.upload || null;
   let prevMetrics = opts.prevMetrics || null;
+  let chgCtx = null;
   const editor = new Editor({
     element: el,
     editable: !!opts.editable,
@@ -667,7 +759,7 @@ export function create(el, opts = {}) {
       Table.configure({ resizable: false }), TableRow, TableHeader, TableCell,
       Details.configure({ persist: true, HTMLAttributes: { class: 'ne-details' } }), DetailsSummary, DetailsContent,
       Image.configure({ inline: false, allowBase64: false }),
-      Callout, Quote, Indent, ConsensusAuto, makeQoq(() => prevMetrics),
+      Callout, Quote, Indent, ConsensusAuto, makeQoq(() => prevMetrics), makeChg(() => chgCtx),
       Placeholder.configure({ placeholder: ({ node }) => node.type.name === 'heading' ? '제목' : (node.type.name === 'detailsSummary' ? '토글 제목' : "내용을 입력하거나 '/'로 블록 추가"), includeChildren: false }),
       makeSlash(() => upload), Keys,
     ],
@@ -680,6 +772,12 @@ export function create(el, opts = {}) {
     onUpdate: ({ editor }) => opts.onUpdate && opts.onUpdate(editor),
   });
   if (opts.onSave) editor.on('save-now', () => opts.onSave(editor));
+  // 1년 전·직전 분기 항목 값을 받으면: 비어 있는 YoY·QoQ 칸을 채우고, 이후 입력하는 줄은 바로 계산
+  editor.setChangeRefs = c => {
+    chgCtx = c || null; if (!chgCtx || !editor.isEditable) return;
+    const entries = []; editor.state.doc.descendants((n, pos) => { if (n.isTextblock) { entries.push([pos, n]); return false; } return true; });
+    const tr = editor.state.tr; if (fixChgBlocks(editor.state, tr, entries, chgCtx, true)) { tr.setMeta('chgAuto', true); editor.view.dispatch(tr); }
+  };
   // 직전 분기 NTM PE·시가총액을 받으면 이 페이지의 QoQ를 바로 계산
   editor.setPrevMetrics = m => {
     prevMetrics = m || null; if (!prevMetrics || !editor.isEditable) return;
